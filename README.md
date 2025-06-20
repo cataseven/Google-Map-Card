@@ -55,20 +55,25 @@ resources:
 | `api_key`  | string  | Your Google Maps Embed API key (required)                |
 | `entities` | list    | One or more `person.` entities to select from (required) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
-| `theme_mode`| string  | light, dark (optional)                                   |
+| `theme_mode`| string  | light, dark (optional)                                  |
 | `icon_size`| integer | (optional)                                               |
+| `hours_to_show`| integer | 0 to disable it, default: 4                          |
 
 ## Card Example
 ```
 type: custom:google-map-card
-api_key: 123456789101112
+api_key: 1324567890
 entities:
-  - person.cenk
-  - person.derya
-  - person.mine
-zoom: 14
-icon_size: 45
-theme_mode: dark
+  - person.animal
+  - device_tracker.person1
+  - device_tracker.person2
+  - zone.home
+  - zone.work
+zoom: 11
+theme_mode: light
+icon_size: 40
+hours_to_show: 2
+
 ```
 
 ## Screenshot
