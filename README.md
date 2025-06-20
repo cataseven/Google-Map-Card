@@ -42,11 +42,12 @@ resources:
 | ---------- | ------- | -------------------------------------------------------- |
 | `api_key`  | string  | Your Google Maps Embed API key (required)                |
 | `entities` | list    | One or more `person.` entities to select from (required) |
-| `maptype`  | string  | Map type: roadmap, satellite, hybrid, terrain (optional) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
+| `theme`    | string  | light, dark (optional)                                   |
+| `icon_size`| integer | (optional)                                               |
 
 ## Card Example
-
+```
 type: custom:google-map-person-card
 api_key: 123456789101112
 entities:
@@ -56,5 +57,6 @@ entities:
 zoom: 14
 icon_size: 45
 theme_mode: dark
+```
 
 ## Screenshot
