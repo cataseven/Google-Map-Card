@@ -33,19 +33,19 @@ Create API and click the show key button on the bottom right
 
 1. Go to **HACS > Frontend > Custom Repositories**
 2. Add this repository URL:  
-   `https://github.com/YOUR_USERNAME/google-map-person-card`
+   `https://github.com/cataseven/google-map-card`
 3. Choose "Lovelace" as the category and click **Add**
 4. Find "Google Map Person Card" in the HACS store and install
 5. Make sure it is loaded in `resources:` (HACS should do this automatically)
 
 ### Manual
 
-1. Download `google-map-person-card.js`
-2. Place it in `www/community/google-map-person-card/`
+1. Download `google-map-card.js`
+2. Place it in `www/community/google-map-card/`
 3. Add the following to your Lovelace `resources:` section:
 
 resources:
-  - url: /local/community/google-map-person-card/google-map-person-card.js
+  - url: /local/community/google-map-card/google-map-card.js
     type: module
 
 ## Parameters
@@ -60,7 +60,7 @@ resources:
 
 ## Card Example
 ```
-type: custom:google-map-person-card
+type: custom:google-map-card
 api_key: 123456789101112
 entities:
   - person.cenk
