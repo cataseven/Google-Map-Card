@@ -35,7 +35,7 @@ Create API and click the show key button on the bottom right
 2. Add this repository URL:  
    `https://github.com/cataseven/google-map-card`
 3. Choose "Lovelace" as the category and click **Add**
-4. Find "Google Map Person Card" in the HACS store and install
+4. Find "Google Map Card" in the HACS store and install
 5. Make sure it is loaded in `resources:` (HACS should do this automatically)
 
 ### Manual
