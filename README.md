@@ -1,4 +1,4 @@
-# Google Map Person Card
+# Google Map Card
 
 A simple and responsive Lovelace custom card that displays the location of a `person.` entity using the Google Maps JavaScript API
 
