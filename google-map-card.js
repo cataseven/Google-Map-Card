@@ -117,12 +117,12 @@ class GoogleMapCard extends HTMLElement {
       throw new Error("Please provide 'entities' and 'api_key' configurations.");
     }
     this.config = config;
-    this.zoom = config.zoom || 15;
-    this.iconSize = config.icon_size || 40;
+    this.zoom = config.zoom || 11;
+    this.iconSize = config.icon_size || 20;
     this.themeMode = config.theme_mode || 'light';
     this.hoursToShow = typeof config.hours_to_show === 'number' ? 
                        config.hours_to_show : 
-                       4;
+                       0;
   }
 
   set hass(hass) {
@@ -138,7 +138,7 @@ class GoogleMapCard extends HTMLElement {
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.config.api_key}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.config.api_key}&libraries=geometry`;
       script.async = true;
       script.defer = true;
       script.onload = () => resolve();
@@ -261,8 +261,18 @@ class GoogleMapCard extends HTMLElement {
         lat: s.attributes.latitude,
         lon: s.attributes.longitude,
         picture: s.attributes.entity_picture,
+        icon: s.attributes.icon || this._getDefaultIcon(s.entity_id),
         state: s.state
       }));
+  }
+
+  _getDefaultIcon(entityId) {
+    // Default icons for common entity types
+    if (entityId.includes('person')) return 'mdi:account';
+    if (entityId.includes('vehicle')) return 'mdi:car';
+    if (entityId.includes('device_tracker')) return 'mdi:cellphone';
+    if (entityId.includes('zone')) return 'mdi:map-marker-radius';
+    return 'mdi:map-marker';
   }
 
   _clearPolylines() {
@@ -285,8 +295,26 @@ class GoogleMapCard extends HTMLElement {
         loc.fullPictureUrl = loc.picture.startsWith('/') 
           ? `${window.location.origin}${loc.picture}`
           : loc.picture;
-        
-        loc.icon = await this._createCircularIcon(loc.fullPictureUrl, size, borderSize);
+        loc.markerIcon = await this._createCircularIcon(loc.fullPictureUrl, size, borderSize);
+      } else if (loc.icon) {
+        try {
+          const iconParts = loc.icon.split(':');
+          const iconPrefix = iconParts[0];
+          const iconName = iconParts[1];
+          
+          if (iconPrefix === 'mdi') {
+            // Use jsDelivr CDN for Material Design Icons
+            loc.fullIconUrl = `https://cdn.jsdelivr.net/npm/@mdi/svg@latest/svg/${iconName}.svg`;
+          } else {
+            // Fallback to Home Assistant's icon path
+            loc.fullIconUrl = `${this._hass.connection.baseUrl}/static/icons/${loc.icon.replace(':', '-')}.png`;
+          }
+          
+          loc.markerIcon = await this._createCircularIcon(loc.fullIconUrl, size, borderSize);
+        } catch (e) {
+          console.error('Error creating icon:', e);
+          loc.markerIcon = null;
+        }
       }
       return loc;
     });
@@ -298,13 +326,14 @@ class GoogleMapCard extends HTMLElement {
         position: { lat: loc.lat, lng: loc.lon },
         map: this.map,
         title: loc.name,
-        icon: loc.icon || null,
+        icon: loc.markerIcon || null,
         optimized: true
       });
 
       const infoContent = `
         <div style="text-align:center; padding:10px; min-width:120px;">
-          ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${size}" height="${size}" style="border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);">` : ''}
+          ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${size}" height="${size}" style="border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);">` : 
+          loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${size}px; height:${size}px; color: var(--primary-color);"></ha-icon>` : ''}
           <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
           <div style="font-size:0.9em;color:#666;">${loc.state}</div>
         </div>
@@ -360,15 +389,30 @@ class GoogleMapCard extends HTMLElement {
       image.src = imageUrl;
       
       image.onload = () => {
+        // White background circle
         ctx.beginPath();
         ctx.arc(totalSize/2, totalSize/2, totalSize/2, 0, Math.PI * 2);
         ctx.fillStyle = 'white';
         ctx.fill();
         
+        // Clip to circle for the icon/image
         ctx.beginPath();
         ctx.arc(totalSize/2, totalSize/2, size/2, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(image, borderSize, borderSize, size, size);
+        
+        // Special handling for SVGs
+        if (imageUrl.endsWith('.svg')) {
+          // Draw white background for SVG
+          ctx.fillStyle = 'white';
+          ctx.fillRect(borderSize, borderSize, size, size);
+          
+          // Draw SVG with primary color
+          ctx.fillStyle = '#03A9F4'; // Default blue, matches HA primary color
+          ctx.drawImage(image, borderSize, borderSize, size, size);
+        } else {
+          // Regular images
+          ctx.drawImage(image, borderSize, borderSize, size, size);
+        }
         
         resolve({
           url: canvas.toDataURL(),
@@ -378,6 +422,7 @@ class GoogleMapCard extends HTMLElement {
       };
       
       image.onerror = () => {
+        console.warn('Failed to load image for marker:', imageUrl);
         resolve(null);
       };
     });
