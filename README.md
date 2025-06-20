@@ -2,6 +2,18 @@
 
 A simple and responsive Lovelace custom card that displays the location of a `person.` entity using the Google Maps JavaScript API
 
+## Features
+
+- Interactive Google Map view
+- Dynamic selection of person entities
+- Map terrain types
+- Street View
+- Custom zoom level
+- Fully responsive iframe layout
+- No additional dependencies required
+
+## Attention
+
 💡 Google Maps JavaScript API must be enabled in your Google Cloud project. https://console.cloud.google.com/google/maps-apis/api-list
 
 ![image](https://github.com/user-attachments/assets/c1f95159-583d-470e-83b2-4fe48e3110c9)
@@ -12,15 +24,6 @@ Create API and click the show key button on the bottom right
 
 ![image](https://github.com/user-attachments/assets/43354381-7c68-4430-b49d-4e375cdd0f41)
 
-## Features
-
-- Interactive Google Map view
-- Dynamic selection of person entities
-- Map terrain types
-- Street View
-- Custom zoom level
-- Fully responsive iframe layout
-- No additional dependencies required
 
 ---
 
