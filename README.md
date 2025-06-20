@@ -62,7 +62,7 @@ resources:
 ## Card Example
 ```
 type: custom:google-map-card
-api_key: 1324567890
+api_key: 1234567890
 entities:
   - person.animal
   - device_tracker.person1
