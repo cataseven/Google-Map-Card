@@ -8,6 +8,7 @@ A simple and responsive Lovelace custom card that displays the location of a `pe
 - Dynamic selection of person entities
 - Map terrain types
 - Street View
+- Route tracking
 - Custom zoom level
 - Fully responsive iframe layout
 - No additional dependencies required
