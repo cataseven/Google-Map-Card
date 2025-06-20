@@ -1,4 +1,4 @@
-class GoogleMapPersonCard extends HTMLElement {
+class GoogleMapCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -334,4 +334,4 @@ class GoogleMapPersonCard extends HTMLElement {
   }
 }
 
-customElements.define('google-map-person-card', GoogleMapPersonCard);
+customElements.define('google-map-card', GoogleMapCard);
