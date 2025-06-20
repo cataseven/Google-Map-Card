@@ -1,4 +1,4 @@
-# Google Map Card
+# Google Map Card for Home Assistant
 
 A simple and responsive Lovelace custom card that displays the location of a `person.` entity using the Google Maps JavaScript API
 
