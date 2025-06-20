@@ -4,9 +4,11 @@ class GoogleMapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.map = null;
     this.markers = [];
+    this.polylines = [];
     this.apiKeyLoaded = false;
     this.initialized = false;
     this.firstDraw = true;
+    this.locationHistory = {};
     this.darkModeStyles = [
       {elementType: "geometry", stylers: [{color: "#242f3e"}]},
       {elementType: "labels.text.stroke", stylers: [{color: "#242f3e"}]},
@@ -101,7 +103,7 @@ class GoogleMapCard extends HTMLElement {
         this.apiKeyLoaded = true;
         this._initialRender();
       }).catch(err => {
-        this.shadowRoot.innerHTML = `<div style="color:red;">Google Maps yüklenemedi: ${err}</div>`;
+        this.shadowRoot.innerHTML = `<div style="color:red;">Failed to load Google Maps: ${err}</div>`;
       });
     } else {
       this.apiKeyLoaded = true;
@@ -112,17 +114,21 @@ class GoogleMapCard extends HTMLElement {
 
   setConfig(config) {
     if (!config.entities || !config.api_key) {
-      throw new Error("Lütfen 'entities' ve 'api_key' konfigürasyonları sağlayın.");
+      throw new Error("Please provide 'entities' and 'api_key' configurations.");
     }
     this.config = config;
     this.zoom = config.zoom || 15;
     this.iconSize = config.icon_size || 40;
     this.themeMode = config.theme_mode || 'light';
+    this.hoursToShow = typeof config.hours_to_show === 'number' ? 
+                       config.hours_to_show : 
+                       24;
   }
 
   set hass(hass) {
     this._hass = hass;
     if (this.apiKeyLoaded && this.map) {
+      this._updateHistory();
       this._updateMarkers();
     }
   }
@@ -136,7 +142,7 @@ class GoogleMapCard extends HTMLElement {
       script.async = true;
       script.defer = true;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Google Maps betiği yüklenemedi'));
+      script.onerror = () => reject(new Error('Failed to load Google Maps script'));
       document.head.appendChild(script);
     });
   }
@@ -169,7 +175,7 @@ class GoogleMapCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       ${style}
       <div id="map">
-        <div class="loading">Harita yükleniyor...</div>
+        <div class="loading">Loading map...</div>
       </div>
     `;
 
@@ -182,10 +188,11 @@ class GoogleMapCard extends HTMLElement {
     const mapEl = this.shadowRoot.getElementById('map');
     if (!mapEl) return;
 
-    const locations = this._getLocations();
+    const locations = this._getCurrentLocations();
     if (locations.length === 0) {
-      mapEl.innerHTML = `<p>Konum verisi yok.</p>`;
+      mapEl.innerHTML = `<p>No location data.</p>`;
       this._clearMarkers();
+      this._clearPolylines();
       return;
     }
 
@@ -210,10 +217,41 @@ class GoogleMapCard extends HTMLElement {
       this.firstDraw = false;
     }
 
-    await this._updateMarkers(locations);
+    await this._updateMarkers();
   }
 
-  _getLocations() {
+  _updateHistory() {
+    const now = new Date();
+    const cutoff = this.hoursToShow > 0 ? 
+      now.getTime() - this.hoursToShow * 3600 * 1000 : 
+      Number.MAX_SAFE_INTEGER;
+
+    this.config.entities.forEach(eid => {
+      const state = this._hass.states[eid];
+      if (!state || !state.attributes.latitude || !state.attributes.longitude) return;
+
+      if (!this.locationHistory[eid]) {
+        this.locationHistory[eid] = [];
+      }
+
+      const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
+      if (!lastEntry || 
+          lastEntry.lat !== state.attributes.latitude || 
+          lastEntry.lon !== state.attributes.longitude) {
+        this.locationHistory[eid].push({
+          lat: state.attributes.latitude,
+          lon: state.attributes.longitude,
+          timestamp: new Date(state.last_updated).getTime()
+        });
+      }
+
+      this.locationHistory[eid] = this.locationHistory[eid].filter(entry => 
+        entry.timestamp >= cutoff
+      );
+    });
+  }
+
+  _getCurrentLocations() {
     return this.config.entities
       .map(eid => this._hass.states[eid])
       .filter(s => s && s.attributes.latitude && s.attributes.longitude)
@@ -227,19 +265,22 @@ class GoogleMapCard extends HTMLElement {
       }));
   }
 
-  async _updateMarkers() {
-    const locations = this._getLocations();
-    if (locations.length === 0) {
-      this._clearMarkers();
-      return;
-    }
+  _clearPolylines() {
+    this.polylines.forEach(polyline => polyline.setMap(null));
+    this.polylines = [];
+  }
 
+  async _updateMarkers() {
     this._clearMarkers();
+    this._clearPolylines();
+
+    const currentLocations = this._getCurrentLocations();
+    if (currentLocations.length === 0) return;
 
     const size = this.iconSize;
     const borderSize = 2;
 
-    const iconPromises = locations.map(async loc => {
+    const iconPromises = currentLocations.map(async loc => {
       if (loc.picture) {
         loc.fullPictureUrl = loc.picture.startsWith('/') 
           ? `${window.location.origin}${loc.picture}`
@@ -283,6 +324,27 @@ class GoogleMapCard extends HTMLElement {
 
       this.markers.push(marker);
     });
+
+    if (this.hoursToShow > 0) {
+      this.config.entities.forEach(eid => {
+        const history = this.locationHistory[eid] || [];
+        if (history.length < 2) return;
+
+        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+        const path = sortedHistory.map(point => new google.maps.LatLng(point.lat, point.lon));
+        
+        const polyline = new google.maps.Polyline({
+          path: path,
+          geodesic: true,
+          strokeColor: '#0000FF',
+          strokeOpacity: 0.7,
+          strokeWeight: 4,
+          map: this.map
+        });
+
+        this.polylines.push(polyline);
+      });
+    }
   }
 
   _createCircularIcon(imageUrl, size, borderSize = 2) {
