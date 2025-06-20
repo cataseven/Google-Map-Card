@@ -122,7 +122,7 @@ class GoogleMapCard extends HTMLElement {
     this.themeMode = config.theme_mode || 'light';
     this.hoursToShow = typeof config.hours_to_show === 'number' ? 
                        config.hours_to_show : 
-                       24;
+                       4;
   }
 
   set hass(hass) {
