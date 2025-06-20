@@ -1,14 +1,23 @@
 # Google Map Person Card
 
-A simple and responsive Lovelace custom card that displays the location of a `person.` entity using the Google Maps Embed API. 
+A simple and responsive Lovelace custom card that displays the location of a `person.` entity using the Google Maps JavaScript API
 
-💡 Google Maps Embed API must be enabled in your Google Cloud project.
+💡 Google Maps JavaScript API must be enabled in your Google Cloud project. https://console.cloud.google.com/google/maps-apis/api-list
+
+![image](https://github.com/user-attachments/assets/c1f95159-583d-470e-83b2-4fe48e3110c9)
+
+💡 Most of the Google API's have quotas and exceeding limits are charged by google. However Google Maps JavaScript API have unlimited per day. Do not forget to check your monthly quota limits. (not only for this integration but also the others related to Google API's)
+
+Create API and click the show key button on the bottom right
+
+![image](https://github.com/user-attachments/assets/43354381-7c68-4430-b49d-4e375cdd0f41)
 
 ## Features
 
 - Interactive Google Map view
 - Dynamic selection of person entities
-- Map type selector (roadmap, satellite, hybrid, terrain)
+- Map terrain types
+- Street View
 - Custom zoom level
 - Fully responsive iframe layout
 - No additional dependencies required
@@ -43,7 +52,7 @@ resources:
 | `api_key`  | string  | Your Google Maps Embed API key (required)                |
 | `entities` | list    | One or more `person.` entities to select from (required) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
-| `theme`    | string  | light, dark (optional)                                   |
+| `theme_mode`| string  | light, dark (optional)                                   |
 | `icon_size`| integer | (optional)                                               |
 
 ## Card Example
@@ -60,3 +69,8 @@ theme_mode: dark
 ```
 
 ## Screenshot
+![image](https://github.com/user-attachments/assets/e6a845a7-caed-4c9e-a101-c62a0f941e0c)
+
+![image](https://github.com/user-attachments/assets/a3a72a88-6799-4c44-ae2c-e9047e7a78c9)
+
+
