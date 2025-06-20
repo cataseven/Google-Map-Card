@@ -1,6 +1,6 @@
 {
     "name": "Google Map Person Card",
-    "description": "Shows person's location on Google Maps Embed API",
+    "description": "Shows person's location on Google Maps JavaScript API",
     "authors": ["@cataseven"],
     "version": "1.0.0",
     "type": "lovelace",
