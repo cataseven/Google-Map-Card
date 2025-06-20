@@ -4,7 +4,7 @@
     "authors": ["@cataseven"],
     "version": "1.0.0",
     "type": "lovelace",
-    "keywords": ["google", "maps", "lovelace", "location"],
+    "keywords": ["google", "maps", "lovelace", "location", "street view", "terrain", "map type"],
     "repository": "https://github.com/cenkataseven/google-map-person-card",
     "filename": "google-map-person-card.js"
   }
