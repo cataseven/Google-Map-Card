@@ -6,7 +6,7 @@ A simple and responsive Lovelace custom card that displays the location of a `pe
 
 ![image](https://github.com/user-attachments/assets/c1f95159-583d-470e-83b2-4fe48e3110c9)
 
-💡 Most of the Google API's have quotas and exceeding limits are charged by google. However Google Maps JavaScript API is unlimited per day. But to stay on the safe side do not forget to check your monthly quota limits. (not only for this integration but also the others related to Google API's)
+💡 Most of the Google API's have quotas and exceeding limits are charged by Google. However Google Maps JavaScript API is unlimited per day. But to stay on the safe side do not forget to check your monthly quota limits. (not only for this integration but also the others related to Google API's)
 
 Create API and click the show key button on the bottom right
 
