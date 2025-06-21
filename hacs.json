@@ -1,6 +1,6 @@
 {
   "name": "Google Map Card",
   "render_readme": true,
+  "zip_release": true,
   "filename": "google-map-card.js",
-  "category": "plugin"
 }
