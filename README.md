@@ -63,17 +63,29 @@ resources:
 ## Card Example
 ```
 type: custom:google-map-card
-api_key: 1234567890
+api_key: AIzaSyC1pXlRc65QJzJgOLX23UFTLyvfdmW6ZCI
 entities:
-  - person.animal
-  - device_tracker.person1
-  - device_tracker.person2
-  - zone.home
-  - zone.work
+  - entity: person.animal
+    polyline_color: "#FF0000"
+    icon_size: 15
+    hours_to_show: 2
+    icon_color: white
+    background_color: darkblue
+  - entity: zone.home
+    polyline_color: "#0000FF"
+    icon_size: 20
+    hours_to_show: 3
+    icon_color: white
+    background_color: green
+  - entity: device_tracker.androidphone
+    polyline_color: "#0000FF"
+    icon_size: 15
+    hours_to_show: 0
+    icon_color: white
+    background_color: green
 zoom: 11
 theme_mode: light
-icon_size: 40
-hours_to_show: 2
+
 
 ```
 
@@ -82,4 +94,5 @@ hours_to_show: 2
 
 ![image](https://github.com/user-attachments/assets/a3a72a88-6799-4c44-ae2c-e9047e7a78c9)
 
+![image](https://github.com/user-attachments/assets/5ddba161-8b22-47d1-a996-b26f92266b00)
 
