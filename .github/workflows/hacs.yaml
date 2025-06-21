@@ -16,4 +16,4 @@ jobs:
       - name: HACS Validator
         uses: hacs/action@main
         with:
-          category: "lovelace"
+          category: "plugin"
