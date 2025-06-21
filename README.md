@@ -57,11 +57,13 @@ resources:
 | `entities` | list    | One or more `person.` entities to select from (required) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
 | `theme_mode`| string  | light, dark (optional)                                  |
+| `aspect_ratio`| string  | (optional)                                            |
 | `icon_size`| integer | (optional)                                               |
 | `hours_to_show`| integer | 0 to disable it, default: 4                          |
 | `polyline_color`| string  | polyline color for tracking                         |
 | `icon_color`| string  | icon color                                              |
 | `background_color`| string  | icon background color                             |
+
 ## Card Example
 ```
 type: custom:google-map-card
