@@ -1,9 +1,3 @@
 {
-  "name": "Google Map Card",
-  "render_readme": true,
-  "description": "A Lovelace card showing Google Maps.",
-  "domains": ["lovelace"],
-  "homeassistant": "2023.0.0",
-  "persistent_directory": "www/google-map-card"
-  "filename": "google-map-card.js"
+  "name": "Google Map Card"
 }
