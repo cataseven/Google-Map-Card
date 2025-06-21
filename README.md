@@ -17,13 +17,13 @@ A simple and responsive Lovelace custom card that displays the location of a `pe
 
 💡 Google Maps JavaScript API must be enabled in your Google Cloud project. https://console.cloud.google.com/google/maps-apis/api-list
 
-![image](https://github.com/user-attachments/assets/c1f95159-583d-470e-83b2-4fe48e3110c9)
+![Google Map Card Screenshot](images/gm4.png)
 
 💡 Most of the Google API's have quotas and exceeding limits are charged by Google. However Google Maps JavaScript API is unlimited per day. But to stay on the safe side do not forget to check your monthly quota limits. (not only for this integration but also the others related to Google API's)
 
 Create API and click the show key button on the bottom right
 
-![image](https://github.com/user-attachments/assets/43354381-7c68-4430-b49d-4e375cdd0f41)
+![Google Map Card Screenshot](images/gm5.png)
 
 
 ---
