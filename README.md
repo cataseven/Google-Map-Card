@@ -92,9 +92,11 @@ theme_mode: light
 ```
 
 ## Screenshot
-![image](https://github.com/user-attachments/assets/e6a845a7-caed-4c9e-a101-c62a0f941e0c)
+![Google Map Card Screenshot](images/gm1.png)
 
-![image](https://github.com/user-attachments/assets/a3a72a88-6799-4c44-ae2c-e9047e7a78c9)
+![Google Map Card Screenshot](images/gm2.png)
+
+![Google Map Card Screenshot](images/gm3.png)
 
 ![image](https://github.com/user-attachments/assets/5ddba161-8b22-47d1-a996-b26f92266b00)
 
