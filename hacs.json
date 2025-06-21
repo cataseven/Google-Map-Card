@@ -5,5 +5,5 @@
   "domains": ["lovelace"],
   "homeassistant": "2023.0.0",
   "persistent_directory": "www/google-map-card"
-    "filename": "google-map-card.js"
+  "filename": "google-map-card.js"
 }
