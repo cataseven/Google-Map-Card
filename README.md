@@ -59,7 +59,9 @@ resources:
 | `theme_mode`| string  | light, dark (optional)                                  |
 | `icon_size`| integer | (optional)                                               |
 | `hours_to_show`| integer | 0 to disable it, default: 4                          |
-
+| `polyline_color`| string  | polyline color for tracking                         |
+| `icon_color`| string  | icon color                                              |
+| `background_color`| string  | icon background color                             |
 ## Card Example
 ```
 type: custom:google-map-card
