@@ -118,11 +118,27 @@ class GoogleMapCard extends HTMLElement {
     }
     this.config = config;
     this.zoom = config.zoom || 11;
-    this.iconSize = config.icon_size || 20;
     this.themeMode = config.theme_mode || 'light';
-    this.hoursToShow = typeof config.hours_to_show === 'number' ? 
-                       config.hours_to_show : 
-                       0;
+    this.aspectRatio = config.aspect_ratio || null; 
+
+    this.globalIconSize = config.icon_size || 20;
+    this.globalPictureSize = config.picture_size || config.icon_size || 20;
+    this.globalHoursToShow = typeof config.hours_to_show === 'number' ? config.hours_to_show : 0;
+    this.globalIconColor = config.icon_color || '#03A9F4';
+    this.globalBackgroundColor = config.background_color || '#FFFFFF';
+
+    this.entityConfigs = {};
+    this.config.entities.forEach(entityConfig => {
+      const entityId = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+      this.entityConfigs[entityId] = {
+        polyline_color: entityConfig.polyline_color || '#0000FF',
+        icon_size: entityConfig.icon_size || this.globalIconSize,
+        picture_size: entityConfig.picture_size || this.globalPictureSize,
+        hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : this.globalHoursToShow,
+        icon_color: entityConfig.icon_color || this.globalIconColor,
+        background_color: entityConfig.background_color || this.globalBackgroundColor,
+      };
+    });
   }
 
   set hass(hass) {
@@ -148,15 +164,40 @@ class GoogleMapCard extends HTMLElement {
   }
 
   _initialRender() {
+    let aspectRatioStyle = '';
+    let mapClasses = '';
+
+    if (this.aspectRatio) {
+      try {
+        const ratioValue = eval(this.aspectRatio.replace(':', '/'));
+        const paddingBottomPercentage = (1 / ratioValue) * 100;
+        aspectRatioStyle = `height: 0; padding-bottom: ${paddingBottomPercentage}%; position: relative;`;
+        mapClasses = 'aspect-ratio-container'; // İçerik pozisyonlaması için sınıf
+      } catch (e) {
+        console.warn(`Invalid aspect_ratio format: ${this.aspectRatio}. Using default height.`, e);
+        aspectRatioStyle = `height: 350px; min-height: 350px;`;
+      }
+    } else {
+      aspectRatioStyle = `height: 350px; min-height: 350px;`;
+    }
+
     const style = `
       <style>
         #map {
           width: 100%;
-          height: 350px;
+          ${aspectRatioStyle}
           border-radius: 8px;
           min-width: 300px;
-          min-height: 350px;
           box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          overflow: hidden; /* Border-radius ile içerik taşmasını engelle */
+        }
+        /* Eğer aspect_ratio kullanılıyorsa, asıl harita div'inin içindeki içeriği kaplaması için */
+        #map.aspect-ratio-container > div { 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
         .loading {
           position: absolute;
@@ -168,13 +209,14 @@ class GoogleMapCard extends HTMLElement {
           padding: 10px 20px;
           border-radius: 4px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          z-index: 10;
         }
       </style>
     `;
 
     this.shadowRoot.innerHTML = `
       ${style}
-      <div id="map">
+      <div id="map" class="${mapClasses}">
         <div class="loading">Loading map...</div>
       </div>
     `;
@@ -190,7 +232,7 @@ class GoogleMapCard extends HTMLElement {
 
     const locations = this._getCurrentLocations();
     if (locations.length === 0) {
-      mapEl.innerHTML = `<p>No location data.</p>`;
+      mapEl.innerHTML = `<p>No location data available for the configured entities.</p>`;
       this._clearMarkers();
       this._clearPolylines();
       return;
@@ -222,21 +264,28 @@ class GoogleMapCard extends HTMLElement {
 
   _updateHistory() {
     const now = new Date();
-    const cutoff = this.hoursToShow > 0 ? 
-      now.getTime() - this.hoursToShow * 3600 * 1000 : 
-      Number.MAX_SAFE_INTEGER;
 
-    this.config.entities.forEach(eid => {
+    this.config.entities.forEach(entityConfig => {
+      const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+      const entitySpecificConfig = this.entityConfigs[eid];
+
+      if (!entitySpecificConfig) return;
+
       const state = this._hass.states[eid];
       if (!state || !state.attributes.latitude || !state.attributes.longitude) return;
+
+      const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
+      const cutoff = hoursToShowForEntity > 0 ?
+        now.getTime() - hoursToShowForEntity * 3600 * 1000 :
+        Number.MAX_SAFE_INTEGER;
 
       if (!this.locationHistory[eid]) {
         this.locationHistory[eid] = [];
       }
 
       const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
-      if (!lastEntry || 
-          lastEntry.lat !== state.attributes.latitude || 
+      if (!lastEntry ||
+          lastEntry.lat !== state.attributes.latitude ||
           lastEntry.lon !== state.attributes.longitude) {
         this.locationHistory[eid].push({
           lat: state.attributes.latitude,
@@ -245,7 +294,7 @@ class GoogleMapCard extends HTMLElement {
         });
       }
 
-      this.locationHistory[eid] = this.locationHistory[eid].filter(entry => 
+      this.locationHistory[eid] = this.locationHistory[eid].filter(entry =>
         entry.timestamp >= cutoff
       );
     });
@@ -253,21 +302,34 @@ class GoogleMapCard extends HTMLElement {
 
   _getCurrentLocations() {
     return this.config.entities
-      .map(eid => this._hass.states[eid])
-      .filter(s => s && s.attributes.latitude && s.attributes.longitude)
-      .map(s => ({
-        id: s.entity_id,
-        name: s.attributes.friendly_name || s.entity_id,
-        lat: s.attributes.latitude,
-        lon: s.attributes.longitude,
-        picture: s.attributes.entity_picture,
-        icon: s.attributes.icon || this._getDefaultIcon(s.entity_id),
-        state: s.state
-      }));
+      .map(entityConfig => {
+        const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+        const state = this._hass.states[eid];
+        if (!state || !state.attributes.latitude || !state.attributes.longitude) return null;
+
+        const entitySpecificConfig = this.entityConfigs[eid];
+        if (!entitySpecificConfig) return null;
+
+        return {
+          id: eid,
+          name: state.attributes.friendly_name || eid,
+          lat: state.attributes.latitude,
+          lon: state.attributes.longitude,
+          picture: state.attributes.entity_picture,
+          icon: state.attributes.icon || this._getDefaultIcon(eid),
+          state: state.state,
+          icon_size: entitySpecificConfig.icon_size,
+          picture_size: entitySpecificConfig.picture_size,
+          polyline_color: entitySpecificConfig.polyline_color,
+          hours_to_show: entitySpecificConfig.hours_to_show,
+          icon_color: entitySpecificConfig.icon_color,
+          background_color: entitySpecificConfig.background_color,
+        };
+      })
+      .filter(Boolean);
   }
 
   _getDefaultIcon(entityId) {
-    // Default icons for common entity types
     if (entityId.includes('person')) return 'mdi:account';
     if (entityId.includes('vehicle')) return 'mdi:car';
     if (entityId.includes('device_tracker')) return 'mdi:cellphone';
@@ -287,30 +349,31 @@ class GoogleMapCard extends HTMLElement {
     const currentLocations = this._getCurrentLocations();
     if (currentLocations.length === 0) return;
 
-    const size = this.iconSize;
-    const borderSize = 2;
-
     const iconPromises = currentLocations.map(async loc => {
+      const iconSizeForEntity = loc.icon_size;
+      const pictureSizeForEntity = loc.picture_size;
+      const iconColorForEntity = loc.icon_color;
+      const backgroundColorForEntity = loc.background_color;
+      const borderSize = 2;
+
       if (loc.picture) {
-        loc.fullPictureUrl = loc.picture.startsWith('/') 
+        loc.fullPictureUrl = loc.picture.startsWith('/')
           ? `${window.location.origin}${loc.picture}`
           : loc.picture;
-        loc.markerIcon = await this._createCircularIcon(loc.fullPictureUrl, size, borderSize);
+        loc.markerIcon = await this._createCircularIcon(loc.fullPictureUrl, pictureSizeForEntity, borderSize, null, backgroundColorForEntity);
       } else if (loc.icon) {
         try {
           const iconParts = loc.icon.split(':');
           const iconPrefix = iconParts[0];
           const iconName = iconParts[1];
-          
+
           if (iconPrefix === 'mdi') {
-            // Use jsDelivr CDN for Material Design Icons
             loc.fullIconUrl = `https://cdn.jsdelivr.net/npm/@mdi/svg@latest/svg/${iconName}.svg`;
           } else {
-            // Fallback to Home Assistant's icon path
             loc.fullIconUrl = `${this._hass.connection.baseUrl}/static/icons/${loc.icon.replace(':', '-')}.png`;
           }
-          
-          loc.markerIcon = await this._createCircularIcon(loc.fullIconUrl, size, borderSize);
+
+          loc.markerIcon = await this._createCircularIcon(loc.fullIconUrl, iconSizeForEntity, borderSize, iconColorForEntity, backgroundColorForEntity);
         } catch (e) {
           console.error('Error creating icon:', e);
           loc.markerIcon = null;
@@ -332,8 +395,8 @@ class GoogleMapCard extends HTMLElement {
 
       const infoContent = `
         <div style="text-align:center; padding:10px; min-width:120px;">
-          ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${size}" height="${size}" style="border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);">` : 
-          loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${size}px; height:${size}px; color: var(--primary-color);"></ha-icon>` : ''}
+          ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.picture_size}" height="${loc.picture_size}" style="border-radius:50%;border:2px solid ${loc.background_color};box-shadow:0 2px 4px rgba(0,0,0,0.2);">` :
+            loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${loc.icon_size}px; height:${loc.icon_size}px; color: ${loc.icon_color}; background-color: ${loc.background_color}; border-radius: 50%;"></ha-icon>` : ''}
           <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
           <div style="font-size:0.9em;color:#666;">${loc.state}</div>
         </div>
@@ -354,78 +417,126 @@ class GoogleMapCard extends HTMLElement {
       this.markers.push(marker);
     });
 
-    if (this.hoursToShow > 0) {
-      this.config.entities.forEach(eid => {
-        const history = this.locationHistory[eid] || [];
-        if (history.length < 2) return;
+    if (this.globalHoursToShow > 0 || this.config.entities.some(e => typeof e !== 'string' && typeof e.hours_to_show === 'number' && e.hours_to_show > 0)) {
+      this.config.entities.forEach(entityConfig => {
+        const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+        const entitySpecificConfig = this.entityConfigs[eid];
 
-        const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
-        const path = sortedHistory.map(point => new google.maps.LatLng(point.lat, point.lon));
-        
-        const polyline = new google.maps.Polyline({
-          path: path,
-          geodesic: true,
-          strokeColor: '#0000FF',
-          strokeOpacity: 0.7,
-          strokeWeight: 4,
-          map: this.map
-        });
+        if (!entitySpecificConfig) return;
 
-        this.polylines.push(polyline);
+        const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
+        const polylineColorForEntity = entitySpecificConfig.polyline_color;
+
+        if (hoursToShowForEntity > 0) {
+          const history = this.locationHistory[eid] || [];
+          if (history.length < 2) return;
+
+          const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+          const path = sortedHistory.map(point => new google.maps.LatLng(point.lat, point.lon));
+
+          const polyline = new google.maps.Polyline({
+            path: path,
+            geodesic: true,
+            strokeColor: polylineColorForEntity,
+            strokeOpacity: 0.7,
+            strokeWeight: 4,
+            map: this.map
+          });
+
+          this.polylines.push(polyline);
+        }
       });
     }
   }
 
-  _createCircularIcon(imageUrl, size, borderSize = 2) {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const totalSize = size + borderSize * 2;
-      canvas.width = totalSize;
-      canvas.height = totalSize;
-      const ctx = canvas.getContext('2d');
+  /**
+   * @param {string} imageUrl
+   * @param {number} size
+   * @param {number} borderSize
+   * @param {string} [iconColor=null]
+   * @param {string} [backgroundColor=null]
+   * @returns {Promise<google.maps.Icon|null>}
+   */
+  async _createCircularIcon(imageUrl, size, borderSize = 2, iconColor = null, backgroundColor = null) {
+    const canvas = document.createElement('canvas');
+    const totalSize = size + borderSize * 2;
+    canvas.width = totalSize;
+    canvas.height = totalSize;
+    const ctx = canvas.getContext('2d');
 
-      const image = new Image();
-      image.crossOrigin = 'Anonymous';
-      image.src = imageUrl;
-      
-      image.onload = () => {
-        // White background circle
-        ctx.beginPath();
-        ctx.arc(totalSize/2, totalSize/2, totalSize/2, 0, Math.PI * 2);
-        ctx.fillStyle = 'white';
-        ctx.fill();
-        
-        // Clip to circle for the icon/image
-        ctx.beginPath();
-        ctx.arc(totalSize/2, totalSize/2, size/2, 0, Math.PI * 2);
-        ctx.clip();
-        
-        // Special handling for SVGs
-        if (imageUrl.endsWith('.svg')) {
-          // Draw white background for SVG
-          ctx.fillStyle = 'white';
-          ctx.fillRect(borderSize, borderSize, size, size);
-          
-          // Draw SVG with primary color
-          ctx.fillStyle = '#03A9F4'; // Default blue, matches HA primary color
-          ctx.drawImage(image, borderSize, borderSize, size, size);
-        } else {
-          // Regular images
-          ctx.drawImage(image, borderSize, borderSize, size, size);
+
+    ctx.beginPath();
+    ctx.arc(totalSize/2, totalSize/2, totalSize/2, 0, Math.PI * 2);
+    ctx.fillStyle = backgroundColor || 'white';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(totalSize/2, totalSize/2, size/2, 0, Math.PI * 2);
+    ctx.clip();
+
+    if (imageUrl.endsWith('.svg')) {
+      try {
+        const response = await fetch(imageUrl);
+        let svgText = await response.text();
+
+        if (iconColor) {
+            svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
+            svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
+            
+            svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
+                let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
+                return `style="${newStyle}"`;
+            });
+             if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
+                 svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
+             }
         }
         
-        resolve({
-          url: canvas.toDataURL(),
-          scaledSize: new google.maps.Size(totalSize, totalSize),
-          anchor: new google.maps.Point(totalSize/2, totalSize/2)
+        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const newImageUrl = URL.createObjectURL(svgBlob);
+
+        return new Promise((resolveInner) => {
+          const image = new Image();
+          image.onload = () => {
+            ctx.drawImage(image, borderSize, borderSize, size, size);
+            URL.revokeObjectURL(newImageUrl);
+            resolveInner({
+              url: canvas.toDataURL(),
+              scaledSize: new google.maps.Size(totalSize, totalSize),
+              anchor: new google.maps.Point(totalSize/2, totalSize/2)
+            });
+          };
+          image.onerror = () => {
+            console.warn('Failed to load modified SVG image for marker:', imageUrl);
+            URL.revokeObjectURL(newImageUrl);
+            resolveInner(null);
+          };
+          image.src = newImageUrl;
         });
-      };
-      
-      image.onerror = () => {
-        console.warn('Failed to load image for marker:', imageUrl);
-        resolve(null);
-      };
-    });
+
+      } catch (e) {
+        console.error('Error fetching or processing SVG:', e);
+        return null;
+      }
+    } else {
+      return new Promise((resolveInner) => {
+        const image = new Image();
+        image.crossOrigin = 'Anonymous';
+        image.onload = () => {
+          ctx.drawImage(image, borderSize, borderSize, size, size);
+          resolveInner({
+            url: canvas.toDataURL(),
+            scaledSize: new google.maps.Size(totalSize, totalSize),
+            anchor: new google.maps.Point(totalSize/2, totalSize/2)
+          });
+        };
+        image.onerror = () => {
+          console.warn('Failed to load image for marker:', imageUrl);
+          resolveInner(null);
+        };
+        image.src = imageUrl;
+      });
+    }
   }
 
   _clearMarkers() {
@@ -437,7 +548,7 @@ class GoogleMapCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 4;
+    return 4; 
   }
 }
 
