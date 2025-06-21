@@ -65,7 +65,7 @@ resources:
 ## Card Example
 ```
 type: custom:google-map-card
-api_key: AIzaSyC1pXlRc65QJzJgOLX23UFTLyvfdmW6ZCI
+api_key: 123457adasd56a4d78ad
 entities:
   - entity: person.animal
     polyline_color: "#FF0000"
