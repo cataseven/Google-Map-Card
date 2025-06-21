@@ -1,11 +1,11 @@
 {
     "name": "Google Map Card",
+    "render_readme": true,
     "description": "Shows person's location on Google Maps JavaScript API",
     "authors": ["@cataseven"],
     "version": "1.0.0",
-    "type": "lovelace",
+    "category": "lovelace",
     "keywords": ["google", "maps", "lovelace", "location", "street view", "terrain", "map type"],
     "repository": "https://github.com/cataseven/google-map-card",
     "filename": "google-map-card.js"
   }
-  
