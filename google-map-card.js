@@ -6,7 +6,8 @@ class GoogleMapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.map = null;
     this.markers = [];
-    this.polylines = [];
+    // Changed polylines to a Map to store by entityId for easier updates
+    this.polylines = new Map(); // Map<entityId, google.maps.Polyline>
     this.apiKeyLoaded = false;
     this.initialized = false;
     this.firstDraw = true;
@@ -171,7 +172,7 @@ class GoogleMapCard extends HTMLElement {
     if (locations.length === 0 && !this._firstLoadHistoryNeeded) {
       mapEl.innerHTML = `<p>No location data available for the configured entities.</p>`;
       this._clearMarkers(true);
-      this._clearPolylines();
+      // No need to clear polylines explicitly here, _updateMarkers will handle it
       return;
     }
 
@@ -270,11 +271,13 @@ class GoogleMapCard extends HTMLElement {
       }
 
       const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
-      if (!lastEntry ||
-          lastEntry.lat !== state.attributes.latitude ||
-          lastEntry.lon !== state.attributes.longitude ||
-          Math.abs(lastEntry.timestamp - new Date(state.last_updated).getTime()) > 1000
-          ) {
+      // Only add a new history point if the location has changed significantly or enough time has passed.
+      // This helps prevent adding duplicate points if the entity's state is frequently updated without movement.
+      const latChanged = lastEntry ? Math.abs(lastEntry.lat - state.attributes.latitude) > 0.000001 : true;
+      const lonChanged = lastEntry ? Math.abs(lastEntry.lon - state.attributes.longitude) > 0.000001 : true;
+      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true; // Add point if 5 seconds passed
+
+      if (!lastEntry || (latChanged || lonChanged || timePassed)) {
         this.locationHistory[eid].push({
           lat: state.attributes.latitude,
           lon: state.attributes.longitude,
@@ -323,18 +326,65 @@ class GoogleMapCard extends HTMLElement {
     return 'mdi:map-marker';
   }
 
-  _clearPolylines() {
-    this.polylines.forEach(polyline => polyline.setMap(null));
-    this.polylines = [];
+  // Renamed and refactored to handle polyline updates
+  _updatePolylines() {
+    const polylinesToKeep = new Set();
+
+    this.config.entities.forEach(entityConfig => {
+        const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+        const entitySpecificConfig = this.entityConfigs[eid];
+
+        if (!entitySpecificConfig) return;
+
+        const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
+        const polylineColorForEntity = entitySpecificConfig.polyline_color;
+
+        if (hoursToShowForEntity > 0) {
+            const history = this.locationHistory[eid] || [];
+            if (history.length >= 2) {
+                const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+                const path = sortedHistory.map(point => new google.maps.LatLng(point.lat, point.lon));
+
+                let polyline = this.polylines.get(eid);
+
+                if (polyline) {
+                    // Update existing polyline path and options
+                    polyline.setPath(path);
+                    polyline.setOptions({ strokeColor: polylineColorForEntity, strokeOpacity: 0.7, strokeWeight: 4 });
+                } else {
+                    // Create new polyline
+                    polyline = new google.maps.Polyline({
+                        path: path,
+                        geodesic: true,
+                        strokeColor: polylineColorForEntity,
+                        strokeOpacity: 0.7,
+                        strokeWeight: 4,
+                        map: this.map
+                    });
+                    this.polylines.set(eid, polyline);
+                }
+                polylinesToKeep.add(eid);
+            }
+        }
+    });
+
+    // Remove polylines that are no longer needed
+    this.polylines.forEach((polyline, eid) => {
+        if (!polylinesToKeep.has(eid)) {
+            polyline.setMap(null);
+            this.polylines.delete(eid);
+        }
+    });
   }
 
   async _updateMarkers() {
     const existingMarkers = new Map(this.markers.map(m => [m.entityId, m]));
-    this._clearPolylines();
-
+    // No longer calling _clearPolylines here, instead _updatePolylines will handle updates/removals
+    
     const currentLocations = this._getCurrentLocations();
     if (currentLocations.length === 0 && Object.keys(this.locationHistory).every(key => this.locationHistory[key].length === 0)) {
         this._clearMarkers(true);
+        this._updatePolylines(); // Ensure polylines are also cleared if no locations
         return;
     }
 
@@ -376,7 +426,7 @@ class GoogleMapCard extends HTMLElement {
 
     const locationsWithIcons = await Promise.all(iconPromises);
 
-    this.markers = [];
+    this.markers = []; // Re-initialize this.markers to only contain current active markers
 
     locationsWithIcons.forEach(loc => {
         let marker = existingMarkers.get(loc.id);
@@ -398,6 +448,7 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow.setContent(infoContent);
             }
             markersToKeep.add(loc.id);
+            this.markers.push(marker); // Add back to active markers
         } else {
             marker = new google.maps.Marker({
                 position: { lat: loc.lat, lng: loc.lon },
@@ -429,10 +480,11 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow = infoWindow;
             });
             markersToKeep.add(loc.id);
+            this.markers.push(marker); // Add new marker to active markers
         }
-        this.markers.push(marker);
     });
 
+    // Remove markers that are no longer needed
     existingMarkers.forEach((marker, entityId) => {
         if (!markersToKeep.has(entityId)) {
             if (marker.infoWindow) marker.infoWindow.close();
@@ -440,37 +492,8 @@ class GoogleMapCard extends HTMLElement {
         }
     });
 
-
-    if (this.config.entities.some(e => typeof e !== 'string' && typeof e.hours_to_show === 'number' && e.hours_to_show > 0)) {
-        this.config.entities.forEach(entityConfig => {
-            const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
-            const entitySpecificConfig = this.entityConfigs[eid];
-
-            if (!entitySpecificConfig) return;
-
-            const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
-            const polylineColorForEntity = entitySpecificConfig.polyline_color;
-
-            if (hoursToShowForEntity > 0) {
-                const history = this.locationHistory[eid] || [];
-                if (history.length < 2) return;
-
-                const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
-                const path = sortedHistory.map(point => new google.maps.LatLng(point.lat, point.lon));
-
-                const polyline = new google.maps.Polyline({
-                    path: path,
-                    geodesic: true,
-                    strokeColor: polylineColorForEntity,
-                    strokeOpacity: 0.7,
-                    strokeWeight: 4,
-                    map: this.map
-                });
-
-                this.polylines.push(polyline);
-            }
-        });
-    }
+    // Call the updated polyline function
+    this._updatePolylines();
   }
 
   async _createCircularIcon(imageUrl, size, borderSize = 2, iconColor = null, backgroundColor = null) {
