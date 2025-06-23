@@ -14,17 +14,18 @@ A simple and responsive Lovelace custom card that displays the location of a `pe
 - Fully responsive iframe layout
 - No additional dependencies required
 
+
 ## Attention
 
 💡 Google Maps JavaScript API must be enabled in your Google Cloud project. https://console.cloud.google.com/google/maps-apis/api-list
 
-![image1](images/gm4.png)
+![image4](images/gm4.png)
 
 💡 Most of the Google API's have quotas and exceeding limits are charged by Google. However Google Maps JavaScript API is unlimited per day. But to stay on the safe side do not forget to check your monthly quota limits. (not only for this integration but also the others related to Google API's)
 
 Create API and click the show key button on the bottom right
 
-![image2](images/gm5.png)
+![image5](images/gm5.png)
 
 
 ---
@@ -46,6 +47,8 @@ Create API and click the show key button on the bottom right
 resources:   
 url: /local/community/google-map-card/google-map-card.js
 
+
+
 ## Parameters
 
 | Key        | Type    | Description                                              |
@@ -64,11 +67,16 @@ url: /local/community/google-map-card/google-map-card.js
 
 ## UI Card Editor
 ![image6](images/gm6.png)
+![image9](images/gm9.png)
+
+
 
 ## Themes
 You can choose your best theme. So many options ;) 40 mow and more to come in the future
 ![image7](images/gm7.png)
 ![image8](images/gm8.png)
+
+
 
 ## Card Example
 ```
@@ -99,12 +107,13 @@ theme_mode: Dark_Blueish_Night
 
 ```
 
+
 ## Screenshots
-![image3](images/gm1.png)
+![image1](images/gm1.png)
 
-![image4](images/gm2.png)
+![image2](images/gm2.png)
 
-![image5](images/gm3.png)
+![image3](images/gm3.png)
 
 
 
