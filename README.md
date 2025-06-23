@@ -69,6 +69,8 @@ resources:
 
 ## Themes
 You can choose your best theme. So many options ;)
+![image7](images/gm7.png)
+![image8](images/gm8.png)
 
 ## Card Example
 ```
