@@ -56,13 +56,19 @@ resources:
 | `api_key`  | string  | Your Google Maps Embed API key (required)                |
 | `entities` | list    | One or more `person.` `zone.` or `device_tracker.` entities to select from (required) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
-| `theme_mode`| string  | light, dark (optional)                                  |
+| `theme_mode`| string  | (optional)                                              |
 | `aspect_ratio`| string  | (optional)                                            |
 | `icon_size`| integer | (optional)                                               |
 | `hours_to_show`| integer | 0 to disable it, default: 4                          |
 | `polyline_color`| string  | polyline color for tracking                         |
 | `icon_color`| string  | icon color                                              |
 | `background_color`| string  | icon background color                             |
+
+## UI Card Editor
+![image6](images/gm6.png)
+
+## Themes
+You can choose your best theme. So many options ;)
 
 ## Card Example
 ```
@@ -88,7 +94,7 @@ entities:
     icon_color: white
     background_color: green
 zoom: 11
-theme_mode: light
+theme_mode: Dark_Blueish_Night
 
 
 ```
