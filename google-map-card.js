@@ -56,7 +56,6 @@ class GoogleMapCard extends HTMLElement {
     }
 
     this.globalIconSize = config.icon_size || 20; 
-    // this.globalHoursToShow = typeof config.hours_to_show === 'number' ? config.hours_to_show : 0; // REMOVED GLOBAL HOURS TO SHOW
     this.globalIconColor = config.icon_color || '#03A9F4';
     this.globalBackgroundColor = config.background_color || '#FFFFFF';
 
@@ -86,7 +85,7 @@ class GoogleMapCard extends HTMLElement {
         this._loadAllInitialHistory();
         this._firstLoadHistoryNeeded = false; // Yüklendikten sonra bayrağı sıfırla
       }
-      this._updateHistory(); // Mevcut durum güncellemelerini işle
+      this._updateHistory(); // Mevcut durum günellemelerini işle
       this._updateMarkers();
     }
   }
@@ -585,15 +584,14 @@ class GoogleMapCard extends HTMLElement {
 
 customElements.define('google-map-card', GoogleMapCard);
 
-GoogleMapCard.getConfigElement = () => document.createElement('google-map-card-editor');
-
 
 // --- google-map-card-editor.js içeriği buradan başlıyor ---
 
 class GoogleMapCardEditor extends HTMLElement {
   constructor() {
     super();
-    this._config = {};
+    this._config = {}; // Last confirmed config from HA
+    this._tmpConfig = {}; // Temporary config for editor's current state
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
@@ -601,8 +599,9 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    // Create a deep copy of the config to ensure mutability
-    this._config = JSON.parse(JSON.stringify(config));
+    // Create deep copies to ensure mutability and proper state management
+    this._config = JSON.parse(JSON.stringify(config)); 
+    this._tmpConfig = JSON.parse(JSON.stringify(config));
     this._render();
   }
 
@@ -611,8 +610,9 @@ class GoogleMapCardEditor extends HTMLElement {
     this._updateEntityDatalist();
   }
 
+  // _entities getter now uses _tmpConfig
   get _entities() {
-    return this._config.entities || [];
+    return this._tmpConfig.entities || [];
   }
 
   _getEntitiesForDatalist() {
@@ -650,11 +650,11 @@ class GoogleMapCardEditor extends HTMLElement {
         cursorEnd = activeElement.selectionEnd;
     }
 
-    const theme = this._config.theme_mode || 'Auto';
-    const aspect = this._config.aspect_ratio || '';
-    const zoom = this._config.zoom || 11;
-    const apiKey = this._config.api_key || '';
-    // const hoursToShow = this._config.hours_to_show ?? ''; // REMOVED GLOBAL HOURS TO SHOW
+    // Use _tmpConfig for all rendering
+    const theme = this._tmpConfig.theme_mode || 'Auto';
+    const aspect = this._tmpConfig.aspect_ratio || '';
+    const zoom = this._tmpConfig.zoom || 11;
+    const apiKey = this._tmpConfig.api_key || '';
 
     const allThemes = Object.keys(this.themes['dark'] || {}).concat(Object.keys(this.themes['light'] || {}));
     const uniqueThemes = [...new Set(allThemes)].sort();
@@ -664,7 +664,7 @@ class GoogleMapCardEditor extends HTMLElement {
     const entityOptions = this._getEntitiesForDatalist()
       .map(entityId => `<option value="${entityId}">`).join('');
 
-    let entitiesHtml = this._entities.map((e, index) => {
+    let entitiesHtml = this._entities.map((e, index) => { // _entities getter uses _tmpConfig
       const entityId = typeof e === 'string' ? e : e.entity;
       const iconSize = e.icon_size || '';
       const entityHours = e.hours_to_show ?? '';
@@ -672,7 +672,8 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconColor = e.icon_color || '';
       const backgroundColor = e.background_color || '';
 
-      const isCollapsed = this._config._editor_collapse_entity && this._config._editor_collapse_entity[index];
+      // Use _tmpConfig for collapse states
+      const isCollapsed = this._tmpConfig._editor_collapse_entity && this._tmpConfig._editor_collapse_entity[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
 
@@ -1023,11 +1024,11 @@ class GoogleMapCardEditor extends HTMLElement {
     this._attachListeners();
     this._restoreCollapseStates();
     
-    if (activeEntityIndex !== -1 && activeInputClass) {
-        const inputToRestore = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
-        if (inputToRestore) {
-            inputToRestore.focus();
-            inputToRestore.setSelectionRange(cursorStart, cursorEnd);
+    if (activeElement && activeElement.closest('.entity-item')) { // Check if activeElement still exists and is part of an entity-item
+        const newActiveElement = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
+        if (newActiveElement) {
+            newActiveElement.focus();
+            newActiveElement.setSelectionRange(cursorStart, cursorEnd);
         }
     }
   }
@@ -1042,32 +1043,31 @@ class GoogleMapCardEditor extends HTMLElement {
       };
     };
 
-    this.shadowRoot.querySelectorAll('input, select').forEach(input => {
-        if (input.classList.contains('entity-id') || 
-            input.classList.contains('icon_size') ||
-            input.classList.contains('hours_to_show') ||
-            input.classList.contains('polyline_color') || 
-            input.classList.contains('icon_color') || 
-            input.classList.contains('background_color')) {
-            input.addEventListener('change', () => this._valueChanged());
-            if (input.type === 'text' || input.type === 'number') {
-                input.addEventListener('keyup', debounce(() => this._valueChanged(), 500));
-            }
-        } else {
-            input.addEventListener('change', () => this._valueChanged());
-            if (input.type === 'text' || input.type === 'number') {
-                input.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
-            }
+    // Global inputs (API Key, Zoom, Theme, Aspect Ratio)
+    this.shadowRoot.getElementById('api_key')?.addEventListener('change', () => this._valueChanged());
+    this.shadowRoot.getElementById('api_key')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+    this.shadowRoot.getElementById('zoom')?.addEventListener('change', () => this._valueChanged());
+    this.shadowRoot.getElementById('zoom')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+    this.shadowRoot.getElementById('theme_mode')?.addEventListener('change', () => this._valueChanged());
+    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('change', () => this._valueChanged());
+    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+
+
+    // Entity specific inputs (live elements, re-attach on render)
+    this.shadowRoot.querySelectorAll('.entity-input').forEach(input => {
+        input.addEventListener('change', () => this._valueChanged());
+        if (input.type === 'text' || input.type === 'number') {
+            input.addEventListener('keyup', debounce(() => this._valueChanged(), 500));
         }
     });
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
-      // Create a mutable copy of the entities array
-      const updated = [...(this._config.entities || [])];
+      // Modify _tmpConfig directly to trigger _render
+      const updated = [...(this._tmpConfig.entities || [])];
       updated.push({ entity: '' }); // Push a new empty entity object
-      this._config.entities = updated; // Assign the new array
+      this._tmpConfig.entities = updated; 
       this._render(); // Re-render to show the new entity
-      this._valueChanged(); // Update the config
+      this._valueChanged(); // Trigger config update based on new _tmpConfig
     });
 
 
@@ -1081,8 +1081,8 @@ class GoogleMapCardEditor extends HTMLElement {
             entityItem.classList.toggle('collapsed');
             const index = parseInt(entityItem.dataset.index);
             // Ensure _editor_collapse_entity is a mutable object
-            this._config._editor_collapse_entity = { ...(this._config._editor_collapse_entity || {}) };
-            this._config._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
+            this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
+            this._tmpConfig._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
             const arrowSpan = header.querySelector('.dropdown-arrow');
             if (arrowSpan) {
                 arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
@@ -1096,27 +1096,39 @@ class GoogleMapCardEditor extends HTMLElement {
       button.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
         if (!isNaN(index)) {
-          // Create a mutable copy of the entities array
-          const updated = [...(this._config.entities || [])];
-          updated.splice(index, 1);
-          this._config.entities = updated; // Assign the new array
+          // Create a new array from _tmpConfig.entities
+          const currentEntities = [...(this._tmpConfig.entities || [])];
+          currentEntities.splice(index, 1);
 
-          if (this._config._editor_collapse_entity) {
-              const newCollapseStates = {};
-              // Ensure we are working with a mutable copy of collapse states
-              const currentCollapseStates = { ...(this._config._editor_collapse_entity || {}) };
-              Object.keys(currentCollapseStates).forEach(key => {
+          let newCollapseStates = { ...(this._tmpConfig._editor_collapse_entity || {}) };
+          if (this._tmpConfig._editor_collapse_entity) {
+              const tempCollapseStates = {}; 
+              Object.keys(newCollapseStates).forEach(key => {
                   const oldIndex = parseInt(key);
                   if (oldIndex < index) {
-                      newCollapseStates[oldIndex] = currentCollapseStates[oldIndex];
+                      tempCollapseStates[oldIndex] = newCollapseStates[oldIndex];
                   } else if (oldIndex > index) {
-                      newCollapseStates[oldIndex - 1] = currentCollapseStates[oldIndex];
+                      tempCollapseStates[oldIndex - 1] = newCollapseStates[oldIndex];
                   }
               });
-              this._config._editor_collapse_entity = newCollapseStates;
+              newCollapseStates = tempCollapseStates; 
           }
-          this._render();
-          this._valueChanged();
+          
+          // Construct a completely new _tmpConfig object for internal editor state
+          const newTmpConfig = {
+              ...this._tmpConfig, 
+              entities: currentEntities.length > 0 ? currentEntities : undefined, 
+              _editor_collapse_entity: newCollapseStates 
+          };
+          
+          if (newTmpConfig.entities && newTmpConfig.entities.length === 0) {
+              delete newTmpConfig.entities;
+          }
+
+          this._tmpConfig = newTmpConfig; // Update the editor's internal state
+
+          this._render(); // Re-render the UI based on the new _tmpConfig
+          this._valueChanged(); // Trigger config change detection
         }
       });
     });
@@ -1127,8 +1139,8 @@ class GoogleMapCardEditor extends HTMLElement {
       if (header && content) {
           header.classList.toggle('collapsed');
           content.classList.toggle('hidden');
-          // Ensure _editor_collapse_appearance is set on a mutable object
-          this._config._editor_collapse_appearance = header.classList.contains('collapsed');
+          // Update _tmpConfig with collapse state
+          this._tmpConfig._editor_collapse_appearance = header.classList.contains('collapsed');
           this._valueChanged(); // Trigger config update
       }
     });
@@ -1137,15 +1149,17 @@ class GoogleMapCardEditor extends HTMLElement {
   _restoreCollapseStates() {
     const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
     const appearanceContent = this.shadowRoot.getElementById('appearance-content');
-    if (this._config._editor_collapse_appearance && appearanceHeader && appearanceContent) {
+    // Restore using _tmpConfig
+    if (this._tmpConfig._editor_collapse_appearance && appearanceHeader && appearanceContent) {
         appearanceHeader.classList.add('collapsed');
         appearanceContent.classList.add('hidden');
     }
 
-    if (this._config._editor_collapse_entity) {
+    // Restore using _tmpConfig
+    if (this._tmpConfig._editor_collapse_entity) {
         this.shadowRoot.querySelectorAll('.entity-item').forEach(entityItem => {
             const index = parseInt(entityItem.dataset.index);
-            if (this._config._editor_collapse_entity[index]) {
+            if (this._tmpConfig._editor_collapse_entity[index]) {
                 entityItem.classList.add('collapsed');
                 const arrowSpan = entityItem.querySelector('.dropdown-arrow');
                 if (arrowSpan) {
@@ -1161,28 +1175,37 @@ class GoogleMapCardEditor extends HTMLElement {
     const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
-    // const hoursToShowGlobal = parseFloat(this.shadowRoot.getElementById('hours_to_show_global')?.value); // REMOVED GLOBAL HOURS TO SHOW
 
-    const entityCount = this.shadowRoot.querySelectorAll('input.entity-id').length;
+    // IMPORTANT: Build newConfig *entirely* from the current DOM inputs.
+    // This newEntities array represents the actual state of the UI elements.
     const newEntities = [];
+    this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom, index) => {
+        const entityIdInput = entityItemDom.querySelector('.entity-id');
+        // Ensure the entityId input exists and has a value before processing
+        // This handles cases where an entity might have been deleted from the DOM
+        // but the querySelectorAll still returns a container element briefly.
+        if (!entityIdInput || !entityIdInput.value) {
+            // If the entityId input is missing or empty, skip this item entirely.
+            // This is crucial for deletions to reflect in the config.
+            return; 
+        }
 
-    for (let i = 0; i < entityCount; i++) {
-      const entity = this.shadowRoot.querySelector(`input.entity-id[data-index='${i}']`).value;
-      const icon_size = parseFloat(this.shadowRoot.querySelector(`input.icon_size[data-index='${i}']`)?.value);
-      const hours_to_show = parseFloat(this.shadowRoot.querySelector(`input.hours_to_show[data-index='${i}']`)?.value);
-      const polyline_color = this.shadowRoot.querySelector(`input.polyline_color[data-index='${i}']`)?.value;
-      const icon_color = this.shadowRoot.querySelector(`input.icon_color[data-index='${i}']`)?.value;
-      const background_color = this.shadowRoot.querySelector(`input.background_color[data-index='${i}']`)?.value;
+        const entityId = entityIdInput.value;
+        const icon_size = entityItemDom.querySelector('.icon_size')?.value;
+        const hours_to_show = entityItemDom.querySelector('.hours_to_show')?.value;
+        const polyline_color = entityItemDom.querySelector('.polyline_color')?.value;
+        const icon_color = entityItemDom.querySelector('.icon_color')?.value;
+        const background_color = entityItemDom.querySelector('.background_color')?.value;
 
-      const entityObj = { entity };
-      if (!isNaN(icon_size)) entityObj.icon_size = icon_size;
-      if (!isNaN(hours_to_show)) entityObj.hours_to_show = hours_to_show;
-      if (polyline_color) entityObj.polyline_color = polyline_color;
-      if (icon_color) entityObj.icon_color = icon_color;
-      if (background_color) entityObj.background_color = background_color;
-      
-      newEntities.push(entityObj);
-    }
+        const entityObj = { entity: entityId };
+        if (icon_size !== '' && !isNaN(parseFloat(icon_size))) entityObj.icon_size = parseFloat(icon_size);
+        if (hours_to_show !== '' && !isNaN(parseFloat(hours_to_show))) entityObj.hours_to_show = parseFloat(hours_to_show);
+        if (polyline_color) entityObj.polyline_color = polyline_color;
+        if (icon_color) entityObj.icon_color = icon_color;
+        if (background_color) entityObj.background_color = background_color;
+        
+        newEntities.push(entityObj);
+    });
 
     const newConfig = {
       type: 'custom:google-map-card',
@@ -1190,18 +1213,18 @@ class GoogleMapCardEditor extends HTMLElement {
       zoom: isNaN(zoom) ? undefined : zoom,
       theme_mode: theme === 'Auto' ? undefined : theme,
       aspect_ratio: aspect || undefined,
-      // hours_to_show: isNaN(hoursToShowGlobal) ? undefined : hoursToShowGlobal, // REMOVED GLOBAL HOURS TO SHOW
       entities: newEntities.length > 0 ? newEntities : undefined,
-      _editor_collapse_appearance: this._config._editor_collapse_appearance,
-      _editor_collapse_entity: this._config._editor_collapse_entity,
+      // Use _tmpConfig for collapse states as they are managed there
+      _editor_collapse_appearance: this._tmpConfig._editor_collapse_appearance,
+      _editor_collapse_entity: this._tmpConfig._editor_collapse_entity,
     };
 
     // Remove undefined properties before comparison
     Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
 
-    // Compare stringified versions for deep equality check
+    // Compare the newly generated config (from UI) against the last confirmed config (this._config)
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._config = newConfig; // _config is already a mutable copy
+      this._config = newConfig; // Update the 'last confirmed' config
       this.dispatchEvent(new CustomEvent('config-changed', {
         detail: { config: newConfig },
         bubbles: true,
@@ -1210,6 +1233,7 @@ class GoogleMapCardEditor extends HTMLElement {
     }
   }
 
+  // getConfig() method for completeness, although not always used by HA directly for UI editors
   getConfig() {
     return this._config;
   }
