@@ -59,7 +59,7 @@ resources:
 | `theme_mode`| string  | (optional)                                              |
 | `aspect_ratio`| string  | (optional)                                            |
 | `icon_size`| integer | (optional)                                               |
-| `hours_to_show`| integer | 0 to disable it, default: 4                          |
+| `hours_to_show`| integer | Enabling Route tracking. 0 to disable it, default: 4 |
 | `polyline_color`| string  | polyline color for tracking                         |
 | `icon_color`| string  | icon color                                              |
 | `background_color`| string  | icon background color                             |
