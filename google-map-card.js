@@ -6,8 +6,7 @@ class GoogleMapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.map = null;
     this.markers = [];
-    // Changed polylines to a Map to store by entityId for easier updates
-    this.polylines = new Map(); // Map<entityId, google.maps.Polyline>
+    this.polylines = new Map();
     this.apiKeyLoaded = false;
     this.initialized = false;
     this.firstDraw = true;
@@ -68,7 +67,6 @@ class GoogleMapCard extends HTMLElement {
         hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0,
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
-        // New: polyline_width added with a default of 1
         polyline_width: typeof entityConfig.polyline_width === 'number' ? entityConfig.polyline_width : 1,
       };
     });
@@ -174,7 +172,6 @@ class GoogleMapCard extends HTMLElement {
     if (locations.length === 0 && !this._firstLoadHistoryNeeded) {
       mapEl.innerHTML = `<p>No location data available for the configured entities.</p>`;
       this._clearMarkers(true);
-      // No need to clear polylines explicitly here, _updateMarkers will handle it
       return;
     }
 
@@ -273,11 +270,9 @@ class GoogleMapCard extends HTMLElement {
       }
 
       const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
-      // Only add a new history point if the location has changed significantly or enough time has passed.
-      // This helps prevent adding duplicate points if the entity's state is frequently updated without movement.
       const latChanged = lastEntry ? Math.abs(lastEntry.lat - state.attributes.latitude) > 0.000001 : true;
       const lonChanged = lastEntry ? Math.abs(lastEntry.lon - state.attributes.longitude) > 0.000001 : true;
-      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true; // Add point if 5 seconds passed
+      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true;
 
       if (!lastEntry || (latChanged || lonChanged || timePassed)) {
         this.locationHistory[eid].push({
@@ -315,7 +310,7 @@ class GoogleMapCard extends HTMLElement {
           hours_to_show: entitySpecificConfig.hours_to_show,
           icon_color: entitySpecificConfig.icon_color,
           background_color: entitySpecificConfig.background_color,
-          polyline_width: entitySpecificConfig.polyline_width, // Pass polyline_width
+          polyline_width: entitySpecificConfig.polyline_width,
         };
       })
       .filter(Boolean);
@@ -329,7 +324,6 @@ class GoogleMapCard extends HTMLElement {
     return 'mdi:map-marker';
   }
 
-  // Renamed and refactored to handle polyline updates
   _updatePolylines() {
     const polylinesToKeep = new Set();
 
@@ -341,7 +335,7 @@ class GoogleMapCard extends HTMLElement {
 
         const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
         const polylineColorForEntity = entitySpecificConfig.polyline_color;
-        const polylineWidthForEntity = entitySpecificConfig.polyline_width; // Get polyline width
+        const polylineWidthForEntity = entitySpecificConfig.polyline_width;
 
         if (hoursToShowForEntity > 0) {
             const history = this.locationHistory[eid] || [];
@@ -352,21 +346,19 @@ class GoogleMapCard extends HTMLElement {
                 let polyline = this.polylines.get(eid);
 
                 if (polyline) {
-                    // Update existing polyline path and options
                     polyline.setPath(path);
                     polyline.setOptions({ 
                         strokeColor: polylineColorForEntity, 
                         strokeOpacity: 0.7, 
-                        strokeWeight: polylineWidthForEntity // Use polylineWidthForEntity here
+                        strokeWeight: polylineWidthForEntity
                     });
                 } else {
-                    // Create new polyline
                     polyline = new google.maps.Polyline({
                         path: path,
                         geodesic: true,
                         strokeColor: polylineColorForEntity,
                         strokeOpacity: 0.7,
-                        strokeWeight: polylineWidthForEntity, // Use polylineWidthForEntity here
+                        strokeWeight: polylineWidthForEntity,
                         map: this.map
                     });
                     this.polylines.set(eid, polyline);
@@ -376,7 +368,6 @@ class GoogleMapCard extends HTMLElement {
         }
     });
 
-    // Remove polylines that are no longer needed
     this.polylines.forEach((polyline, eid) => {
         if (!polylinesToKeep.has(eid)) {
             polyline.setMap(null);
@@ -391,7 +382,7 @@ class GoogleMapCard extends HTMLElement {
     const currentLocations = this._getCurrentLocations();
     if (currentLocations.length === 0 && Object.keys(this.locationHistory).every(key => this.locationHistory[key].length === 0)) {
         this._clearMarkers(true);
-        this._updatePolylines(); // Ensure polylines are also cleared if no locations
+        this._updatePolylines();
         return;
     }
 
@@ -401,7 +392,6 @@ class GoogleMapCard extends HTMLElement {
         const iconColorForEntity = loc.icon_color;
         const backgroundColorForEntity = loc.background_color;
         
-        // Define border size for icons (2px) and pictures (0px)
         const borderSizeForIcon = 2; 
 
         let markerIcon = null;
@@ -412,7 +402,6 @@ class GoogleMapCard extends HTMLElement {
             fullPictureUrl = loc.picture.startsWith('/')
                 ? `${window.location.origin}${loc.picture}`
                 : loc.picture;
-            // For pictures, pass borderSize as 0 and null for colors
             markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, 0, null, null); 
         } else if (loc.icon) {
             try {
@@ -425,7 +414,6 @@ class GoogleMapCard extends HTMLElement {
                 } else {
                     fullIconUrl = `${this._hass.connection.baseUrl}/static/icons/${loc.icon.replace(':', '-')}.png`;
                 }
-                // For icons, apply iconColor and backgroundColor with border
                 markerIcon = await this._createCircularIcon(fullIconUrl, iconSizeForEntity, borderSizeForIcon, iconColorForEntity, backgroundColorForEntity);
             } catch (e) {
                 console.error('Error creating icon:', e);
@@ -437,7 +425,7 @@ class GoogleMapCard extends HTMLElement {
 
     const locationsWithIcons = await Promise.all(iconPromises);
 
-    this.markers = []; // Re-initialize this.markers to only contain current active markers
+    this.markers = [];
 
     locationsWithIcons.forEach(loc => {
         let marker = existingMarkers.get(loc.id);
@@ -448,7 +436,6 @@ class GoogleMapCard extends HTMLElement {
                 marker.setIcon(loc.markerIcon || null);
             }
             if (marker.infoWindow) {
-                // Info window content, ensuring border-radius for pictures is applied correctly
                 const infoContent = `
                 <div style="text-align:center; padding:10px; min-width:120px;">
                   ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
@@ -460,7 +447,7 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow.setContent(infoContent);
             }
             markersToKeep.add(loc.id);
-            this.markers.push(marker); // Add back to active markers
+            this.markers.push(marker);
         } else {
             marker = new google.maps.Marker({
                 position: { lat: loc.lat, lng: loc.lon },
@@ -471,7 +458,6 @@ class GoogleMapCard extends HTMLElement {
             });
             marker.entityId = loc.id;
 
-            // Info window content for new markers
             const infoContent = `
             <div style="text-align:center; padding:10px; min-width:120px;">
               ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
@@ -493,19 +479,17 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow = infoWindow;
             });
             markersToKeep.add(loc.id);
-            this.markers.push(marker); // Add new marker to active markers
+            this.markers.push(marker);
         }
     });
 
-    // Remove markers that are no longer needed
-    existingMarkers.forEach((marker, entityId) => {
+    this.markers.forEach((marker, entityId) => {
         if (!markersToKeep.has(entityId)) {
             if (marker.infoWindow) marker.infoWindow.close();
             marker.setMap(null);
         }
     });
 
-    // Call the updated polyline function
     this._updatePolylines();
   }
 
@@ -513,7 +497,7 @@ class GoogleMapCard extends HTMLElement {
     const canvas = document.createElement('canvas');
     
     const contentDiameter = size;
-    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0; // 4px padding for icons, 0 for pictures
+    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0;
     const borderThickness = imageUrl.endsWith('.svg') ? borderSize : 0;
 
     const totalCanvasDiameter = contentDiameter + (2 * iconPadding) + (2 * borderThickness);
@@ -521,13 +505,11 @@ class GoogleMapCard extends HTMLElement {
     canvas.height = totalCanvasDiameter;
     const ctx = canvas.getContext('2d');
 
-    // Clear the canvas to ensure transparency initially
     ctx.clearRect(0, 0, totalCanvasDiameter, totalCanvasDiameter);
 
     const centerX = totalCanvasDiameter / 2;
     const centerY = totalCanvasDiameter / 2;
 
-    // Apply background color if it's an icon and a background is specified
     if (imageUrl.endsWith('.svg') && backgroundColor) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, totalCanvasDiameter / 2, 0, Math.PI * 2);
@@ -535,26 +517,18 @@ class GoogleMapCard extends HTMLElement {
       ctx.fill();
     }
 
-    // Apply border if it's an icon and borderThickness > 0
     if (imageUrl.endsWith('.svg') && borderThickness > 0) {
       ctx.beginPath();
-      // The border should be drawn around the content + inner padding area
-      // Its radius extends up to the outer edge of the canvas, minus half its thickness
       ctx.arc(centerX, centerY, (totalCanvasDiameter - borderThickness) / 2, 0, Math.PI * 2); 
-      ctx.strokeStyle = iconColor || '#000000'; // Default border color if iconColor not provided
-      ctx.lineWidth = borderThickness; // Set stroke width to the border thickness
+      ctx.strokeStyle = iconColor || '#000000';
+      ctx.lineWidth = borderThickness;
       ctx.stroke();
     }
 
-    // Clip to a circle for the actual image/icon content.
-    // This clipping circle's radius is half of the 'size' parameter (contentDiameter / 2), 
-    // ensuring the content itself is the desired 'size' diameter.
     ctx.beginPath();
     ctx.arc(centerX, centerY, contentDiameter / 2, 0, Math.PI * 2);
     ctx.clip();
 
-    // Calculate offset to draw the image/icon centered within the clipped area
-    // This offset considers border and padding to correctly center the contentDiameter image
     const drawX = (totalCanvasDiameter - contentDiameter) / 2;
     const drawY = (totalCanvasDiameter - contentDiameter) / 2;
 
@@ -563,17 +537,14 @@ class GoogleMapCard extends HTMLElement {
         const response = await fetch(imageUrl);
         let svgText = await response.text();
 
-        // Apply iconColor to SVG fill and stroke attributes if provided
         if (iconColor) {
             svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
             svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
 
-            // Also check for style attribute to replace fill/stroke within it
             svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
               let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
               return `style="${newStyle}"`;
             });
-            // If no fill/stroke attributes found, add a default fill to <path> elements
             if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
                 svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
             }
@@ -585,7 +556,6 @@ class GoogleMapCard extends HTMLElement {
         return new Promise((resolveInner) => {
           const image = new Image();
           image.onload = () => {
-            // Draw the SVG image at the calculated offset and desired 'size'
             ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
             URL.revokeObjectURL(newImageUrl);
             resolveInner({
@@ -607,12 +577,10 @@ class GoogleMapCard extends HTMLElement {
         return null;
       }
     } else {
-      // For non-SVG images (pictures)
       return new Promise((resolveInner) => {
         const image = new Image();
-        image.crossOrigin = 'Anonymous'; // Needed for loading images from different origins on canvas
+        image.crossOrigin = 'Anonymous';
         image.onload = () => {
-          // Draw the picture at the calculated offset and desired 'size'
           ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
           resolveInner({
             url: canvas.toDataURL(),
@@ -654,13 +622,29 @@ class GoogleMapCardEditor extends HTMLElement {
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
-    this._debounceTimeout = null;
+    
+    this._debouncedValueChanged = this._debounce(this._valueChanged.bind(this), 500);
+    
+    this._boundInputHandler = this._inputChanged.bind(this);
+    this._boundClickHandler = this._handleClick.bind(this);
+    this._boundFillDefaultEntityValues = this._fillDefaultEntityValues.bind(this);
+  }
+
+  _debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), delay);
+    };
   }
 
   setConfig(config) {
     this._config = JSON.parse(JSON.stringify(config)); 
     this._tmpConfig = JSON.parse(JSON.stringify(config));
-    this._render();
+    this._render(); 
+    this._attachListeners(); 
+    this._updateUI();
   }
 
   set hass(hass) {
@@ -694,19 +678,6 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   _render() {
-    const activeElement = this.shadowRoot.activeElement;
-    let activeEntityIndex = -1;
-    let activeInputClass = '';
-    let cursorStart = -1;
-    let cursorEnd = -1;
-
-    if (activeElement && activeElement.closest('.entity-item')) {
-        activeEntityIndex = parseInt(activeElement.closest('.entity-item').dataset.index);
-        activeInputClass = Array.from(activeElement.classList).find(cls => cls.includes('input'));
-        cursorStart = activeElement.selectionStart;
-        cursorEnd = activeElement.selectionEnd;
-    }
-
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
     const zoom = this._tmpConfig.zoom || 11;
@@ -715,22 +686,13 @@ class GoogleMapCardEditor extends HTMLElement {
     const allThemes = Object.keys(this.themes['dark'] || {}).concat(Object.keys(this.themes['light'] || {}));
     const uniqueThemes = [...new Set(allThemes)].sort();
     const themeOptions = ['Auto', ...uniqueThemes]
-      .map(t => `<option value="${t}" ${t === theme ? 'selected' : ''}>${t}</option>`).join('');
+      .map(t => `<option value="${t}">${t}</option>`).join('');
 
     const entityOptions = this._getEntitiesForDatalist()
       .map(entityId => `<option value="${entityId}">`).join('');
 
     let entitiesHtml = this._entities.map((e, index) => {
       const entityId = typeof e === 'string' ? e : e.entity;
-      // Use defaults as placeholders if not explicitly set
-      const iconSize = e.icon_size !== undefined ? e.icon_size : this._config.icon_size || 20;
-      const entityHours = e.hours_to_show !== undefined ? e.hours_to_show : 0;
-      const polylineColor = e.polyline_color || '#FFFFFF'; // Default color
-      const polylineWidth = e.polyline_width !== undefined ? e.polyline_width : 1; // Default width
-      const iconColor = e.icon_color || '#780202'; // Default color
-      const backgroundColor = e.background_color || '#FFFFFF'; // Default color
-
-
       const isCollapsed = this._tmpConfig._editor_collapse_entity && this._tmpConfig._editor_collapse_entity[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
@@ -751,24 +713,24 @@ class GoogleMapCardEditor extends HTMLElement {
               </label>
               <div class="input-row-grid-three">
                 <label class="font-resizer">Icon Size:
-                  <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
+                  <input class="entity-input icon_size" type="text" data-index="${index}" placeholder="e.g. 24" />
                 </label>
                 <label class="font-resizer">Hours to Show:
-                  <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
+                  <input class="entity-input hours_to_show" type="text" data-index="${index}" placeholder="e.g. 24" />
                 </label>
                 <label class="font-resizer">Polyline Width:
-                  <input class="entity-input polyline_width" type="text" data-index="${index}" value="${polylineWidth}" placeholder="e.g. 1" />
+                  <input class="entity-input polyline_width" type="text" data-index="${index}" placeholder="e.g. 1" />
                 </label>
               </div>
               <div class="input-row-grid-three">
                 <label class="font-resizer">Icon Color:
-                  <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
+                  <input class="entity-input icon_color" type="color" data-index="${index}" />
                 </label>
                 <label class="font-resizer">BG Color:
-                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
+                  <input class="entity-input background_color" type="color" data-index="${index}" />
                 </label>
                 <label class="font-resizer">Polyline Color:
-                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
+                  <input class="entity-input polyline_color" type="color" data-index="${index}" />
                 </label>
               </div>
           </div>
@@ -789,7 +751,6 @@ class GoogleMapCardEditor extends HTMLElement {
           font-family: var(--primary-font-family);
         }
 
-        /* Yeni CSS kuralı: Belirtilen labellerin font boyutunu %85 oranında küçültür */
         .font-resizer {
             font-size: 85%;
         }
@@ -798,7 +759,7 @@ class GoogleMapCardEditor extends HTMLElement {
           padding: 0px;
           border-radius: unset;
           box-shadow: none;
-          max-width: 1000px; /* Increased max-width for wider layout */
+          max-width: 1000px;
           margin: auto;
         }
 
@@ -916,10 +877,10 @@ class GoogleMapCardEditor extends HTMLElement {
           gap: 15px;
         }
 
-        .input-row-grid-three { /* NEW CSS CLASS */
+        .input-row-grid-three {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
-          gap: 15px; /* Maintain consistent gap */
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 15px;
         }
         
         .input-row-grid label,
@@ -1056,11 +1017,11 @@ class GoogleMapCardEditor extends HTMLElement {
             </div>
             <div class="section-content" id="appearance-content">
                 <div class="input-row-grid">
-                    <label>Aspect ratio:
-                        <input id="aspect_ratio" value="${aspect}" placeholder="e.g. 16:9 or 0.5" type="text" />
+                    <label>Aspect Ratio:
+                        <input id="aspect_ratio" placeholder="e.g. 16:9 or 0.5" type="text" />
                     </label>
                     <label>Default Zoom:
-                        <input id="zoom" type="text" value="${zoom}" placeholder="e.g. 11" />
+                        <input id="zoom" type="text" placeholder="e.g. 11" />
                     </label>
                 </div>
                 <div class="input-row-grid">
@@ -1069,12 +1030,12 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     </div>
                 <label>API Key:
-                    <input id="api_key" value="${apiKey}" placeholder="Your Google Maps API Key" type="text" />
+                    <input id="api_key" placeholder="Your Google Maps API Key" type="text" />
                 </label>
             </div>
 
             <div class="section-title">Entities (required)</div>
-            <div class="entity-list-container">
+            <div class="entity-list-container" id="entity-list-container">
                 ${entitiesHtml}
             </div>
             <button id="add_entity">➕ Add Entity</button>
@@ -1085,161 +1046,247 @@ class GoogleMapCardEditor extends HTMLElement {
       </datalist>
     `;
 
-    this._attachListeners();
+    this._updateUI(); 
     this._restoreCollapseStates();
+  }
+
+  _updateUI() {
+    const api_key_input = this.shadowRoot.getElementById('api_key');
+    if (api_key_input) api_key_input.value = this._tmpConfig.api_key || '';
+
+    const zoom_input = this.shadowRoot.getElementById('zoom');
+    if (zoom_input) zoom_input.value = this._tmpConfig.zoom !== undefined ? this._tmpConfig.zoom : 11;
+
+    const aspect_ratio_input = this.shadowRoot.getElementById('aspect_ratio');
+    if (aspect_ratio_input) aspect_ratio_input.value = this._tmpConfig.aspect_ratio || '';
     
-    if (activeElement && activeElement.closest('.entity-item')) {
-        const newActiveElement = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
-        if (newActiveElement) {
-            newActiveElement.focus();
-            newActiveElement.setSelectionRange(cursorStart, cursorEnd);
-        }
+    const themeSelect = this.shadowRoot.getElementById('theme_mode');
+    if (themeSelect) {
+        themeSelect.value = this._tmpConfig.theme_mode || 'Auto';
     }
+
+    this._entities.forEach((e, index) => {
+        const entityItemDom = this.shadowRoot.querySelector(`.entity-item[data-index="${index}"]`);
+        if (!entityItemDom) return;
+
+        const entityId = typeof e === 'string' ? e : e.entity;
+        const entityConfig = typeof e === 'string' ? {entity: e} : e;
+
+        const entityIdInput = entityItemDom.querySelector('.entity-id');
+        if (entityIdInput) entityIdInput.value = entityId;
+        
+        const entityNameSpan = entityItemDom.querySelector('.entity-name');
+        if (entityNameSpan) entityNameSpan.textContent = `👤 ${entityId || 'Select an entity'}`;
+
+        const iconSizeInput = entityItemDom.querySelector('.icon_size');
+        if (iconSizeInput) iconSizeInput.value = entityConfig.icon_size !== undefined ? entityConfig.icon_size : '';
+
+        const hoursToShowInput = entityItemDom.querySelector('.hours_to_show');
+        if (hoursToShowInput) hoursToShowInput.value = entityConfig.hours_to_show !== undefined ? entityConfig.hours_to_show : '';
+
+        const polylineWidthInput = entityItemDom.querySelector('.polyline_width');
+        if (polylineWidthInput) polylineWidthInput.value = entityConfig.polyline_width !== undefined ? entityConfig.polyline_width : '';
+
+        const iconColorInput = entityItemDom.querySelector('.icon_color');
+        if (iconColorInput) iconColorInput.value = entityConfig.icon_color || '#780202';
+
+        const backgroundColorInput = entityItemDom.querySelector('.background_color');
+        if (backgroundColorInput) backgroundColorInput.value = entityConfig.background_color || '#FFFFFF';
+
+        const polylineColorInput = entityItemDom.querySelector('.polyline_color');
+        if (polylineColorInput) polylineColorInput.value = entityConfig.polyline_color || '#FFFFFF';
+    });
   }
 
   _attachListeners() {
-    const debounce = (func, delay) => {
-      let timeout;
-      return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-      };
-    };
+    const generalInputIds = ['api_key', 'zoom', 'aspect_ratio'];
+    generalInputIds.forEach(id => {
+        const element = this.shadowRoot.getElementById(id);
+        if (element) {
+            element.removeEventListener('input', this._boundInputHandler); 
+            element.removeEventListener('change', this._boundInputHandler);
 
-    this.shadowRoot.getElementById('api_key')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('api_key')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
-    this.shadowRoot.getElementById('zoom')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('zoom')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
-    this.shadowRoot.getElementById('theme_mode')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+            element.addEventListener('input', this._boundInputHandler); 
+            element.addEventListener('change', this._boundInputHandler);
+        }
+    });
 
+    const themeSelect = this.shadowRoot.getElementById('theme_mode');
+    if (themeSelect) {
+        themeSelect.removeEventListener('change', this._boundInputHandler);
+        themeSelect.addEventListener('change', this._boundInputHandler);
+    }
 
     this.shadowRoot.querySelectorAll('.entity-input').forEach(input => {
-        input.addEventListener('change', () => this._valueChanged());
-        if (input.type === 'text' || input.type === 'number') {
-            input.addEventListener('keyup', debounce(() => this._valueChanged(), 500));
-        }
+        input.removeEventListener('input', this._boundInputHandler);
+        input.removeEventListener('change', this._boundInputHandler);
+
+        input.addEventListener('input', this._boundInputHandler); 
+        input.addEventListener('change', this._boundInputHandler);
     });
 
-    // New: Listener for entity-id input to fill default values
     this.shadowRoot.querySelectorAll('.entity-id').forEach(input => {
-      input.addEventListener('change', (e) => this._fillDefaultEntityValues(e.target.dataset.index));
-      input.addEventListener('keyup', debounce((e) => this._fillDefaultEntityValues(e.target.dataset.index), 300));
+      input.removeEventListener('change', this._boundFillDefaultEntityValues);
+      input.removeEventListener('input', this._boundFillDefaultEntityValues);
+
+      input.addEventListener('change', this._boundFillDefaultEntityValues);
+      input.addEventListener('input', this._debounce(this._boundFillDefaultEntityValues, 300));
     });
 
-
-    this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
-      const updated = [...(this._tmpConfig.entities || [])];
-      updated.push({ entity: '' });
-      this._tmpConfig.entities = updated; 
-      this._render();
-      this._valueChanged();
-    });
-
+    const addEntityButton = this.shadowRoot.getElementById('add_entity');
+    if (addEntityButton) {
+        addEntityButton.removeEventListener('click', this._boundClickHandler);
+        addEntityButton.addEventListener('click', this._boundClickHandler);
+    }
 
     this.shadowRoot.querySelectorAll('.entity-header').forEach(header => {
-      header.addEventListener('click', (e) => {
-        if (e.target.classList.contains('action-icon')) {
-            return;
-        }
-        const entityItem = header.closest('.entity-item');
-        if (entityItem) {
-            entityItem.classList.toggle('collapsed');
-            const index = parseInt(entityItem.dataset.index);
-            this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
-            this._tmpConfig._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
-            const arrowSpan = header.querySelector('.dropdown-arrow');
-            if (arrowSpan) {
-                arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
-            }
-            this._valueChanged();
-        }
-      });
+      header.removeEventListener('click', this._boundClickHandler);
+      header.addEventListener('click', this._boundClickHandler);
     });
 
     this.shadowRoot.querySelectorAll('.delete-entity').forEach(button => {
-      button.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        if (!isNaN(index)) {
-          const currentEntities = [...(this._tmpConfig.entities || [])];
-          currentEntities.splice(index, 1);
-
-          let newCollapseStates = { ...(this._tmpConfig._editor_collapse_entity || {}) };
-          if (this._tmpConfig._editor_collapse_entity) {
-              const tempCollapseStates = {}; 
-              Object.keys(newCollapseStates).forEach(key => {
-                  const oldIndex = parseInt(key);
-                  if (oldIndex < index) {
-                      tempCollapseStates[oldIndex] = newCollapseStates[oldIndex];
-                  } else if (oldIndex > index) {
-                      tempCollapseStates[oldIndex - 1] = newCollapseStates[oldIndex];
-                  }
-              });
-              newCollapseStates = tempCollapseStates; 
-          }
-          
-          const newTmpConfig = {
-              ...this._tmpConfig, 
-              entities: currentEntities.length > 0 ? currentEntities : undefined, 
-              _editor_collapse_entity: newCollapseStates 
-          };
-          
-          if (newTmpConfig.entities && newTmpConfig.entities.length === 0) {
-              delete newTmpConfig.entities;
-          }
-
-          this._tmpConfig = newTmpConfig;
-
-          this._render();
-          this._valueChanged();
-        }
-      });
+      button.removeEventListener('click', this._boundClickHandler);
+      button.addEventListener('click', this._boundClickHandler);
     });
 
-    this.shadowRoot.getElementById('appearance-header')?.addEventListener('click', () => {
-      const header = this.shadowRoot.getElementById('appearance-header');
-      const content = this.shadowRoot.getElementById('appearance-content');
-      if (header && content) {
-          header.classList.toggle('collapsed');
-          content.classList.toggle('hidden');
-          this._tmpConfig._editor_collapse_appearance = header.classList.contains('collapsed');
-          this._valueChanged();
-      }
-    });
+    const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
+    if (appearanceHeader) {
+        appearanceHeader.removeEventListener('click', this._boundClickHandler);
+        appearanceHeader.addEventListener('click', this._boundClickHandler);
+    }
   }
 
-  // New method to fill default values for entity-specific inputs
-  _fillDefaultEntityValues(index) {
-    const entityItemDom = this.shadowRoot.querySelector(`.entity-item[data-index="${index}"]`);
-    if (!entityItemDom) return;
+  _inputChanged(event) {
+    const target = event.target;
+    const value = target.value;
+    const prop = target.id;
+    const index = parseInt(target.dataset.index);
+    
+    if (target.classList.contains('entity-input')) {
+        if (!isNaN(index) && this._tmpConfig.entities[index] !== undefined) {
+            if (typeof this._tmpConfig.entities[index] === 'string') {
+                this._tmpConfig.entities[index] = { entity: this._tmpConfig.entities[index] };
+            }
 
-    const entityIdInput = entityItemDom.querySelector('.entity-id');
-    const entityId = entityIdInput.value;
+            let entityProp;
+            if (target.classList.contains('entity-id')) {
+                entityProp = 'entity';
+            } else if (target.classList.contains('icon_size')) {
+                entityProp = 'icon_size';
+            } else if (target.classList.contains('hours_to_show')) {
+                entityProp = 'hours_to_show';
+            } else if (target.classList.contains('polyline_width')) {
+                entityProp = 'polyline_width';
+            } else if (target.classList.contains('icon_color')) {
+                entityProp = 'icon_color';
+            } else if (target.classList.contains('background_color')) {
+                entityProp = 'background_color';
+            } else if (target.classList.contains('polyline_color')) {
+                entityProp = 'polyline_color';
+            }
+
+            this._tmpConfig.entities[index][entityProp] = value;
+        }
+    } else {
+        this._tmpConfig[prop] = value;
+    }
+    
+    this._updateUI(); 
+    this._debouncedValueChanged();
+  }
+
+  _handleClick(event) {
+      const target = event.target;
+
+      if (target.closest('.entity-header')) {
+          const entityItem = target.closest('.entity-item');
+          if (entityItem) {
+              entityItem.classList.toggle('collapsed');
+              const index = parseInt(entityItem.dataset.index);
+              this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
+              this._tmpConfig._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
+              const arrowSpan = entityItem.querySelector('.dropdown-arrow');
+              if (arrowSpan) {
+                  arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
+              }
+              this._debouncedValueChanged();
+          }
+      } else if (target.classList.contains('delete-entity')) {
+          const index = parseInt(target.dataset.index);
+          if (!isNaN(index)) {
+              const currentEntities = [...(this._tmpConfig.entities || [])];
+              currentEntities.splice(index, 1);
+
+              let newCollapseStates = { ...(this._tmpConfig._editor_collapse_entity || {}) };
+              if (this._tmpConfig._editor_collapse_entity) {
+                  const tempCollapseStates = {}; 
+                  Object.keys(newCollapseStates).forEach(key => {
+                      const oldIndex = parseInt(key);
+                      if (oldIndex < index) {
+                          tempCollapseStates[oldIndex] = newCollapseStates[oldIndex];
+                      } else if (oldIndex > index) {
+                          tempCollapseStates[oldIndex - 1] = newCollapseStates[oldIndex];
+                      }
+                  });
+                  newCollapseStates = tempCollapseStates; 
+              }
+              
+              const newTmpConfig = {
+                  ...this._tmpConfig, 
+                  entities: currentEntities.length > 0 ? currentEntities : undefined, 
+                  _editor_collapse_entity: newCollapseStates 
+              };
+              
+              if (newTmpConfig.entities && newTmpConfig.entities.length === 0) {
+                  delete newTmpConfig.entities;
+              }
+
+              this._tmpConfig = newTmpConfig;
+              this._render();
+              this._debouncedValueChanged();
+          }
+      } else if (target.id === 'appearance-header') {
+          const header = this.shadowRoot.getElementById('appearance-header');
+          const content = this.shadowRoot.getElementById('appearance-content');
+          if (header && content) {
+              header.classList.toggle('collapsed');
+              content.classList.toggle('hidden');
+              this._tmpConfig._editor_collapse_appearance = header.classList.contains('collapsed');
+              this._debouncedValueChanged();
+          }
+      }
+  }
+
+  _fillDefaultEntityValues(event) {
+    const target = event.target;
+    const index = parseInt(target.dataset.index);
+
+    const entityId = target.value;
 
     if (entityId) {
-      const currentEntityConfig = this._tmpConfig.entities[index] || {};
+      let currentEntityConfig = this._tmpConfig.entities[index];
 
-      // Get global defaults or internal defaults based on user's request
+      if (typeof currentEntityConfig === 'string') {
+        currentEntityConfig = { entity: currentEntityConfig };
+        this._tmpConfig.entities[index] = currentEntityConfig;
+      }
+
       const defaultIconSize = 20;
       const defaultHoursToShow = 0;
-      const defaultPolylineColor = '#FFFFFF'; // Changed to White
+      const defaultPolylineColor = '#FFFFFF';
       const defaultPolylineWidth = 1;
-      const defaultIconColor = '#FF0000'; // Changed to Red
-      const defaultBackgroundColor = '#FFFFFF'; // Changed to White
+      const defaultIconColor = '#FF0000';
+      const defaultBackgroundColor = '#FFFFFF';
 
-      // Fill if the field is empty in the current config object
-      if (currentEntityConfig.icon_size === undefined) currentEntityConfig.icon_size = defaultIconSize;
-      if (currentEntityConfig.hours_to_show === undefined) currentEntityConfig.hours_to_show = defaultHoursToShow;
-      if (currentEntityConfig.polyline_color === undefined) currentEntityConfig.polyline_color = defaultPolylineColor;
-      if (currentEntityConfig.polyline_width === undefined) currentEntityConfig.polyline_width = defaultPolylineWidth;
-      if (currentEntityConfig.icon_color === undefined) currentEntityConfig.icon_color = defaultIconColor;
-      if (currentEntityConfig.background_color === undefined) currentEntityConfig.background_color = defaultBackgroundColor;
+      if (currentEntityConfig.icon_size === undefined || currentEntityConfig.icon_size === '') currentEntityConfig.icon_size = defaultIconSize;
+      if (currentEntityConfig.hours_to_show === undefined || currentEntityConfig.hours_to_show === '') currentEntityConfig.hours_to_show = defaultHoursToShow;
+      if (currentEntityConfig.polyline_color === undefined || currentEntityConfig.polyline_color === '') currentEntityConfig.polyline_color = defaultPolylineColor;
+      if (currentEntityConfig.polyline_width === undefined || currentEntityConfig.polyline_width === '') currentEntityConfig.polyline_width = defaultPolylineWidth;
+      if (currentEntityConfig.icon_color === undefined || currentEntityConfig.icon_color === '') currentEntityConfig.icon_color = defaultIconColor;
+      if (currentEntityConfig.background_color === undefined || currentEntityConfig.background_color === '') currentEntityConfig.background_color = defaultBackgroundColor;
       
-      this._tmpConfig.entities[index] = currentEntityConfig;
-      this._render(); // Re-render to show updated default values in inputs
-      this._valueChanged(); // Trigger config change
+      this._updateUI();
+      this._debouncedValueChanged();
     }
   }
 
@@ -1249,6 +1296,9 @@ class GoogleMapCardEditor extends HTMLElement {
     if (this._tmpConfig._editor_collapse_appearance && appearanceHeader && appearanceContent) {
         appearanceHeader.classList.add('collapsed');
         appearanceContent.classList.add('hidden');
+    } else if (appearanceHeader && appearanceContent) {
+        appearanceHeader.classList.remove('collapsed');
+        appearanceContent.classList.remove('hidden');
     }
 
     if (this._tmpConfig._editor_collapse_entity) {
@@ -1260,66 +1310,66 @@ class GoogleMapCardEditor extends HTMLElement {
                 if (arrowSpan) {
                     arrowSpan.textContent = '►';
                 }
+            } else {
+                entityItem.classList.remove('collapsed');
+                const arrowSpan = entityItem.querySelector('.dropdown-arrow');
+                if (arrowSpan) {
+                    arrowSpan.textContent = '▼';
+                }
             }
         });
     }
   }
 
   _valueChanged() {
-    const apiKey = this.shadowRoot.getElementById('api_key').value;
-    const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
-    const theme = this.shadowRoot.getElementById('theme_mode').value;
-    const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
-
-    const newEntities = [];
-    this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom, index) => {
-        const entityIdInput = entityItemDom.querySelector('.entity-id');
-        if (!entityIdInput || !entityIdInput.value) {
-            return; 
-        }
-
-        const entityId = entityIdInput.value;
-        const icon_size = entityItemDom.querySelector('.icon_size')?.value;
-        const hours_to_show = entityItemDom.querySelector('.hours_to_show')?.value;
-        const polyline_color = entityItemDom.querySelector('.polyline_color')?.value;
-        const polyline_width = entityItemDom.querySelector('.polyline_width')?.value; 
-        const icon_color = entityItemDom.querySelector('.icon_color')?.value;
-        const background_color = entityItemDom.querySelector('.background_color')?.value;
-
-        const entityObj = { entity: entityId };
-        if (icon_size !== '' && !isNaN(parseFloat(icon_size))) entityObj.icon_size = parseFloat(icon_size);
-        if (hours_to_show !== '' && !isNaN(parseFloat(hours_to_show))) entityObj.hours_to_show = parseFloat(hours_to_show);
-        if (polyline_color) entityObj.polyline_color = polyline_color;
-        // Check if polyline_width is a valid number before assigning
-        if (polyline_width !== '' && !isNaN(parseFloat(polyline_width))) entityObj.polyline_width = parseFloat(polyline_width);
-        if (icon_color) entityObj.icon_color = icon_color;
-        if (background_color) entityObj.background_color = background_color;
-        
-        newEntities.push(entityObj);
-    });
-
     const newConfig = {
       type: 'custom:google-map-card',
-      api_key: apiKey || undefined,
-      zoom: isNaN(zoom) ? undefined : zoom,
-      theme_mode: theme === 'Auto' ? undefined : theme,
-      aspect_ratio: aspect || undefined,
-      entities: newEntities.length > 0 ? newEntities : undefined,
+      api_key: this._tmpConfig.api_key || undefined,
+      zoom: isNaN(parseFloat(this._tmpConfig.zoom)) ? undefined : parseFloat(this._tmpConfig.zoom),
+      theme_mode: this._tmpConfig.theme_mode === 'Auto' ? undefined : this._tmpConfig.theme_mode,
+      aspect_ratio: this._tmpConfig.aspect_ratio || undefined,
+      entities: [],
     };
 
-    // Remove internal editor-specific properties before dispatching the config
+    this._tmpConfig.entities.forEach((entityConfig, index) => {
+        const entityId = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+        if (!entityId) return;
+
+        const currentEntityObj = typeof entityConfig === 'string' ? { entity: entityId } : { ...entityConfig };
+
+        const parseNum = (val) => (val !== '' && !isNaN(parseFloat(val))) ? parseFloat(val) : undefined;
+
+        currentEntityObj.icon_size = parseNum(currentEntityObj.icon_size);
+        currentEntityObj.hours_to_show = parseNum(currentEntityObj.hours_to_show);
+        currentEntityObj.polyline_width = parseNum(currentEntityObj.polyline_width);
+
+        if (currentEntityObj.polyline_color === '') currentEntityObj.polyline_color = undefined;
+        if (currentEntityObj.icon_color === '') currentEntityObj.icon_color = undefined;
+        if (currentEntityObj.background_color === '') currentEntityObj.background_color = undefined;
+
+        const keys = Object.keys(currentEntityObj).filter(key => currentEntityObj[key] !== undefined);
+        if (keys.length === 1 && keys[0] === 'entity') {
+             newConfig.entities.push(currentEntityObj.entity);
+        } else if (keys.length > 0) {
+             newConfig.entities.push(currentEntityObj);
+        }
+    });
+
+    if (newConfig.entities.length === 0) {
+        delete newConfig.entities;
+    }
+
     Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
-    if (newConfig._editor_collapse_appearance !== undefined) {
-        delete newConfig._editor_collapse_appearance;
+    if (this._tmpConfig._editor_collapse_appearance !== undefined) {
+        newConfig._editor_collapse_appearance = this._tmpConfig._editor_collapse_appearance;
     }
-    if (newConfig._editor_collapse_entity !== undefined) {
-        delete newConfig._editor_collapse_entity;
+    if (this._tmpConfig._editor_collapse_entity !== undefined) {
+        newConfig._editor_collapse_entity = this._tmpConfig._editor_collapse_entity;
     }
-    // Assuming 'grid_options' might be added globally if implemented later
     if (newConfig.grid_options !== undefined) { 
         delete newConfig.grid_options;
     }
-
+    
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
       this.dispatchEvent(new CustomEvent('config-changed', {
