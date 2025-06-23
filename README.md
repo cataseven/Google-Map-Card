@@ -44,8 +44,8 @@ Create API and click the show key button on the bottom right
 
 ## Manual
 
-1. Download `google-map-card.js`
-2. Place it in `www/community/google-map-card/`
+1. Download `google-map-card.js` and `themes.js`
+2. Place them in `www/community/google-map-card/`
 3. Add the following to your Lovelace `resources:`
 
 ```yaml
@@ -55,8 +55,8 @@ resources:
 
 <br>
 
-# Adding the Card
-You can search it on card picker
+# Adding the Card to Dashboard
+You can search it on card picker or you can use yaml code (Please see Card Example section)
 
 <br>
 
