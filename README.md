@@ -56,8 +56,8 @@ resources:
 | `api_key`  | string  | Your Google Maps Embed API key (required)                |
 | `entities` | list    | One or more `person.` `zone.` or `device_tracker.` entities to select from (required) |
 | `zoom`     | integer | Zoom level (1–20) (optional)                             |
-| `theme_mode`| string  | (optional)                                              |
-| `aspect_ratio`| string  | (optional)                                            |
+| `theme_mode`| string  | You can see list on UI editor's dropdown menu (optional)|
+| `aspect_ratio`| string  | Adjust card size (optional)                           |
 | `icon_size`| integer | (optional)                                               |
 | `hours_to_show`| integer | Enabling Route tracking. 0 to disable it, default: 4 |
 | `polyline_color`| string  | polyline color for tracking                         |
