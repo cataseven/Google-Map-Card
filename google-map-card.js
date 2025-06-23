@@ -979,10 +979,6 @@ class GoogleMapCardEditor extends HTMLElement {
           color: var(--primary-text-color);
         }
         
-        .entity-header .action-icon:hover {
-          opacity: 0.8;
-        }
-        
         .entity-header .action-icon.dropdown-arrow {
           transition: transform 0.2s ease-in-out;
           line-height: 1;
@@ -1309,11 +1305,20 @@ class GoogleMapCardEditor extends HTMLElement {
       theme_mode: theme === 'Auto' ? undefined : theme,
       aspect_ratio: aspect || undefined,
       entities: newEntities.length > 0 ? newEntities : undefined,
-      _editor_collapse_appearance: this._tmpConfig._editor_collapse_appearance,
-      _editor_collapse_entity: this._tmpConfig._editor_collapse_entity,
     };
 
+    // Remove internal editor-specific properties before dispatching the config
     Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
+    if (newConfig._editor_collapse_appearance !== undefined) {
+        delete newConfig._editor_collapse_appearance;
+    }
+    if (newConfig._editor_collapse_entity !== undefined) {
+        delete newConfig._editor_collapse_entity;
+    }
+    // Assuming 'grid_options' might be added globally if implemented later
+    if (newConfig.grid_options !== undefined) { 
+        delete newConfig.grid_options;
+    }
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
