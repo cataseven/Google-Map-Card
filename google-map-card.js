@@ -750,24 +750,24 @@ class GoogleMapCardEditor extends HTMLElement {
                 <input class="entity-input entity-id" data-index="${index}" value="${entityId}" placeholder="e.g. device_tracker.john_doe" list="ha-entities" />
               </label>
               <div class="input-row-grid-three">
-                <label>Icon Size:
+                <label class="font-resizer">Icon Size:
                   <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
                 </label>
-                <label>Icon Color:
+                <label class="font-resizer">Icon Color:
                   <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
                 </label>
-                <label>Background Color:
+                <label class="font-resizer">Background Color:
                   <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
                 </label>
               </div>
               <div class="input-row-grid-three">
-                <label>Polyline Color:
+                <label class="font-resizer">Polyline Color:
                   <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
                 </label>
-                <label>Polyline Width:
+                <label class="font-resizer">Polyline Width:
                   <input class="entity-input polyline_width" type="text" data-index="${index}" value="${polylineWidth}" placeholder="e.g. 1" />
                 </label>
-                <label>Hours to Show:
+                <label class="font-resizer">Hours to Show:
                   <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
                 </label>
               </div>
@@ -780,13 +780,18 @@ class GoogleMapCardEditor extends HTMLElement {
       <style>
         :host {
           display: block;
-          padding: 20px;
+          padding: 0px;
           --select-arrow-color: var(--secondary-text-color, #888);
           font-family: var(--primary-font-family);
         }
         
         label, input, select, button, .section-title, .entity-name {
           font-family: var(--primary-font-family);
+        }
+
+        /* Yeni CSS kuralı: Belirtilen labellerin font boyutunu %85 oranında küçültür */
+        .font-resizer {
+            font-size: 85%;
         }
 
         .card-container {
