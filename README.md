@@ -33,7 +33,7 @@ Create API and click the show key button on the bottom right
 
 ### Via HACS (Recommended)
 
-1. Go to **HACS > Frontend > Custom Repositories**
+1. Go to **HACS**
 2. Search for Google Map Card
 3. Download
    
