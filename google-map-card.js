@@ -56,14 +56,14 @@ class GoogleMapCard extends HTMLElement {
     }
 
     this.globalIconSize = config.icon_size || 20; 
-    this.globalIconColor = config.icon_color || '#03A9F4';
+    this.globalIconColor = config.icon_color || '#FFFFFF';
     this.globalBackgroundColor = config.background_color || '#FFFFFF';
 
     this.entityConfigs = {};
     this.config.entities.forEach(entityConfig => {
       const entityId = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
       this.entityConfigs[entityId] = {
-        polyline_color: entityConfig.polyline_color || '#0000FF',
+        polyline_color: entityConfig.polyline_color || '#FFFFFF',
         icon_size: entityConfig.icon_size || this.globalIconSize,
         hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0,
         icon_color: entityConfig.icon_color || this.globalIconColor,
@@ -722,12 +722,14 @@ class GoogleMapCardEditor extends HTMLElement {
 
     let entitiesHtml = this._entities.map((e, index) => {
       const entityId = typeof e === 'string' ? e : e.entity;
-      const iconSize = e.icon_size || '';
-      const entityHours = e.hours_to_show ?? '';
-      const polylineColor = e.polyline_color || '';
-      const polylineWidth = e.polyline_width ?? ''; 
-      const iconColor = e.icon_color || '';
-      const backgroundColor = e.background_color || '';
+      // Use defaults as placeholders if not explicitly set
+      const iconSize = e.icon_size !== undefined ? e.icon_size : this._config.icon_size || 20;
+      const entityHours = e.hours_to_show !== undefined ? e.hours_to_show : 0;
+      const polylineColor = e.polyline_color || '#FFFFFF'; // Default color
+      const polylineWidth = e.polyline_width !== undefined ? e.polyline_width : 1; // Default width
+      const iconColor = e.icon_color || '#780202'; // Default color
+      const backgroundColor = e.background_color || '#FFFFFF'; // Default color
+
 
       const isCollapsed = this._tmpConfig._editor_collapse_entity && this._tmpConfig._editor_collapse_entity[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
@@ -1113,6 +1115,13 @@ class GoogleMapCardEditor extends HTMLElement {
         }
     });
 
+    // New: Listener for entity-id input to fill default values
+    this.shadowRoot.querySelectorAll('.entity-id').forEach(input => {
+      input.addEventListener('change', (e) => this._fillDefaultEntityValues(e.target.dataset.index));
+      input.addEventListener('keyup', debounce((e) => this._fillDefaultEntityValues(e.target.dataset.index), 300));
+    });
+
+
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
       const updated = [...(this._tmpConfig.entities || [])];
       updated.push({ entity: '' });
@@ -1191,6 +1200,39 @@ class GoogleMapCardEditor extends HTMLElement {
           this._valueChanged();
       }
     });
+  }
+
+  // New method to fill default values for entity-specific inputs
+  _fillDefaultEntityValues(index) {
+    const entityItemDom = this.shadowRoot.querySelector(`.entity-item[data-index="${index}"]`);
+    if (!entityItemDom) return;
+
+    const entityIdInput = entityItemDom.querySelector('.entity-id');
+    const entityId = entityIdInput.value;
+
+    if (entityId) {
+      const currentEntityConfig = this._tmpConfig.entities[index] || {};
+
+      // Get global defaults or internal defaults based on user's request
+      const defaultIconSize = 20;
+      const defaultHoursToShow = 0;
+      const defaultPolylineColor = '#FFFFFF'; // Changed to White
+      const defaultPolylineWidth = 1;
+      const defaultIconColor = '#FF0000'; // Changed to Red
+      const defaultBackgroundColor = '#FFFFFF'; // Changed to White
+
+      // Fill if the field is empty in the current config object
+      if (currentEntityConfig.icon_size === undefined) currentEntityConfig.icon_size = defaultIconSize;
+      if (currentEntityConfig.hours_to_show === undefined) currentEntityConfig.hours_to_show = defaultHoursToShow;
+      if (currentEntityConfig.polyline_color === undefined) currentEntityConfig.polyline_color = defaultPolylineColor;
+      if (currentEntityConfig.polyline_width === undefined) currentEntityConfig.polyline_width = defaultPolylineWidth;
+      if (currentEntityConfig.icon_color === undefined) currentEntityConfig.icon_color = defaultIconColor;
+      if (currentEntityConfig.background_color === undefined) currentEntityConfig.background_color = defaultBackgroundColor;
+      
+      this._tmpConfig.entities[index] = currentEntityConfig;
+      this._render(); // Re-render to show updated default values in inputs
+      this._valueChanged(); // Trigger config change
+    }
   }
 
   _restoreCollapseStates() {
