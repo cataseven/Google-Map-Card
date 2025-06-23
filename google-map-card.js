@@ -1,3 +1,5 @@
+import { get_map_themes } from './themes.js';
+
 class GoogleMapCard extends HTMLElement {
   constructor() {
     super();
@@ -9,86 +11,8 @@ class GoogleMapCard extends HTMLElement {
     this.initialized = false;
     this.firstDraw = true;
     this.locationHistory = {};
-    this.darkModeStyles = [
-      {elementType: "geometry", stylers: [{color: "#242f3e"}]},
-      {elementType: "labels.text.stroke", stylers: [{color: "#242f3e"}]},
-      {elementType: "labels.text.fill", stylers: [{color: "#746855"}]},
-      {
-        featureType: "administrative.locality",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#d59563"}]
-      },
-      {
-        featureType: "poi",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#d59563"}]
-      },
-      {
-        featureType: "poi.park",
-        elementType: "geometry",
-        stylers: [{color: "#263c3f"}]
-      },
-      {
-        featureType: "poi.park",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#6b9a76"}]
-      },
-      {
-        featureType: "road",
-        elementType: "geometry",
-        stylers: [{color: "#38414e"}]
-      },
-      {
-        featureType: "road",
-        elementType: "geometry.stroke",
-        stylers: [{color: "#212a37"}]
-      },
-      {
-        featureType: "road",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#9ca5b3"}]
-      },
-      {
-        featureType: "road.highway",
-        elementType: "geometry",
-        stylers: [{color: "#746855"}]
-      },
-      {
-        featureType: "road.highway",
-        elementType: "geometry.stroke",
-        stylers: [{color: "#1f2835"}]
-      },
-      {
-        featureType: "road.highway",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#f3d19c"}]
-      },
-      {
-        featureType: "transit",
-        elementType: "geometry",
-        stylers: [{color: "#2f3948"}]
-      },
-      {
-        featureType: "transit.station",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#d59563"}]
-      },
-      {
-        featureType: "water",
-        elementType: "geometry",
-        stylers: [{color: "#17263c"}]
-      },
-      {
-        featureType: "water",
-        elementType: "labels.text.fill",
-        stylers: [{color: "#515c6d"}]
-      },
-      {
-        featureType: "water",
-        elementType: "labels.text.stroke",
-        stylers: [{color: "#17263c"}]
-      }
-    ];
+    this.allThemes = get_map_themes();
+    this.selectedThemeStyles = [];
   }
 
   connectedCallback() {
@@ -118,11 +42,18 @@ class GoogleMapCard extends HTMLElement {
     }
     this.config = config;
     this.zoom = config.zoom || 11;
-    this.themeMode = config.theme_mode || 'light';
-    this.aspectRatio = config.aspect_ratio || null; 
+    this.themeName = config.theme_mode || 'Dark_Blueish_Night';
+    this.aspectRatio = config.aspect_ratio || null;
+    this.selectedThemeStyles = [];
+    for (const mode in this.allThemes) {
+      if (this.allThemes[mode][this.themeName]) {
+        this.selectedThemeStyles = this.allThemes[mode][this.themeName];
+        break;
+      }
+    }
 
-    this.globalIconSize = config.icon_size || 20;
-    this.globalPictureSize = config.picture_size || config.icon_size || 20;
+    // icon_size will now control both icon and picture sizes
+    this.globalIconSize = config.icon_size || 20; 
     this.globalHoursToShow = typeof config.hours_to_show === 'number' ? config.hours_to_show : 0;
     this.globalIconColor = config.icon_color || '#03A9F4';
     this.globalBackgroundColor = config.background_color || '#FFFFFF';
@@ -132,8 +63,8 @@ class GoogleMapCard extends HTMLElement {
       const entityId = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
       this.entityConfigs[entityId] = {
         polyline_color: entityConfig.polyline_color || '#0000FF',
+        // Use icon_size for both icon and picture size for entity-specific overrides
         icon_size: entityConfig.icon_size || this.globalIconSize,
-        picture_size: entityConfig.picture_size || this.globalPictureSize,
         hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : this.globalHoursToShow,
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
@@ -172,7 +103,7 @@ class GoogleMapCard extends HTMLElement {
         const ratioValue = eval(this.aspectRatio.replace(':', '/'));
         const paddingBottomPercentage = (1 / ratioValue) * 100;
         aspectRatioStyle = `height: 0; padding-bottom: ${paddingBottomPercentage}%; position: relative;`;
-        mapClasses = 'aspect-ratio-container'; // İçerik pozisyonlaması için sınıf
+        mapClasses = 'aspect-ratio-container';
       } catch (e) {
         console.warn(`Invalid aspect_ratio format: ${this.aspectRatio}. Using default height.`, e);
         aspectRatioStyle = `height: 350px; min-height: 350px;`;
@@ -189,10 +120,9 @@ class GoogleMapCard extends HTMLElement {
           border-radius: 8px;
           min-width: 300px;
           box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-          overflow: hidden; /* Border-radius ile içerik taşmasını engelle */
+          overflow: hidden;
         }
-        /* Eğer aspect_ratio kullanılıyorsa, asıl harita div'inin içindeki içeriği kaplaması için */
-        #map.aspect-ratio-container > div { 
+        #map.aspect-ratio-container > div {
             position: absolute;
             top: 0;
             left: 0;
@@ -251,8 +181,8 @@ class GoogleMapCard extends HTMLElement {
         mapTypeId: 'roadmap'
       };
 
-      if (this.themeMode === 'dark') {
-        mapOptions.styles = this.darkModeStyles;
+      if (this.selectedThemeStyles.length > 0) {
+        mapOptions.styles = this.selectedThemeStyles;
       }
 
       this.map = new google.maps.Map(mapEl, mapOptions);
@@ -318,9 +248,8 @@ class GoogleMapCard extends HTMLElement {
           picture: state.attributes.entity_picture,
           icon: state.attributes.icon || this._getDefaultIcon(eid),
           state: state.state,
-          icon_size: entitySpecificConfig.icon_size,
-          picture_size: entitySpecificConfig.picture_size,
-          polyline_color: entitySpecificConfig.polyline_color,
+          // Both icon_size and picture_size will use the same value now
+          icon_size: entitySpecificConfig.icon_size, 
           hours_to_show: entitySpecificConfig.hours_to_show,
           icon_color: entitySpecificConfig.icon_color,
           background_color: entitySpecificConfig.background_color,
@@ -350,8 +279,7 @@ class GoogleMapCard extends HTMLElement {
     if (currentLocations.length === 0) return;
 
     const iconPromises = currentLocations.map(async loc => {
-      const iconSizeForEntity = loc.icon_size;
-      const pictureSizeForEntity = loc.picture_size;
+      const iconSizeForEntity = loc.icon_size; // This will now control both
       const iconColorForEntity = loc.icon_color;
       const backgroundColorForEntity = loc.background_color;
       const borderSize = 2;
@@ -360,7 +288,7 @@ class GoogleMapCard extends HTMLElement {
         loc.fullPictureUrl = loc.picture.startsWith('/')
           ? `${window.location.origin}${loc.picture}`
           : loc.picture;
-        loc.markerIcon = await this._createCircularIcon(loc.fullPictureUrl, pictureSizeForEntity, borderSize, null, backgroundColorForEntity);
+        loc.markerIcon = await this._createCircularIcon(loc.fullPictureUrl, iconSizeForEntity, borderSize, null, backgroundColorForEntity); // Use iconSizeForEntity
       } else if (loc.icon) {
         try {
           const iconParts = loc.icon.split(':');
@@ -394,12 +322,12 @@ class GoogleMapCard extends HTMLElement {
       });
 
       const infoContent = `
-        <div style="text-align:center; padding:10px; min-width:120px;">
-          ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.picture_size}" height="${loc.picture_size}" style="border-radius:50%;border:2px solid ${loc.background_color};box-shadow:0 2px 4px rgba(0,0,0,0.2);">` :
-            loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${loc.icon_size}px; height:${loc.icon_size}px; color: ${loc.icon_color}; background-color: ${loc.background_color}; border-radius: 50%;"></ha-icon>` : ''}
-          <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
-          <div style="font-size:0.9em;color:#666;">${loc.state}</div>
-        </div>
+      <div style="text-align:center; padding:10px; min-width:120px;">
+        ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;border:2px solid ${loc.background_color};box-shadow:0 2px 4px rgba(0,0,0,0.2);">` : // Use loc.icon_size here
+          loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${loc.icon_size}px; height:${loc.icon_size}px; color: ${loc.icon_color}; background-color: ${loc.background_color}; border-radius: 50%;"></ha-icon>` : ''}
+        <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
+        <div style="font-size:0.9em;color:#666;">${loc.state}</div>
+      </div>
       `;
 
       const infoWindow = new google.maps.InfoWindow({
@@ -449,21 +377,12 @@ class GoogleMapCard extends HTMLElement {
     }
   }
 
-  /**
-   * @param {string} imageUrl
-   * @param {number} size
-   * @param {number} borderSize
-   * @param {string} [iconColor=null]
-   * @param {string} [backgroundColor=null]
-   * @returns {Promise<google.maps.Icon|null>}
-   */
   async _createCircularIcon(imageUrl, size, borderSize = 2, iconColor = null, backgroundColor = null) {
     const canvas = document.createElement('canvas');
     const totalSize = size + borderSize * 2;
     canvas.width = totalSize;
     canvas.height = totalSize;
     const ctx = canvas.getContext('2d');
-
 
     ctx.beginPath();
     ctx.arc(totalSize/2, totalSize/2, totalSize/2, 0, Math.PI * 2);
@@ -482,16 +401,16 @@ class GoogleMapCard extends HTMLElement {
         if (iconColor) {
             svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
             svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
-            
+
             svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
-                let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
-                return `style="${newStyle}"`;
+              let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
+              return `style="${newStyle}"`;
             });
-             if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
-                 svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
-             }
+            if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
+                svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
+            }
         }
-        
+
         const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
         const newImageUrl = URL.createObjectURL(svgBlob);
 
@@ -548,8 +467,631 @@ class GoogleMapCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 4; 
+    return 4;
   }
 }
 
 customElements.define('google-map-card', GoogleMapCard);
+
+GoogleMapCard.getConfigElement = () => document.createElement('google-map-card-editor');
+
+
+// --- google-map-card-editor.js içeriği buradan başlıyor ---
+
+class GoogleMapCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this._config = {};
+    this._hass = null;
+    this.attachShadow({ mode: 'open' });
+    this.themes = get_map_themes();
+    this._debounceTimeout = null;
+  }
+
+  setConfig(config) {
+    this._config = config;
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._updateEntityDatalist();
+  }
+
+  get _entities() {
+    return this._config.entities || [];
+  }
+
+  _getEntitiesForDatalist() {
+    if (!this._hass || !this._hass.states) {
+      return [];
+    }
+    const filteredEntities = Object.keys(this._hass.states).filter(entityId =>
+      entityId.startsWith('person.') ||
+      entityId.startsWith('zone.') ||
+      entityId.startsWith('device_tracker.')
+    );
+    return filteredEntities.sort();
+  }
+
+  _updateEntityDatalist() {
+    const datalist = this.shadowRoot.getElementById('ha-entities');
+    if (datalist) {
+      const entityOptions = this._getEntitiesForDatalist()
+        .map(entityId => `<option value="${entityId}">`).join('');
+      datalist.innerHTML = entityOptions;
+    }
+  }
+
+  _render() {
+    const activeElement = this.shadowRoot.activeElement;
+    let activeEntityIndex = -1;
+    let activeInputClass = '';
+    let cursorStart = -1;
+    let cursorEnd = -1;
+
+    if (activeElement && activeElement.closest('.entity-item')) {
+        activeEntityIndex = parseInt(activeElement.closest('.entity-item').dataset.index);
+        activeInputClass = Array.from(activeElement.classList).find(cls => cls.includes('input'));
+        cursorStart = activeElement.selectionStart;
+        cursorEnd = activeElement.selectionEnd;
+    }
+
+    const theme = this._config.theme_mode || 'Auto';
+    const aspect = this._config.aspect_ratio || '';
+    const zoom = this._config.zoom || 11;
+    const apiKey = this._config.api_key || '';
+    const hoursToShow = this._config.hours_to_show ?? '';
+
+    const allThemes = Object.keys(this.themes['dark'] || {}).concat(Object.keys(this.themes['light'] || {}));
+    const uniqueThemes = [...new Set(allThemes)].sort();
+    const themeOptions = ['Auto', ...uniqueThemes]
+      .map(t => `<option value="${t}" ${t === theme ? 'selected' : ''}>${t}</option>`).join('');
+
+    const entityOptions = this._getEntitiesForDatalist()
+      .map(entityId => `<option value="${entityId}">`).join('');
+
+    let entitiesHtml = this._entities.map((e, index) => {
+      const entityId = typeof e === 'string' ? e : e.entity;
+      const iconSize = e.icon_size || '';
+      const entityHours = e.hours_to_show ?? '';
+      const polylineColor = e.polyline_color || '';
+      const iconColor = e.icon_color || '';
+      const backgroundColor = e.background_color || '';
+
+      const isCollapsed = this._config._editor_collapse_entity && this._config._editor_collapse_entity[index];
+      const collapsedClass = isCollapsed ? 'collapsed' : '';
+      const arrowDirection = isCollapsed ? '►' : '▼';
+
+      return `
+        <div class="entity-item ${collapsedClass}" data-index="${index}">
+          <div class="entity-header">
+            <span class="drag-handle">☰</span>
+            <span class="entity-name">👤 ${entityId || 'Select an entity'}</span>
+            <span class="entity-actions">
+              <span class="action-icon dropdown-arrow" data-index="${index}">${arrowDirection}</span>
+              <span class="action-icon delete-entity" data-index="${index}">✕</span>
+            </span>
+          </div>
+          <div class="entity-details">
+              <label>Entity ID:
+                <input class="entity-input entity-id" data-index="${index}" value="${entityId}" placeholder="e.g. device_tracker.john_doe" list="ha-entities" />
+              </label>
+              <div class="input-row-grid">
+                <label>Icon Size:
+                  <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
+                </label>
+                    <label>Polyline Color:
+                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
+                </label>
+              </div>
+              <div class="input-row-grid">
+                <label>Icon Color:
+                  <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
+                </label>
+                <label>Background Color:
+                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
+                </label>
+              </div>
+              <label>Hours to Show (Entity Specific):
+                  <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
+              </label>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          padding: 20px;
+          --select-arrow-color: var(--secondary-text-color, #888);
+          font-family: var(--primary-font-family);
+        }
+        
+        label, input, select, button, .section-title, .entity-name {
+          font-family: var(--primary-font-family);
+        }
+
+        .card-container {
+          padding: 20px;
+          border-radius: unset;
+          box-shadow: none;
+          max-width: 800px;
+          margin: auto;
+        }
+
+        select {
+          width: 100%;
+          padding: 10px 12px;
+          margin-top: 4px;
+          margin-bottom: 10px;
+          border: 1px solid var(--divider-color);
+          border-radius: var(--ha-card-border-radius, 8px);
+          box-sizing: border-box;
+          background-color: var(--mdc-text-field-fill-color);
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+
+        /* Select elementinin ok simgesi için */
+        select {
+          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right 10px center;
+          background-size: 20px;
+        }
+
+        /* Select option stilleri */
+        select option {
+          background-color: var(--card-background-color, var(--ha-card-background, white));
+          color: var(--primary-text-color);
+        }
+
+        select:focus {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 1px var(--primary-color);
+          outline: none;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+          }
+        }
+
+        /* Section Stilleri */
+        .section-header {
+          display: flex;
+          align-items: center;
+          padding: 12px 15px;
+          margin: 15px 0;
+          border-radius: var(--ha-card-border-radius, 8px);
+          cursor: pointer;
+          box-shadow: none;
+          transition: background-color 0.2s ease;
+          background-color: var(--mdc-text-field-fill-color, #f0f0f0);
+        }
+        
+        .section-header:hover {
+          background-color: var(--mdc-text-field-fill-color, #e0e0e0);
+        }
+        
+        .section-header .icon {
+          margin-right: 10px;
+        }
+        
+        .section-header .arrow {
+          margin-left: auto;
+          transition: transform 0.2s ease-in-out;
+        }
+        
+        .section-header.collapsed .arrow {
+          transform: rotate(-90deg);
+        }
+        
+        .section-content {
+          padding: 0 15px 15px;
+          border-radius: unset;
+        }
+        
+        .section-content.hidden {
+          display: none;
+        }
+
+        /* Input Stilleri */
+        label {
+          display: block;
+          margin-top: 10px;
+          margin-bottom: 5px;
+          color: var(--primary-text-color);
+        }
+        
+        input {
+          width: 100%;
+          padding: 10px 12px;
+          margin-top: 4px;
+          margin-bottom: 10px;
+          border: 1px solid var(--divider-color);
+          border-radius: var(--ha-card-border-radius, 8px);
+          box-sizing: border-box;
+          background-color: var(--mdc-text-field-fill-color);
+          color: var(--primary-text-color);
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        input:focus {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 1px var(--primary-color);
+          outline: none;
+        }
+        
+        input::placeholder {
+          opacity: 0.7;
+          color: var(--secondary-text-color);
+        }
+
+        /* Grid Stilleri */
+        .input-row-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+        }
+        
+        .input-row-grid label {
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+        
+        .input-row-grid input,
+        .input-row-grid select {
+          margin-bottom: 0;
+        }
+
+        /* Entity Stilleri */
+        .entity-list-container {
+          margin-top: 20px;
+        }
+        
+        .entity-item {
+          border-radius: var(--ha-card-border-radius, 8px);
+          margin-bottom: 10px;
+          overflow: hidden;
+          border: 1px solid var(--divider-color);
+          box-shadow: none;
+          background-color: var(--card-background-color);
+        }
+        
+        .entity-header {
+          display: flex;
+          align-items: center;
+          padding: 12px 15px;
+          cursor: pointer;
+          border-bottom: 1px solid var(--divider-color);
+          transition: background-color 0.2s ease;
+          background-color: var(--mdc-text-field-fill-color, #f0f0f0);
+        }
+        
+        .entity-header:hover {
+          background-color: var(--mdc-text-field-fill-color, #e0e0e0);
+        }
+        
+        .entity-header .drag-handle {
+          cursor: grab;
+          margin-right: 10px;
+        }
+        
+        .entity-header .entity-name {
+          flex-grow: 1;
+          color: var(--primary-text-color);
+        }
+        
+        .entity-header .action-icon {
+          margin-left: 15px;
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+          color: var(--primary-text-color);
+        }
+        
+        .entity-header .action-icon:hover {
+          opacity: 0.8;
+        }
+        
+        .entity-header .action-icon.dropdown-arrow {
+          transition: transform 0.2s ease-in-out;
+          line-height: 1;
+        }
+        
+        .entity-details {
+          padding: 15px;
+          border-radius: unset;
+          background-color: var(--card-background-color);
+        }
+        
+        .entity-item.collapsed .entity-details {
+          display: none;
+        }
+          
+        input[type="color"] {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 40px;
+          padding: 0;
+          border: 1px solid var(--divider-color);
+          border-radius: var(--ha-card-border-radius, 8px);
+          background: none;
+          cursor: pointer;
+        }
+        
+        input[type="color"]::-webkit-color-swatch-wrapper {
+          padding: 0;
+        }
+        
+        input[type="color"]::-webkit-color-swatch {
+          border: none;
+          border-radius: calc(var(--ha-card-border-radius, 8px) - 2px);
+        }
+        
+        input[type="color"]::-moz-color-swatch {
+          border: none;
+          border-radius: calc(var(--ha-card-border-radius, 8px) - 2px);
+        }
+
+        /* Button Stilleri */
+        #add_entity {
+          margin-top: 15px;
+          padding: 10px 20px;
+          background-color: transparent;
+          border: 1px solid var(--divider-color);
+          border-radius: var(--ha-card-border-radius, 8px);
+          cursor: pointer;
+          width: 100%;
+          box-sizing: border-box;
+          transition: background-color 0.2s ease;
+          color: var(--primary-text-color);
+        }
+        
+        #add_entity:hover {
+          background-color: var(--mdc-text-field-fill-color, rgba(0, 0, 0, 0.05));
+        }
+        
+        #add_entity:active {
+          background-color: var(--mdc-text-field-fill-color, rgba(0, 0, 0, 0.1));
+        }
+
+        .section-title {
+          margin-bottom: 10px;
+          margin-top: 20px;
+          color: var(--primary-text-color);
+        }
+      </style>
+      <div class="card-container">
+        <div>
+            <div class="section-header" id="appearance-header">
+                <span class="icon">✨</span> Appearance
+                <span class="arrow">▼</span>
+            </div>
+            <div class="section-content" id="appearance-content">
+                <div class="input-row-grid">
+                    <label>Aspect ratio:
+                        <input id="aspect_ratio" value="${aspect}" placeholder="e.g. 16:9 or 0.5" type="text" />
+                    </label>
+                    <label>Default Zoom:
+                        <input id="zoom" type="text" value="${zoom}" placeholder="e.g. 11" />
+                    </label>
+                </div>
+                <div class="input-row-grid">
+                    <label>Theme Mode:
+                        <select id="theme_mode">${themeOptions}</select>
+                    </label>
+                    <label>Hours to show (Global):
+                        <input id="hours_to_show_global" type="text" value="${hoursToShow}" placeholder="e.g. 24" />
+                    </label>
+                </div>
+                <label>API Key:
+                    <input id="api_key" value="${apiKey}" placeholder="Your Google Maps API Key" type="text" />
+                </label>
+            </div>
+
+            <div class="section-title">Entities (required)</div>
+            <div class="entity-list-container">
+                ${entitiesHtml}
+            </div>
+            <button id="add_entity">➕ Add Entity</button>
+        </div>
+      </div>
+      <datalist id="ha-entities">
+        ${entityOptions}
+      </datalist>
+    `;
+
+    this._attachListeners();
+    this._restoreCollapseStates();
+    
+    if (activeEntityIndex !== -1 && activeInputClass) {
+        const inputToRestore = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
+        if (inputToRestore) {
+            inputToRestore.focus();
+            inputToRestore.setSelectionRange(cursorStart, cursorEnd);
+        }
+    }
+  }
+
+  _attachListeners() {
+    const debounce = (func, delay) => {
+      let timeout;
+      return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+      };
+    };
+
+    this.shadowRoot.querySelectorAll('input, select').forEach(input => {
+        if (input.classList.contains('entity-id') || 
+            input.classList.contains('icon_size') ||
+            input.classList.contains('hours_to_show') ||
+            input.classList.contains('polyline_color') || 
+            input.classList.contains('icon_color') || 
+            input.classList.contains('background_color')) {
+            input.addEventListener('change', () => this._valueChanged());
+            if (input.type === 'text' || input.type === 'number') {
+                input.addEventListener('keyup', debounce(() => this._valueChanged(), 500));
+            }
+        } else {
+            input.addEventListener('change', () => this._valueChanged());
+            if (input.type === 'text' || input.type === 'number') {
+                input.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+            }
+        }
+    });
+
+    this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
+      const updated = [...this._entities];
+      updated.push({ entity: '' }); // Push a new empty entity object
+      this._config.entities = updated;
+      this._render(); // Re-render to show the new entity
+      this._valueChanged(); // Update the config
+    });
+
+
+    this.shadowRoot.querySelectorAll('.entity-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        if (e.target.classList.contains('action-icon')) {
+            return;
+        }
+        const entityItem = header.closest('.entity-item');
+        if (entityItem) {
+            entityItem.classList.toggle('collapsed');
+            const index = parseInt(entityItem.dataset.index);
+            this._config._editor_collapse_entity = this._config._editor_collapse_entity || {};
+            this._config._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
+            const arrowSpan = header.querySelector('.dropdown-arrow');
+            if (arrowSpan) {
+                arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
+            }
+        }
+      });
+    });
+
+    this.shadowRoot.querySelectorAll('.delete-entity').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        if (!isNaN(index)) {
+          const updated = [...this._entities];
+          updated.splice(index, 1);
+          this._config.entities = updated;
+          if (this._config._editor_collapse_entity) {
+              const newCollapseStates = {};
+              Object.keys(this._config._editor_collapse_entity).forEach(key => {
+                  const oldIndex = parseInt(key);
+                  if (oldIndex < index) {
+                      newCollapseStates[oldIndex] = this._config._editor_collapse_entity[oldIndex];
+                  } else if (oldIndex > index) {
+                      newCollapseStates[oldIndex - 1] = this._config._editor_collapse_entity[oldIndex];
+                  }
+              });
+              this._config._editor_collapse_entity = newCollapseStates;
+          }
+          this._render();
+          this._valueChanged();
+        }
+      });
+    });
+
+    this.shadowRoot.getElementById('appearance-header')?.addEventListener('click', () => {
+      const header = this.shadowRoot.getElementById('appearance-header');
+      const content = this.shadowRoot.getElementById('appearance-content');
+      if (header && content) {
+          header.classList.toggle('collapsed');
+          content.classList.toggle('hidden');
+          this._config._editor_collapse_appearance = header.classList.contains('collapsed');
+      }
+    });
+  }
+
+  _restoreCollapseStates() {
+    const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
+    const appearanceContent = this.shadowRoot.getElementById('appearance-content');
+    if (this._config._editor_collapse_appearance && appearanceHeader && appearanceContent) {
+        appearanceHeader.classList.add('collapsed');
+        appearanceContent.classList.add('hidden');
+    }
+
+    if (this._config._editor_collapse_entity) {
+        this.shadowRoot.querySelectorAll('.entity-item').forEach(entityItem => {
+            const index = parseInt(entityItem.dataset.index);
+            if (this._config._editor_collapse_entity[index]) {
+                entityItem.classList.add('collapsed');
+                const arrowSpan = entityItem.querySelector('.dropdown-arrow');
+                if (arrowSpan) {
+                    arrowSpan.textContent = '►';
+                }
+            }
+        });
+    }
+  }
+
+  _valueChanged() {
+    const apiKey = this.shadowRoot.getElementById('api_key').value;
+    const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
+    const theme = this.shadowRoot.getElementById('theme_mode').value;
+    const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
+    const hoursToShowGlobal = parseFloat(this.shadowRoot.getElementById('hours_to_show_global')?.value);
+
+    const entityCount = this.shadowRoot.querySelectorAll('input.entity-id').length;
+    const newEntities = [];
+
+    for (let i = 0; i < entityCount; i++) {
+      const entity = this.shadowRoot.querySelector(`input.entity-id[data-index='${i}']`).value;
+      const icon_size = parseFloat(this.shadowRoot.querySelector(`input.icon_size[data-index='${i}']`)?.value);
+      const hours_to_show = parseFloat(this.shadowRoot.querySelector(`input.hours_to_show[data-index='${i}']`)?.value);
+      const polyline_color = this.shadowRoot.querySelector(`input.polyline_color[data-index='${i}']`)?.value;
+      const icon_color = this.shadowRoot.querySelector(`input.icon_color[data-index='${i}']`)?.value;
+      const background_color = this.shadowRoot.querySelector(`input.background_color[data-index='${i}']`)?.value;
+
+      const entityObj = { entity };
+      if (!isNaN(icon_size)) entityObj.icon_size = icon_size;
+      if (!isNaN(hours_to_show)) entityObj.hours_to_show = hours_to_show;
+      if (polyline_color) entityObj.polyline_color = polyline_color;
+      if (icon_color) entityObj.icon_color = icon_color;
+      if (background_color) entityObj.background_color = background_color;
+      
+      newEntities.push(entityObj);
+    }
+
+    const newConfig = {
+      type: 'custom:google-map-card',
+      api_key: apiKey || undefined,
+      zoom: isNaN(zoom) ? undefined : zoom,
+      theme_mode: theme === 'Auto' ? undefined : theme,
+      aspect_ratio: aspect || undefined,
+      hours_to_show: isNaN(hoursToShowGlobal) ? undefined : hoursToShowGlobal,
+      entities: newEntities.length > 0 ? newEntities : undefined,
+      _editor_collapse_appearance: this._config._editor_collapse_appearance,
+      _editor_collapse_entity: this._config._editor_collapse_entity,
+    };
+
+    Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
+
+    if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
+      this._config = newConfig;
+      this.dispatchEvent(new CustomEvent('config-changed', {
+        detail: { config: newConfig },
+        bubbles: true,
+        composed: true
+      }));
+    }
+  }
+
+  getConfig() {
+    return this._config;
+  }
+}
+
+customElements.define('google-map-card-editor', GoogleMapCardEditor);
