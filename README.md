@@ -41,7 +41,7 @@ Create API and click the show key button on the bottom right
 
 1. Download `google-map-card.js`
 2. Place it in `www/community/google-map-card/`
-3. Add the following to your Lovelace `resources:` section:
+3. Add the following to your Lovelace `resources:`
 
 resources:   
 url: /local/community/google-map-card/google-map-card.js
