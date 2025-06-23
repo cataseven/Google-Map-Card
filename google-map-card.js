@@ -753,22 +753,22 @@ class GoogleMapCardEditor extends HTMLElement {
                 <label class="font-resizer">Icon Size:
                   <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
                 </label>
-                <label class="font-resizer">Icon Color:
-                  <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
-                </label>
-                <label class="font-resizer">Background Color:
-                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
-                </label>
-              </div>
-              <div class="input-row-grid-three">
-                <label class="font-resizer">Polyline Color:
-                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
+                <label class="font-resizer">Hours to Show:
+                  <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
                 </label>
                 <label class="font-resizer">Polyline Width:
                   <input class="entity-input polyline_width" type="text" data-index="${index}" value="${polylineWidth}" placeholder="e.g. 1" />
                 </label>
-                <label class="font-resizer">Hours to Show:
-                  <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
+              </div>
+              <div class="input-row-grid-three">
+                <label class="font-resizer">Icon Color:
+                  <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
+                </label>
+                <label class="font-resizer">BG Color:
+                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
+                </label>
+                <label class="font-resizer">Polyline Color:
+                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
                 </label>
               </div>
           </div>
@@ -1051,7 +1051,7 @@ class GoogleMapCardEditor extends HTMLElement {
       <div class="card-container">
         <div>
             <div class="section-header" id="appearance-header">
-                <span class="icon">✨</span> Appearance
+                <span class="icon">✨</span> Common Settings
                 <span class="arrow">▼</span>
             </div>
             <div class="section-content" id="appearance-content">
