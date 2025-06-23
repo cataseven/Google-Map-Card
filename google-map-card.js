@@ -749,25 +749,23 @@ class GoogleMapCardEditor extends HTMLElement {
               <label>Entity ID:
                 <input class="entity-input entity-id" data-index="${index}" value="${entityId}" placeholder="e.g. device_tracker.john_doe" list="ha-entities" />
               </label>
-              <div class="input-row-grid">
+              <div class="input-row-grid-three">
                 <label>Icon Size:
                   <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
                 </label>
                 <label>Icon Color:
                   <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
                 </label>
+                <label>Background Color:
+                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
+                </label>
               </div>
-              <div class="input-row-grid">
+              <div class="input-row-grid-three">
                 <label>Polyline Color:
                   <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
                 </label>
                 <label>Polyline Width:
                   <input class="entity-input polyline_width" type="text" data-index="${index}" value="${polylineWidth}" placeholder="e.g. 1" />
-                </label>
-              </div>
-              <div class="input-row-grid">
-                <label>Background Color:
-                  <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
                 </label>
                 <label>Hours to Show:
                   <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
@@ -792,10 +790,10 @@ class GoogleMapCardEditor extends HTMLElement {
         }
 
         .card-container {
-          padding: 20px;
+          padding: 0px;
           border-radius: unset;
           box-shadow: none;
-          max-width: 800px;
+          max-width: 1000px; /* Increased max-width for wider layout */
           margin: auto;
         }
 
@@ -912,14 +910,23 @@ class GoogleMapCardEditor extends HTMLElement {
           grid-template-columns: 1fr 1fr;
           gap: 15px;
         }
+
+        .input-row-grid-three { /* NEW CSS CLASS */
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+          gap: 15px; /* Maintain consistent gap */
+        }
         
-        .input-row-grid label {
+        .input-row-grid label,
+        .input-row-grid-three label {
           margin-top: 0;
           margin-bottom: 0;
         }
         
         .input-row-grid input,
-        .input-row-grid select {
+        .input-row-grid select,
+        .input-row-grid-three input,
+        .input-row-grid-three select {
           margin-bottom: 0;
         }
 
