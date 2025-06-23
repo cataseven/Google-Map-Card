@@ -68,6 +68,8 @@ class GoogleMapCard extends HTMLElement {
         hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0,
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
+        // New: polyline_width added with a default of 1
+        polyline_width: typeof entityConfig.polyline_width === 'number' ? entityConfig.polyline_width : 1,
       };
     });
     
@@ -313,6 +315,7 @@ class GoogleMapCard extends HTMLElement {
           hours_to_show: entitySpecificConfig.hours_to_show,
           icon_color: entitySpecificConfig.icon_color,
           background_color: entitySpecificConfig.background_color,
+          polyline_width: entitySpecificConfig.polyline_width, // Pass polyline_width
         };
       })
       .filter(Boolean);
@@ -338,6 +341,7 @@ class GoogleMapCard extends HTMLElement {
 
         const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
         const polylineColorForEntity = entitySpecificConfig.polyline_color;
+        const polylineWidthForEntity = entitySpecificConfig.polyline_width; // Get polyline width
 
         if (hoursToShowForEntity > 0) {
             const history = this.locationHistory[eid] || [];
@@ -350,7 +354,11 @@ class GoogleMapCard extends HTMLElement {
                 if (polyline) {
                     // Update existing polyline path and options
                     polyline.setPath(path);
-                    polyline.setOptions({ strokeColor: polylineColorForEntity, strokeOpacity: 0.7, strokeWeight: 4 });
+                    polyline.setOptions({ 
+                        strokeColor: polylineColorForEntity, 
+                        strokeOpacity: 0.7, 
+                        strokeWeight: polylineWidthForEntity // Use polylineWidthForEntity here
+                    });
                 } else {
                     // Create new polyline
                     polyline = new google.maps.Polyline({
@@ -358,7 +366,7 @@ class GoogleMapCard extends HTMLElement {
                         geodesic: true,
                         strokeColor: polylineColorForEntity,
                         strokeOpacity: 0.7,
-                        strokeWeight: 4,
+                        strokeWeight: polylineWidthForEntity, // Use polylineWidthForEntity here
                         map: this.map
                     });
                     this.polylines.set(eid, polyline);
@@ -717,6 +725,7 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconSize = e.icon_size || '';
       const entityHours = e.hours_to_show ?? '';
       const polylineColor = e.polyline_color || '';
+      const polylineWidth = e.polyline_width ?? ''; 
       const iconColor = e.icon_color || '';
       const backgroundColor = e.background_color || '';
 
@@ -742,21 +751,26 @@ class GoogleMapCardEditor extends HTMLElement {
                 <label>Icon Size:
                   <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
                 </label>
-                    <label>Polyline Color:
-                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
-                </label>
-              </div>
-              <div class="input-row-grid">
                 <label>Icon Color:
                   <input class="entity-input icon_color" type="color" data-index="${index}" value="${iconColor}" />
                 </label>
+              </div>
+              <div class="input-row-grid">
+                <label>Polyline Color:
+                  <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
+                </label>
+                <label>Polyline Width:
+                  <input class="entity-input polyline_width" type="text" data-index="${index}" value="${polylineWidth}" placeholder="e.g. 1" />
+                </label>
+              </div>
+              <div class="input-row-grid">
                 <label>Background Color:
                   <input class="entity-input background_color" type="color" data-index="${index}" value="${backgroundColor}" />
                 </label>
-              </div>
-              <label>Hours to Show (Entity Specific):
+                <label>Hours to Show:
                   <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
-              </label>
+                </label>
+              </div>
           </div>
         </div>
       `;
@@ -1218,6 +1232,7 @@ class GoogleMapCardEditor extends HTMLElement {
         const icon_size = entityItemDom.querySelector('.icon_size')?.value;
         const hours_to_show = entityItemDom.querySelector('.hours_to_show')?.value;
         const polyline_color = entityItemDom.querySelector('.polyline_color')?.value;
+        const polyline_width = entityItemDom.querySelector('.polyline_width')?.value; 
         const icon_color = entityItemDom.querySelector('.icon_color')?.value;
         const background_color = entityItemDom.querySelector('.background_color')?.value;
 
@@ -1225,6 +1240,8 @@ class GoogleMapCardEditor extends HTMLElement {
         if (icon_size !== '' && !isNaN(parseFloat(icon_size))) entityObj.icon_size = parseFloat(icon_size);
         if (hours_to_show !== '' && !isNaN(parseFloat(hours_to_show))) entityObj.hours_to_show = parseFloat(hours_to_show);
         if (polyline_color) entityObj.polyline_color = polyline_color;
+        // Check if polyline_width is a valid number before assigning
+        if (polyline_width !== '' && !isNaN(parseFloat(polyline_width))) entityObj.polyline_width = parseFloat(polyline_width);
         if (icon_color) entityObj.icon_color = icon_color;
         if (background_color) entityObj.background_color = background_color;
         
