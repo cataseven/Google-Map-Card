@@ -5,14 +5,13 @@ A simple and responsive Lovelace custom card that displays the location of a `pe
 ## Features
 
 - Street View
-- Interactive Google Map view
+- Route tracking
 - Themes
+- Interactive Google Map view
 - Dynamic selection of person entities
 - Map terrain types
-- Route tracking
 - Custom zoom level
 - Fully responsive iframe layout
-- No additional dependencies required
 
 
 ## Attention
@@ -64,6 +63,8 @@ url: /local/community/google-map-card/google-map-card.js
 | `polyline_width`| integer | polyline width for tracking                         |
 | `icon_color`| string  | icon color                                              |
 | `background_color`| string  | icon background color                             |
+
+
 
 ## UI Card Editor
 ![image6](images/gm6.png)
