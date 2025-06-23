@@ -379,7 +379,6 @@ class GoogleMapCard extends HTMLElement {
 
   async _updateMarkers() {
     const existingMarkers = new Map(this.markers.map(m => [m.entityId, m]));
-    // No longer calling _clearPolylines here, instead _updatePolylines will handle updates/removals
     
     const currentLocations = this._getCurrentLocations();
     if (currentLocations.length === 0 && Object.keys(this.locationHistory).every(key => this.locationHistory[key].length === 0)) {
@@ -393,7 +392,9 @@ class GoogleMapCard extends HTMLElement {
         const iconSizeForEntity = loc.icon_size;
         const iconColorForEntity = loc.icon_color;
         const backgroundColorForEntity = loc.background_color;
-        const borderSize = 2;
+        
+        // Define border size for icons (2px) and pictures (0px)
+        const borderSizeForIcon = 2; 
 
         let markerIcon = null;
         let fullPictureUrl = null;
@@ -403,7 +404,8 @@ class GoogleMapCard extends HTMLElement {
             fullPictureUrl = loc.picture.startsWith('/')
                 ? `${window.location.origin}${loc.picture}`
                 : loc.picture;
-            markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, borderSize, null, backgroundColorForEntity);
+            // For pictures, pass borderSize as 0 and null for colors
+            markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, 0, null, null); 
         } else if (loc.icon) {
             try {
                 const iconParts = loc.icon.split(':');
@@ -415,7 +417,8 @@ class GoogleMapCard extends HTMLElement {
                 } else {
                     fullIconUrl = `${this._hass.connection.baseUrl}/static/icons/${loc.icon.replace(':', '-')}.png`;
                 }
-                markerIcon = await this._createCircularIcon(fullIconUrl, iconSizeForEntity, borderSize, iconColorForEntity, backgroundColorForEntity);
+                // For icons, apply iconColor and backgroundColor with border
+                markerIcon = await this._createCircularIcon(fullIconUrl, iconSizeForEntity, borderSizeForIcon, iconColorForEntity, backgroundColorForEntity);
             } catch (e) {
                 console.error('Error creating icon:', e);
                 markerIcon = null;
@@ -437,9 +440,10 @@ class GoogleMapCard extends HTMLElement {
                 marker.setIcon(loc.markerIcon || null);
             }
             if (marker.infoWindow) {
+                // Info window content, ensuring border-radius for pictures is applied correctly
                 const infoContent = `
                 <div style="text-align:center; padding:10px; min-width:120px;">
-                  ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;border:2px solid ${loc.background_color};box-shadow:0 2px 4px rgba(0,0,0,0.2);">` :
+                  ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
                     loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${loc.icon_size}px; height:${loc.icon_size}px; color: ${loc.icon_color}; background-color: ${loc.background_color}; border-radius: 50%;"></ha-icon>` : ''}
                   <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
                   <div style="font-size:0.9em;color:#666;">${loc.state}</div>
@@ -459,9 +463,10 @@ class GoogleMapCard extends HTMLElement {
             });
             marker.entityId = loc.id;
 
+            // Info window content for new markers
             const infoContent = `
             <div style="text-align:center; padding:10px; min-width:120px;">
-              ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;border:2px solid ${loc.background_color};box-shadow:0 2px 4px rgba(0,0,0,0.2);">` :
+              ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
                 loc.icon ? `<ha-icon icon="${loc.icon}" style="width:${loc.icon_size}px; height:${loc.icon_size}px; color: ${loc.icon_color}; background-color: ${loc.background_color}; border-radius: 50%;"></ha-icon>` : ''}
               <div style="margin-top:8px;font-weight:bold;">${loc.name}</div>
               <div style="font-size:0.9em;color:#666;">${loc.state}</div>
@@ -496,35 +501,71 @@ class GoogleMapCard extends HTMLElement {
     this._updatePolylines();
   }
 
-  async _createCircularIcon(imageUrl, size, borderSize = 2, iconColor = null, backgroundColor = null) {
+  async _createCircularIcon(imageUrl, size, borderSize = 0, iconColor = null, backgroundColor = null) {
     const canvas = document.createElement('canvas');
-    const totalSize = size + borderSize * 2;
-    canvas.width = totalSize;
-    canvas.height = totalSize;
+    
+    const contentDiameter = size;
+    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0; // 4px padding for icons, 0 for pictures
+    const borderThickness = imageUrl.endsWith('.svg') ? borderSize : 0;
+
+    const totalCanvasDiameter = contentDiameter + (2 * iconPadding) + (2 * borderThickness);
+    canvas.width = totalCanvasDiameter;
+    canvas.height = totalCanvasDiameter;
     const ctx = canvas.getContext('2d');
 
-    ctx.beginPath();
-    ctx.arc(totalSize/2, totalSize/2, totalSize/2, 0, Math.PI * 2);
-    ctx.fillStyle = backgroundColor || 'white';
-    ctx.fill();
+    // Clear the canvas to ensure transparency initially
+    ctx.clearRect(0, 0, totalCanvasDiameter, totalCanvasDiameter);
 
+    const centerX = totalCanvasDiameter / 2;
+    const centerY = totalCanvasDiameter / 2;
+
+    // Apply background color if it's an icon and a background is specified
+    if (imageUrl.endsWith('.svg') && backgroundColor) {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, totalCanvasDiameter / 2, 0, Math.PI * 2);
+      ctx.fillStyle = backgroundColor;
+      ctx.fill();
+    }
+
+    // Apply border if it's an icon and borderThickness > 0
+    if (imageUrl.endsWith('.svg') && borderThickness > 0) {
+      ctx.beginPath();
+      // The border should be drawn around the content + inner padding area
+      // Its radius extends up to the outer edge of the canvas, minus half its thickness
+      ctx.arc(centerX, centerY, (totalCanvasDiameter - borderThickness) / 2, 0, Math.PI * 2); 
+      ctx.strokeStyle = iconColor || '#000000'; // Default border color if iconColor not provided
+      ctx.lineWidth = borderThickness; // Set stroke width to the border thickness
+      ctx.stroke();
+    }
+
+    // Clip to a circle for the actual image/icon content.
+    // This clipping circle's radius is half of the 'size' parameter (contentDiameter / 2), 
+    // ensuring the content itself is the desired 'size' diameter.
     ctx.beginPath();
-    ctx.arc(totalSize/2, totalSize/2, size/2, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, contentDiameter / 2, 0, Math.PI * 2);
     ctx.clip();
+
+    // Calculate offset to draw the image/icon centered within the clipped area
+    // This offset considers border and padding to correctly center the contentDiameter image
+    const drawX = (totalCanvasDiameter - contentDiameter) / 2;
+    const drawY = (totalCanvasDiameter - contentDiameter) / 2;
 
     if (imageUrl.endsWith('.svg')) {
       try {
         const response = await fetch(imageUrl);
         let svgText = await response.text();
 
+        // Apply iconColor to SVG fill and stroke attributes if provided
         if (iconColor) {
             svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
             svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
 
+            // Also check for style attribute to replace fill/stroke within it
             svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
               let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
               return `style="${newStyle}"`;
             });
+            // If no fill/stroke attributes found, add a default fill to <path> elements
             if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
                 svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
             }
@@ -536,12 +577,13 @@ class GoogleMapCard extends HTMLElement {
         return new Promise((resolveInner) => {
           const image = new Image();
           image.onload = () => {
-            ctx.drawImage(image, borderSize, borderSize, size, size);
+            // Draw the SVG image at the calculated offset and desired 'size'
+            ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
             URL.revokeObjectURL(newImageUrl);
             resolveInner({
               url: canvas.toDataURL(),
-              scaledSize: new google.maps.Size(totalSize, totalSize),
-              anchor: new google.maps.Point(totalSize/2, totalSize/2)
+              scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
+              anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
             });
           };
           image.onerror = () => {
@@ -557,15 +599,17 @@ class GoogleMapCard extends HTMLElement {
         return null;
       }
     } else {
+      // For non-SVG images (pictures)
       return new Promise((resolveInner) => {
         const image = new Image();
-        image.crossOrigin = 'Anonymous';
+        image.crossOrigin = 'Anonymous'; // Needed for loading images from different origins on canvas
         image.onload = () => {
-          ctx.drawImage(image, borderSize, borderSize, size, size);
+          // Draw the picture at the calculated offset and desired 'size'
+          ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
           resolveInner({
             url: canvas.toDataURL(),
-            scaledSize: new google.maps.Size(totalSize, totalSize),
-            anchor: new google.maps.Point(totalSize/2, totalSize/2)
+            scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
+            anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
           });
         };
         image.onerror = () => {
