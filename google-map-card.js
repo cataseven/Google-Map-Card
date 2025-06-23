@@ -489,7 +489,8 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    this._config = config;
+    // Create a deep copy of the config to ensure mutability
+    this._config = JSON.parse(JSON.stringify(config));
     this._render();
   }
 
@@ -659,7 +660,7 @@ class GoogleMapCardEditor extends HTMLElement {
         
         @media (prefers-color-scheme: dark) {
           select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3csvg%3e");
           }
         }
 
@@ -952,9 +953,10 @@ class GoogleMapCardEditor extends HTMLElement {
     });
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
-      const updated = [...this._entities];
+      // Create a mutable copy of the entities array
+      const updated = [...(this._config.entities || [])];
       updated.push({ entity: '' }); // Push a new empty entity object
-      this._config.entities = updated;
+      this._config.entities = updated; // Assign the new array
       this._render(); // Re-render to show the new entity
       this._valueChanged(); // Update the config
     });
@@ -969,12 +971,14 @@ class GoogleMapCardEditor extends HTMLElement {
         if (entityItem) {
             entityItem.classList.toggle('collapsed');
             const index = parseInt(entityItem.dataset.index);
-            this._config._editor_collapse_entity = this._config._editor_collapse_entity || {};
+            // Ensure _editor_collapse_entity is a mutable object
+            this._config._editor_collapse_entity = { ...(this._config._editor_collapse_entity || {}) };
             this._config._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
             const arrowSpan = header.querySelector('.dropdown-arrow');
             if (arrowSpan) {
                 arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
             }
+            this._valueChanged(); // Trigger config update
         }
       });
     });
@@ -983,17 +987,21 @@ class GoogleMapCardEditor extends HTMLElement {
       button.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
         if (!isNaN(index)) {
-          const updated = [...this._entities];
+          // Create a mutable copy of the entities array
+          const updated = [...(this._config.entities || [])];
           updated.splice(index, 1);
-          this._config.entities = updated;
+          this._config.entities = updated; // Assign the new array
+
           if (this._config._editor_collapse_entity) {
               const newCollapseStates = {};
-              Object.keys(this._config._editor_collapse_entity).forEach(key => {
+              // Ensure we are working with a mutable copy of collapse states
+              const currentCollapseStates = { ...(this._config._editor_collapse_entity || {}) };
+              Object.keys(currentCollapseStates).forEach(key => {
                   const oldIndex = parseInt(key);
                   if (oldIndex < index) {
-                      newCollapseStates[oldIndex] = this._config._editor_collapse_entity[oldIndex];
+                      newCollapseStates[oldIndex] = currentCollapseStates[oldIndex];
                   } else if (oldIndex > index) {
-                      newCollapseStates[oldIndex - 1] = this._config._editor_collapse_entity[oldIndex];
+                      newCollapseStates[oldIndex - 1] = currentCollapseStates[oldIndex];
                   }
               });
               this._config._editor_collapse_entity = newCollapseStates;
@@ -1010,7 +1018,9 @@ class GoogleMapCardEditor extends HTMLElement {
       if (header && content) {
           header.classList.toggle('collapsed');
           content.classList.toggle('hidden');
+          // Ensure _editor_collapse_appearance is set on a mutable object
           this._config._editor_collapse_appearance = header.classList.contains('collapsed');
+          this._valueChanged(); // Trigger config update
       }
     });
   }
@@ -1077,10 +1087,12 @@ class GoogleMapCardEditor extends HTMLElement {
       _editor_collapse_entity: this._config._editor_collapse_entity,
     };
 
+    // Remove undefined properties before comparison
     Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
 
+    // Compare stringified versions for deep equality check
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._config = newConfig;
+      this._config = newConfig; // _config is already a mutable copy
       this.dispatchEvent(new CustomEvent('config-changed', {
         detail: { config: newConfig },
         bubbles: true,
