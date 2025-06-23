@@ -57,6 +57,9 @@ resources:
 
 # Adding the Card
 You can search it on card picker
+
+<br>
+
 ![image11](images/gm11.png)
 
 # Parameters
