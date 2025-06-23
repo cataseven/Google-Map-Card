@@ -40,7 +40,6 @@ class GoogleMapCard extends HTMLElement {
     if (!config.entities || !config.api_key) {
       throw new Error("Please provide 'entities' and 'api_key' configurations.");
     }
-    // Konfigürasyon değiştiğinde yeni bir yükleme tetiklemek için _firstLoadHistoryNeeded bayrağını ayarla
     this._firstLoadHistoryNeeded = true; 
 
     this.config = config;
@@ -65,13 +64,12 @@ class GoogleMapCard extends HTMLElement {
       this.entityConfigs[entityId] = {
         polyline_color: entityConfig.polyline_color || '#0000FF',
         icon_size: entityConfig.icon_size || this.globalIconSize,
-        hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0, // Default to 0 if not specified
+        hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0,
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
       };
     });
     
-    // Eğer harita zaten yüklenmişse, konfigürasyon değişiminde haritayı yeniden çiz
     if (this.map && this.apiKeyLoaded) {
         this._drawMap();
     }
@@ -80,12 +78,11 @@ class GoogleMapCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     if (this.apiKeyLoaded && this.map) {
-      // Eğer _firstLoadHistoryNeeded true ise, geçmişi tamamen yükle
       if (this._firstLoadHistoryNeeded) {
         this._loadAllInitialHistory();
-        this._firstLoadHistoryNeeded = false; // Yüklendikten sonra bayrağı sıfırla
+        this._firstLoadHistoryNeeded = false;
       }
-      this._updateHistory(); // Mevcut durum günellemelerini işle
+      this._updateHistory();
       this._updateMarkers();
     }
   }
@@ -171,7 +168,7 @@ class GoogleMapCard extends HTMLElement {
     if (!mapEl) return;
 
     const locations = this._getCurrentLocations();
-    if (locations.length === 0 && !this._firstLoadHistoryNeeded) { // _firstLoadHistoryNeeded ise ilk yükleme için bekleyebiliriz
+    if (locations.length === 0 && !this._firstLoadHistoryNeeded) {
       mapEl.innerHTML = `<p>No location data available for the configured entities.</p>`;
       this._clearMarkers(true);
       this._clearPolylines();
@@ -199,7 +196,6 @@ class GoogleMapCard extends HTMLElement {
       this.firstDraw = false;
     }
 
-    // İlk yüklemede tüm geçmişi çek
     if (this._firstLoadHistoryNeeded) {
         await this._loadAllInitialHistory();
         this._firstLoadHistoryNeeded = false;
@@ -208,7 +204,6 @@ class GoogleMapCard extends HTMLElement {
     await this._updateMarkers();
   }
 
-  // Yeni fonksiyon: Belirli bir entity için geçmiş verilerini çeker
   async _loadHistoryForEntity(entityId, hoursToShow) {
     if (!this._hass || hoursToShow <= 0) {
         return [];
@@ -236,9 +231,8 @@ class GoogleMapCard extends HTMLElement {
     return [];
   }
 
-  // Tüm konfigüre edilmiş entity'ler için başlangıç geçmişini yükler
   async _loadAllInitialHistory() {
-    this.locationHistory = {}; // Geçmişi sıfırla
+    this.locationHistory = {};
     const promises = this.config.entities.map(async entityConfig => {
         const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
         const entitySpecificConfig = this.entityConfigs[eid];
@@ -248,7 +242,6 @@ class GoogleMapCard extends HTMLElement {
         }
     });
     await Promise.all(promises);
-    // Geçmiş yüklendikten sonra markerları ve rotaları tekrar güncelle
     if (this.map) {
         this._updateMarkers();
     }
@@ -280,7 +273,7 @@ class GoogleMapCard extends HTMLElement {
       if (!lastEntry ||
           lastEntry.lat !== state.attributes.latitude ||
           lastEntry.lon !== state.attributes.longitude ||
-          Math.abs(lastEntry.timestamp - new Date(state.last_updated).getTime()) > 1000 // Ensure a reasonable time diff for new entry
+          Math.abs(lastEntry.timestamp - new Date(state.last_updated).getTime()) > 1000
           ) {
         this.locationHistory[eid].push({
           lat: state.attributes.latitude,
@@ -340,7 +333,6 @@ class GoogleMapCard extends HTMLElement {
     this._clearPolylines();
 
     const currentLocations = this._getCurrentLocations();
-    // If no current locations and no history for any entity, clear everything
     if (currentLocations.length === 0 && Object.keys(this.locationHistory).every(key => this.locationHistory[key].length === 0)) {
         this._clearMarkers(true);
         return;
@@ -384,18 +376,16 @@ class GoogleMapCard extends HTMLElement {
 
     const locationsWithIcons = await Promise.all(iconPromises);
 
-    this.markers = []; // Yeni marker listesini tutacak boş dizi
+    this.markers = [];
 
     locationsWithIcons.forEach(loc => {
         let marker = existingMarkers.get(loc.id);
 
         if (marker) {
-            // Marker zaten varsa, sadece konumunu ve ikonunu güncelle
             marker.setPosition({ lat: loc.lat, lng: loc.lon });
-            if (marker.getIcon() !== loc.markerIcon) { // Sadece ikon değiştiyse güncelle
+            if (marker.getIcon() !== loc.markerIcon) {
                 marker.setIcon(loc.markerIcon || null);
             }
-            // InfoWindow içeriğini de güncelleyelim, aksi halde eski bilgiler kalabilir
             if (marker.infoWindow) {
                 const infoContent = `
                 <div style="text-align:center; padding:10px; min-width:120px;">
@@ -409,7 +399,6 @@ class GoogleMapCard extends HTMLElement {
             }
             markersToKeep.add(loc.id);
         } else {
-            // Marker yoksa, yeni bir tane oluştur
             marker = new google.maps.Marker({
                 position: { lat: loc.lat, lng: loc.lon },
                 map: this.map,
@@ -417,7 +406,7 @@ class GoogleMapCard extends HTMLElement {
                 icon: loc.markerIcon || null,
                 optimized: true
             });
-            marker.entityId = loc.id; // Marker'a entityId ekleyelim
+            marker.entityId = loc.id;
 
             const infoContent = `
             <div style="text-align:center; padding:10px; min-width:120px;">
@@ -441,10 +430,9 @@ class GoogleMapCard extends HTMLElement {
             });
             markersToKeep.add(loc.id);
         }
-        this.markers.push(marker); // Güncellenmiş veya yeni markeri listeye ekle
+        this.markers.push(marker);
     });
 
-    // Artık haritada olmayan (silinmiş veya görünmez) markerları temizle
     existingMarkers.forEach((marker, entityId) => {
         if (!markersToKeep.has(entityId)) {
             if (marker.infoWindow) marker.infoWindow.close();
@@ -453,7 +441,6 @@ class GoogleMapCard extends HTMLElement {
     });
 
 
-    // Polyline çizimini entity bazlı hours_to_show ile kontrol et
     if (this.config.entities.some(e => typeof e !== 'string' && typeof e.hours_to_show === 'number' && e.hours_to_show > 0)) {
         this.config.entities.forEach(entityConfig => {
             const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
@@ -584,14 +571,11 @@ class GoogleMapCard extends HTMLElement {
 
 customElements.define('google-map-card', GoogleMapCard);
 
-
-// --- google-map-card-editor.js içeriği buradan başlıyor ---
-
 class GoogleMapCardEditor extends HTMLElement {
   constructor() {
     super();
-    this._config = {}; // Last confirmed config from HA
-    this._tmpConfig = {}; // Temporary config for editor's current state
+    this._config = {};
+    this._tmpConfig = {};
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
@@ -599,7 +583,6 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    // Create deep copies to ensure mutability and proper state management
     this._config = JSON.parse(JSON.stringify(config)); 
     this._tmpConfig = JSON.parse(JSON.stringify(config));
     this._render();
@@ -610,7 +593,6 @@ class GoogleMapCardEditor extends HTMLElement {
     this._updateEntityDatalist();
   }
 
-  // _entities getter now uses _tmpConfig
   get _entities() {
     return this._tmpConfig.entities || [];
   }
@@ -650,7 +632,6 @@ class GoogleMapCardEditor extends HTMLElement {
         cursorEnd = activeElement.selectionEnd;
     }
 
-    // Use _tmpConfig for all rendering
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
     const zoom = this._tmpConfig.zoom || 11;
@@ -664,7 +645,7 @@ class GoogleMapCardEditor extends HTMLElement {
     const entityOptions = this._getEntitiesForDatalist()
       .map(entityId => `<option value="${entityId}">`).join('');
 
-    let entitiesHtml = this._entities.map((e, index) => { // _entities getter uses _tmpConfig
+    let entitiesHtml = this._entities.map((e, index) => {
       const entityId = typeof e === 'string' ? e : e.entity;
       const iconSize = e.icon_size || '';
       const entityHours = e.hours_to_show ?? '';
@@ -672,7 +653,6 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconColor = e.icon_color || '';
       const backgroundColor = e.background_color || '';
 
-      // Use _tmpConfig for collapse states
       const isCollapsed = this._tmpConfig._editor_collapse_entity && this._tmpConfig._editor_collapse_entity[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
@@ -751,7 +731,6 @@ class GoogleMapCardEditor extends HTMLElement {
           appearance: none;
         }
 
-        /* Select elementinin ok simgesi için */
         select {
           background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3csvg%3e");
           background-repeat: no-repeat;
@@ -759,7 +738,6 @@ class GoogleMapCardEditor extends HTMLElement {
           background-size: 20px;
         }
 
-        /* Select option stilleri */
         select option {
           background-color: var(--card-background-color, var(--ha-card-background, white));
           color: var(--primary-text-color);
@@ -777,7 +755,6 @@ class GoogleMapCardEditor extends HTMLElement {
           }
         }
 
-        /* Section Stilleri */
         .section-header {
           display: flex;
           align-items: center;
@@ -816,7 +793,6 @@ class GoogleMapCardEditor extends HTMLElement {
           display: none;
         }
 
-        /* Input Stilleri */
         label {
           display: block;
           margin-top: 10px;
@@ -848,7 +824,6 @@ class GoogleMapCardEditor extends HTMLElement {
           color: var(--secondary-text-color);
         }
 
-        /* Grid Stilleri */
         .input-row-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -865,7 +840,6 @@ class GoogleMapCardEditor extends HTMLElement {
           margin-bottom: 0;
         }
 
-        /* Entity Stilleri */
         .entity-list-container {
           margin-top: 20px;
         }
@@ -956,7 +930,6 @@ class GoogleMapCardEditor extends HTMLElement {
           border-radius: calc(var(--ha-card-border-radius, 8px) - 2px);
         }
 
-        /* Button Stilleri */
         #add_entity {
           margin-top: 15px;
           padding: 10px 20px;
@@ -1024,7 +997,7 @@ class GoogleMapCardEditor extends HTMLElement {
     this._attachListeners();
     this._restoreCollapseStates();
     
-    if (activeElement && activeElement.closest('.entity-item')) { // Check if activeElement still exists and is part of an entity-item
+    if (activeElement && activeElement.closest('.entity-item')) {
         const newActiveElement = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
         if (newActiveElement) {
             newActiveElement.focus();
@@ -1043,7 +1016,6 @@ class GoogleMapCardEditor extends HTMLElement {
       };
     };
 
-    // Global inputs (API Key, Zoom, Theme, Aspect Ratio)
     this.shadowRoot.getElementById('api_key')?.addEventListener('change', () => this._valueChanged());
     this.shadowRoot.getElementById('api_key')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
     this.shadowRoot.getElementById('zoom')?.addEventListener('change', () => this._valueChanged());
@@ -1053,7 +1025,6 @@ class GoogleMapCardEditor extends HTMLElement {
     this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
 
 
-    // Entity specific inputs (live elements, re-attach on render)
     this.shadowRoot.querySelectorAll('.entity-input').forEach(input => {
         input.addEventListener('change', () => this._valueChanged());
         if (input.type === 'text' || input.type === 'number') {
@@ -1062,12 +1033,11 @@ class GoogleMapCardEditor extends HTMLElement {
     });
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
-      // Modify _tmpConfig directly to trigger _render
       const updated = [...(this._tmpConfig.entities || [])];
-      updated.push({ entity: '' }); // Push a new empty entity object
+      updated.push({ entity: '' });
       this._tmpConfig.entities = updated; 
-      this._render(); // Re-render to show the new entity
-      this._valueChanged(); // Trigger config update based on new _tmpConfig
+      this._render();
+      this._valueChanged();
     });
 
 
@@ -1080,14 +1050,13 @@ class GoogleMapCardEditor extends HTMLElement {
         if (entityItem) {
             entityItem.classList.toggle('collapsed');
             const index = parseInt(entityItem.dataset.index);
-            // Ensure _editor_collapse_entity is a mutable object
             this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
             this._tmpConfig._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
             const arrowSpan = header.querySelector('.dropdown-arrow');
             if (arrowSpan) {
                 arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
             }
-            this._valueChanged(); // Trigger config update
+            this._valueChanged();
         }
       });
     });
@@ -1096,7 +1065,6 @@ class GoogleMapCardEditor extends HTMLElement {
       button.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
         if (!isNaN(index)) {
-          // Create a new array from _tmpConfig.entities
           const currentEntities = [...(this._tmpConfig.entities || [])];
           currentEntities.splice(index, 1);
 
@@ -1114,7 +1082,6 @@ class GoogleMapCardEditor extends HTMLElement {
               newCollapseStates = tempCollapseStates; 
           }
           
-          // Construct a completely new _tmpConfig object for internal editor state
           const newTmpConfig = {
               ...this._tmpConfig, 
               entities: currentEntities.length > 0 ? currentEntities : undefined, 
@@ -1125,10 +1092,10 @@ class GoogleMapCardEditor extends HTMLElement {
               delete newTmpConfig.entities;
           }
 
-          this._tmpConfig = newTmpConfig; // Update the editor's internal state
+          this._tmpConfig = newTmpConfig;
 
-          this._render(); // Re-render the UI based on the new _tmpConfig
-          this._valueChanged(); // Trigger config change detection
+          this._render();
+          this._valueChanged();
         }
       });
     });
@@ -1139,9 +1106,8 @@ class GoogleMapCardEditor extends HTMLElement {
       if (header && content) {
           header.classList.toggle('collapsed');
           content.classList.toggle('hidden');
-          // Update _tmpConfig with collapse state
           this._tmpConfig._editor_collapse_appearance = header.classList.contains('collapsed');
-          this._valueChanged(); // Trigger config update
+          this._valueChanged();
       }
     });
   }
@@ -1149,13 +1115,11 @@ class GoogleMapCardEditor extends HTMLElement {
   _restoreCollapseStates() {
     const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
     const appearanceContent = this.shadowRoot.getElementById('appearance-content');
-    // Restore using _tmpConfig
     if (this._tmpConfig._editor_collapse_appearance && appearanceHeader && appearanceContent) {
         appearanceHeader.classList.add('collapsed');
         appearanceContent.classList.add('hidden');
     }
 
-    // Restore using _tmpConfig
     if (this._tmpConfig._editor_collapse_entity) {
         this.shadowRoot.querySelectorAll('.entity-item').forEach(entityItem => {
             const index = parseInt(entityItem.dataset.index);
@@ -1176,17 +1140,10 @@ class GoogleMapCardEditor extends HTMLElement {
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
 
-    // IMPORTANT: Build newConfig *entirely* from the current DOM inputs.
-    // This newEntities array represents the actual state of the UI elements.
     const newEntities = [];
     this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom, index) => {
         const entityIdInput = entityItemDom.querySelector('.entity-id');
-        // Ensure the entityId input exists and has a value before processing
-        // This handles cases where an entity might have been deleted from the DOM
-        // but the querySelectorAll still returns a container element briefly.
         if (!entityIdInput || !entityIdInput.value) {
-            // If the entityId input is missing or empty, skip this item entirely.
-            // This is crucial for deletions to reflect in the config.
             return; 
         }
 
@@ -1214,17 +1171,14 @@ class GoogleMapCardEditor extends HTMLElement {
       theme_mode: theme === 'Auto' ? undefined : theme,
       aspect_ratio: aspect || undefined,
       entities: newEntities.length > 0 ? newEntities : undefined,
-      // Use _tmpConfig for collapse states as they are managed there
       _editor_collapse_appearance: this._tmpConfig._editor_collapse_appearance,
       _editor_collapse_entity: this._tmpConfig._editor_collapse_entity,
     };
 
-    // Remove undefined properties before comparison
     Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
 
-    // Compare the newly generated config (from UI) against the last confirmed config (this._config)
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
-      this._config = newConfig; // Update the 'last confirmed' config
+      this._config = newConfig;
       this.dispatchEvent(new CustomEvent('config-changed', {
         detail: { config: newConfig },
         bubbles: true,
@@ -1233,7 +1187,6 @@ class GoogleMapCardEditor extends HTMLElement {
     }
   }
 
-  // getConfig() method for completeness, although not always used by HA directly for UI editors
   getConfig() {
     return this._config;
   }
@@ -1257,5 +1210,5 @@ window.customCards.push({
   type: 'google-map-card',
   name: 'Google Map Card',
   preview: true,
-  description: 'Displays person/device_tracker locations on Google Maps',
+  description: 'Displays person/zone/device_tracker entity locations on Google Maps',
 });
