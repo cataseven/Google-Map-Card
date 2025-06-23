@@ -55,6 +55,10 @@ resources:
 
 <br>
 
+# Adding the Card
+You can search it on card picker
+![image10](images/gm10.png)
+
 # Parameters
 
 | Key               | Type     | Description                                                                 |
