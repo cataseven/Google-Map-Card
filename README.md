@@ -34,21 +34,17 @@ Create API and click the show key button on the bottom right
 ### Via HACS (Recommended)
 
 1. Go to **HACS > Frontend > Custom Repositories**
-2. Add this repository URL:  
-   `https://github.com/cataseven/google-map-card`
-3. Choose "Lovelace" as the category and click **Add**
-4. Find "Google Map Card" in the HACS store and install
-5. Make sure it is loaded in `resources:` (HACS should do this automatically)
-
+2. Search for Google Map Card
+3. Download
+   
 ### Manual
 
 1. Download `google-map-card.js`
 2. Place it in `www/community/google-map-card/`
 3. Add the following to your Lovelace `resources:` section:
 
-resources:
-  - url: /local/community/google-map-card/google-map-card.js
-    type: module
+resources:   
+url: /local/community/google-map-card/google-map-card.js
 
 ## Parameters
 
@@ -60,8 +56,9 @@ resources:
 | `theme_mode`| string  | You can see list on UI editor's dropdown menu (optional)|
 | `aspect_ratio`| string  | Adjust card size (optional)                           |
 | `icon_size`| integer | (optional)                                               |
-| `hours_to_show`| integer | Enabling Route tracking. 0 to disable it, default: 4 |
+| `hours_to_show`| integer | Enabling Route tracking. 0 to disable it, default: 0 |
 | `polyline_color`| string  | polyline color for tracking                         |
+| `polyline_width`| integer | polyline width for tracking                         |
 | `icon_color`| string  | icon color                                              |
 | `background_color`| string  | icon background color                             |
 
@@ -80,25 +77,25 @@ api_key: 123457adasd56a4d78ad
 entities:
   - entity: person.animal
     polyline_color: "#FF0000"
+    polyline_width: 2
     icon_size: 15
     hours_to_show: 2
     icon_color: white
     background_color: darkblue
   - entity: zone.home
     polyline_color: "#0000FF"
+    polyline_width: 1
     icon_size: 20
     hours_to_show: 3
     icon_color: white
     background_color: green
   - entity: device_tracker.androidphone
-    polyline_color: "#0000FF"
     icon_size: 15
     hours_to_show: 0
     icon_color: white
     background_color: green
 zoom: 11
 theme_mode: Dark_Blueish_Night
-
 
 ```
 
