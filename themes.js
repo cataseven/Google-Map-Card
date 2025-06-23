@@ -3,7 +3,6 @@
 export function get_map_themes() {
     return {
         "dark": {
-            // Mevcut Dark Temalar
             "Dark_Darky": [
                 { "elementType": "geometry", "stylers": [{ "color": "#242f3e" }] },
                 { "elementType": "labels.text.stroke", "stylers": [{ "color": "#242f3e" }] },
@@ -44,7 +43,6 @@ export function get_map_themes() {
                 { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#4e6a8e" }] },
                 { "featureType": "water", "elementType": "labels.text.stroke", "stylers": [{ "color": "#163456" }] }
             ],
-            // Yeni Dark Temalar (18 adet)
             "Dark_Midnight": [
                 { "elementType": "geometry", "stylers": [{ "color": "#1A202C" }] },
                 { "elementType": "labels.text.stroke", "stylers": [{ "color": "#1A202C" }] },
@@ -727,15 +725,13 @@ export function get_map_themes() {
             ]
         },
         "light": {
-            // Mevcut Light Temalar
-            "light_theme_1": [], // Default light theme (no specific styles)
-            "light_theme_2": [ // Light - Blue Water
+            "light_theme_1": [],
+            "light_Blue_Water": [
                 { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#aadaff" }] },
                 { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#555555" }] },
                 { "featureType": "poi.park", "elementType": "geometry", "stylers": [{ "color": "#d6f7c2" }] },
                 { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#666666" }] }
             ],
-            // Yeni Light Temalar (18 adet)
             "Light_Subtle_Greens": [
                 { "elementType": "geometry", "stylers": [{ "color": "#F0F8F0" }] },
                 { "elementType": "labels.text.stroke", "stylers": [{ "color": "#FFFFFF" }] },
