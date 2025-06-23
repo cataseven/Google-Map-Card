@@ -68,7 +68,7 @@ resources:
 ![image6](images/gm6.png)
 
 ## Themes
-You can choose your best theme. So many options ;)
+You can choose your best theme. So many options ;) 40 mow and more to come in the future
 ![image7](images/gm7.png)
 ![image8](images/gm8.png)
 
