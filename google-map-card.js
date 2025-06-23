@@ -1095,3 +1095,22 @@ class GoogleMapCardEditor extends HTMLElement {
 }
 
 customElements.define('google-map-card-editor', GoogleMapCardEditor);
+
+GoogleMapCard.getConfigElement = () => document.createElement('google-map-card-editor');
+
+GoogleMapCard.getStubConfig = () => {
+  return {
+    type: 'custom:google-map-card',
+    api_key: '',
+    zoom: 11,
+    entities: [],
+  };
+};
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'google-map-card',
+  name: 'Google Map Card',
+  preview: true,
+  description: 'Displays person/device_tracker locations on Google Maps',
+});
