@@ -1,4 +1,5 @@
 {
   "name": "Google Map Card",
-  "render_readme": true
+  "render_readme": true,
+  "filename": "google-map-card.js"
 }
