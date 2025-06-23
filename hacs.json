@@ -1,3 +1,4 @@
 {
-  "name": "Google Map Card"
+  "name": "Google Map Card",
+  "render_readme": true
 }
