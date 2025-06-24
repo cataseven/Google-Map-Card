@@ -6,8 +6,7 @@ class GoogleMapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.map = null;
     this.markers = [];
-    // Changed polylines to a Map to store by entityId for easier updates
-    this.polylines = new Map(); // Map<entityId, google.maps.Polyline>
+    this.polylines = new Map();
     this.apiKeyLoaded = false;
     this.initialized = false;
     this.firstDraw = true;
@@ -68,7 +67,6 @@ class GoogleMapCard extends HTMLElement {
         hours_to_show: typeof entityConfig.hours_to_show === 'number' ? entityConfig.hours_to_show : 0,
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
-        // New: polyline_width added with a default of 1
         polyline_width: typeof entityConfig.polyline_width === 'number' ? entityConfig.polyline_width : 1,
       };
     });
@@ -174,7 +172,6 @@ class GoogleMapCard extends HTMLElement {
     if (locations.length === 0 && !this._firstLoadHistoryNeeded) {
       mapEl.innerHTML = `<p>No location data available for the configured entities.</p>`;
       this._clearMarkers(true);
-      // No need to clear polylines explicitly here, _updateMarkers will handle it
       return;
     }
 
@@ -273,11 +270,9 @@ class GoogleMapCard extends HTMLElement {
       }
 
       const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
-      // Only add a new history point if the location has changed significantly or enough time has passed.
-      // This helps prevent adding duplicate points if the entity's state is frequently updated without movement.
       const latChanged = lastEntry ? Math.abs(lastEntry.lat - state.attributes.latitude) > 0.000001 : true;
       const lonChanged = lastEntry ? Math.abs(lastEntry.lon - state.attributes.longitude) > 0.000001 : true;
-      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true; // Add point if 5 seconds passed
+      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true;
 
       if (!lastEntry || (latChanged || lonChanged || timePassed)) {
         this.locationHistory[eid].push({
@@ -315,7 +310,7 @@ class GoogleMapCard extends HTMLElement {
           hours_to_show: entitySpecificConfig.hours_to_show,
           icon_color: entitySpecificConfig.icon_color,
           background_color: entitySpecificConfig.background_color,
-          polyline_width: entitySpecificConfig.polyline_width, // Pass polyline_width
+          polyline_width: entitySpecificConfig.polyline_width,
         };
       })
       .filter(Boolean);
@@ -329,7 +324,6 @@ class GoogleMapCard extends HTMLElement {
     return 'mdi:map-marker';
   }
 
-  // Renamed and refactored to handle polyline updates
   _updatePolylines() {
     const polylinesToKeep = new Set();
 
@@ -341,7 +335,7 @@ class GoogleMapCard extends HTMLElement {
 
         const hoursToShowForEntity = entitySpecificConfig.hours_to_show;
         const polylineColorForEntity = entitySpecificConfig.polyline_color;
-        const polylineWidthForEntity = entitySpecificConfig.polyline_width; // Get polyline width
+        const polylineWidthForEntity = entitySpecificConfig.polyline_width;
 
         if (hoursToShowForEntity > 0) {
             const history = this.locationHistory[eid] || [];
@@ -352,21 +346,19 @@ class GoogleMapCard extends HTMLElement {
                 let polyline = this.polylines.get(eid);
 
                 if (polyline) {
-                    // Update existing polyline path and options
                     polyline.setPath(path);
                     polyline.setOptions({ 
                         strokeColor: polylineColorForEntity, 
                         strokeOpacity: 0.7, 
-                        strokeWeight: polylineWidthForEntity // Use polylineWidthForEntity here
+                        strokeWeight: polylineWidthForEntity
                     });
                 } else {
-                    // Create new polyline
                     polyline = new google.maps.Polyline({
                         path: path,
                         geodesic: true,
                         strokeColor: polylineColorForEntity,
                         strokeOpacity: 0.7,
-                        strokeWeight: polylineWidthForEntity, // Use polylineWidthForEntity here
+                        strokeWeight: polylineWidthForEntity,
                         map: this.map
                     });
                     this.polylines.set(eid, polyline);
@@ -376,7 +368,6 @@ class GoogleMapCard extends HTMLElement {
         }
     });
 
-    // Remove polylines that are no longer needed
     this.polylines.forEach((polyline, eid) => {
         if (!polylinesToKeep.has(eid)) {
             polyline.setMap(null);
@@ -391,7 +382,7 @@ class GoogleMapCard extends HTMLElement {
     const currentLocations = this._getCurrentLocations();
     if (currentLocations.length === 0 && Object.keys(this.locationHistory).every(key => this.locationHistory[key].length === 0)) {
         this._clearMarkers(true);
-        this._updatePolylines(); // Ensure polylines are also cleared if no locations
+        this._updatePolylines();
         return;
     }
 
@@ -401,7 +392,6 @@ class GoogleMapCard extends HTMLElement {
         const iconColorForEntity = loc.icon_color;
         const backgroundColorForEntity = loc.background_color;
         
-        // Define border size for icons (2px) and pictures (0px)
         const borderSizeForIcon = 2; 
 
         let markerIcon = null;
@@ -412,7 +402,6 @@ class GoogleMapCard extends HTMLElement {
             fullPictureUrl = loc.picture.startsWith('/')
                 ? `${window.location.origin}${loc.picture}`
                 : loc.picture;
-            // For pictures, pass borderSize as 0 and null for colors
             markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, 0, null, null); 
         } else if (loc.icon) {
             try {
@@ -425,7 +414,6 @@ class GoogleMapCard extends HTMLElement {
                 } else {
                     fullIconUrl = `${this._hass.connection.baseUrl}/static/icons/${loc.icon.replace(':', '-')}.png`;
                 }
-                // For icons, apply iconColor and backgroundColor with border
                 markerIcon = await this._createCircularIcon(fullIconUrl, iconSizeForEntity, borderSizeForIcon, iconColorForEntity, backgroundColorForEntity);
             } catch (e) {
                 console.error('Error creating icon:', e);
@@ -437,7 +425,7 @@ class GoogleMapCard extends HTMLElement {
 
     const locationsWithIcons = await Promise.all(iconPromises);
 
-    this.markers = []; // Re-initialize this.markers to only contain current active markers
+    this.markers = [];
 
     locationsWithIcons.forEach(loc => {
         let marker = existingMarkers.get(loc.id);
@@ -448,7 +436,6 @@ class GoogleMapCard extends HTMLElement {
                 marker.setIcon(loc.markerIcon || null);
             }
             if (marker.infoWindow) {
-                // Info window content, ensuring border-radius for pictures is applied correctly
                 const infoContent = `
                 <div style="text-align:center; padding:10px; min-width:120px;">
                   ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
@@ -460,7 +447,7 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow.setContent(infoContent);
             }
             markersToKeep.add(loc.id);
-            this.markers.push(marker); // Add back to active markers
+            this.markers.push(marker);
         } else {
             marker = new google.maps.Marker({
                 position: { lat: loc.lat, lng: loc.lon },
@@ -471,7 +458,6 @@ class GoogleMapCard extends HTMLElement {
             });
             marker.entityId = loc.id;
 
-            // Info window content for new markers
             const infoContent = `
             <div style="text-align:center; padding:10px; min-width:120px;">
               ${loc.picture ? `<img src="${loc.fullPictureUrl}" width="${loc.icon_size}" height="${loc.icon_size}" style="border-radius:50%;">` : 
@@ -493,11 +479,10 @@ class GoogleMapCard extends HTMLElement {
                 marker.infoWindow = infoWindow;
             });
             markersToKeep.add(loc.id);
-            this.markers.push(marker); // Add new marker to active markers
+            this.markers.push(marker);
         }
     });
 
-    // Remove markers that are no longer needed
     existingMarkers.forEach((marker, entityId) => {
         if (!markersToKeep.has(entityId)) {
             if (marker.infoWindow) marker.infoWindow.close();
@@ -505,7 +490,6 @@ class GoogleMapCard extends HTMLElement {
         }
     });
 
-    // Call the updated polyline function
     this._updatePolylines();
   }
 
@@ -513,7 +497,7 @@ class GoogleMapCard extends HTMLElement {
     const canvas = document.createElement('canvas');
     
     const contentDiameter = size;
-    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0; // 4px padding for icons, 0 for pictures
+    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0;
     const borderThickness = imageUrl.endsWith('.svg') ? borderSize : 0;
 
     const totalCanvasDiameter = contentDiameter + (2 * iconPadding) + (2 * borderThickness);
@@ -521,13 +505,11 @@ class GoogleMapCard extends HTMLElement {
     canvas.height = totalCanvasDiameter;
     const ctx = canvas.getContext('2d');
 
-    // Clear the canvas to ensure transparency initially
     ctx.clearRect(0, 0, totalCanvasDiameter, totalCanvasDiameter);
 
     const centerX = totalCanvasDiameter / 2;
     const centerY = totalCanvasDiameter / 2;
 
-    // Apply background color if it's an icon and a background is specified
     if (imageUrl.endsWith('.svg') && backgroundColor) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, totalCanvasDiameter / 2, 0, Math.PI * 2);
@@ -535,26 +517,18 @@ class GoogleMapCard extends HTMLElement {
       ctx.fill();
     }
 
-    // Apply border if it's an icon and borderThickness > 0
     if (imageUrl.endsWith('.svg') && borderThickness > 0) {
       ctx.beginPath();
-      // The border should be drawn around the content + inner padding area
-      // Its radius extends up to the outer edge of the canvas, minus half its thickness
       ctx.arc(centerX, centerY, (totalCanvasDiameter - borderThickness) / 2, 0, Math.PI * 2); 
-      ctx.strokeStyle = iconColor || '#000000'; // Default border color if iconColor not provided
-      ctx.lineWidth = borderThickness; // Set stroke width to the border thickness
+      ctx.strokeStyle = iconColor || '#000000';
+      ctx.lineWidth = borderThickness;
       ctx.stroke();
     }
 
-    // Clip to a circle for the actual image/icon content.
-    // This clipping circle's radius is half of the 'size' parameter (contentDiameter / 2), 
-    // ensuring the content itself is the desired 'size' diameter.
     ctx.beginPath();
     ctx.arc(centerX, centerY, contentDiameter / 2, 0, Math.PI * 2);
     ctx.clip();
 
-    // Calculate offset to draw the image/icon centered within the clipped area
-    // This offset considers border and padding to correctly center the contentDiameter image
     const drawX = (totalCanvasDiameter - contentDiameter) / 2;
     const drawY = (totalCanvasDiameter - contentDiameter) / 2;
 
@@ -563,17 +537,14 @@ class GoogleMapCard extends HTMLElement {
         const response = await fetch(imageUrl);
         let svgText = await response.text();
 
-        // Apply iconColor to SVG fill and stroke attributes if provided
         if (iconColor) {
             svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
             svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
 
-            // Also check for style attribute to replace fill/stroke within it
             svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
               let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
               return `style="${newStyle}"`;
             });
-            // If no fill/stroke attributes found, add a default fill to <path> elements
             if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
                 svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
             }
@@ -585,7 +556,6 @@ class GoogleMapCard extends HTMLElement {
         return new Promise((resolveInner) => {
           const image = new Image();
           image.onload = () => {
-            // Draw the SVG image at the calculated offset and desired 'size'
             ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
             URL.revokeObjectURL(newImageUrl);
             resolveInner({
@@ -607,12 +577,10 @@ class GoogleMapCard extends HTMLElement {
         return null;
       }
     } else {
-      // For non-SVG images (pictures)
       return new Promise((resolveInner) => {
         const image = new Image();
-        image.crossOrigin = 'Anonymous'; // Needed for loading images from different origins on canvas
+        image.crossOrigin = 'Anonymous';
         image.onload = () => {
-          // Draw the picture at the calculated offset and desired 'size'
           ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
           resolveInner({
             url: canvas.toDataURL(),
@@ -693,7 +661,6 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   _render() {
-    // === START: FIX-1: Save current UI state before re-rendering ===
     const activeElement = this.shadowRoot.activeElement;
     let activeElementState = {
         path: null,
@@ -714,7 +681,6 @@ class GoogleMapCardEditor extends HTMLElement {
             if (id) part += `#${id}`;
             if (classes) part += `.${classes}`;
             
-            // For entities, use data-index for stability
             const entityItem = current.closest('.entity-item');
             if(entityItem && current.hasAttribute('data-index')) {
                 path.unshift(`[data-index="${current.dataset.index}"]`);
@@ -734,7 +700,7 @@ class GoogleMapCardEditor extends HTMLElement {
         try {
             activeElementState.selectionStart = activeElement.selectionStart;
             activeElementState.selectionEnd = activeElement.selectionEnd;
-        } catch (e) { /* Fails on elements that don't support selection */ }
+        } catch (e) { }
     }
     
     this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
@@ -744,7 +710,6 @@ class GoogleMapCardEditor extends HTMLElement {
     if (appearanceHeader) {
         appearanceCollapsed = appearanceHeader.classList.contains('collapsed');
     }
-    // === END: FIX-1 ===
 
 
     const theme = this._tmpConfig.theme_mode || 'Auto';
@@ -769,7 +734,6 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconColor = e.icon_color || '#780202';
       const backgroundColor = e.background_color || '#FFFFFF';
 
-      // NOTE: Collapse state is now handled after render. Default to open.
       const isCollapsed = entityCollapseStates[index] || false;
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
@@ -790,7 +754,7 @@ class GoogleMapCardEditor extends HTMLElement {
               </label>
               <div class="input-row-grid-three">
                 <label class="font-resizer">Icon Size:
-                  <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 24" />
+                  <input class="entity-input icon_size" type="text" data-index="${index}" value="${iconSize}" placeholder="e.g. 22" />
                 </label>
                 <label class="font-resizer">Hours to Show:
                   <input class="entity-input hours_to_show" type="text" data-index="${index}" value="${entityHours}" placeholder="e.g. 24" />
@@ -1026,7 +990,7 @@ class GoogleMapCardEditor extends HTMLElement {
           padding: 15px;
           border-radius: unset;
           background-color: var(--card-background-color);
-          display: block; /* ensure it's visible by default */
+          display: block;
         }
         
         .entity-item.collapsed .entity-details {
@@ -1126,7 +1090,6 @@ class GoogleMapCardEditor extends HTMLElement {
 
     this._attachListeners();
 
-    // === START: FIX-2: Restore UI state after re-rendering ===
     const newAppearanceHeader = this.shadowRoot.getElementById('appearance-header');
     if (newAppearanceHeader && appearanceCollapsed) {
         newAppearanceHeader.classList.add('collapsed');
@@ -1140,7 +1103,6 @@ class GoogleMapCardEditor extends HTMLElement {
     });
 
     if (activeElementState.path) {
-        // A more robust querySelector that might survive the re-render
         const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
         if (newActiveElement) {
             newActiveElement.focus();
@@ -1148,10 +1110,9 @@ class GoogleMapCardEditor extends HTMLElement {
                 if(newActiveElement.selectionStart !== undefined) {
                     newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
                 }
-            } catch (e) { /* Ignored */ }
+            } catch (e) { }
         }
     }
-    // === END: FIX-2 ===
   }
 
   _attachListeners() {
@@ -1167,8 +1128,8 @@ class GoogleMapCardEditor extends HTMLElement {
     const valueChangedDebounced = debounce(() => this._valueChanged(), 500);
 
     this.shadowRoot.querySelectorAll('input, select').forEach(input => {
-        input.addEventListener('input', valueChangedDebounced); // Use 'input' for instant feedback on typing
-        input.addEventListener('change', () => this._valueChanged()); // 'change' for color pickers, selects
+        input.addEventListener('input', valueChangedDebounced);
+        input.addEventListener('change', () => this._valueChanged());
     });
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
@@ -1271,7 +1232,6 @@ class GoogleMapCardEditor extends HTMLElement {
         newConfig.entities = newEntities;
     }
 
-    // Update internal temp config to reflect changes for the next partial render
     this._tmpConfig = newConfig;
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
@@ -1284,15 +1244,10 @@ class GoogleMapCardEditor extends HTMLElement {
     }
   }
 
-  // This method is no longer needed with the current valueChanged implementation
-  // but is kept in case of future logic needs. It can be safely removed.
   _fillDefaultEntityValues(index) {
-    // Logic can be added here if needed, but the current _valueChanged handles all updates.
   }
 
-  // This method is no longer needed as the state is restored in _render
   _restoreCollapseStates() {
-    // Deprecated
   }
 
   getConfig() {
