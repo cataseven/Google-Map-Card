@@ -1132,8 +1132,15 @@ class GoogleMapCardEditor extends HTMLElement {
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
       const updated = [...(this._tmpConfig.entities || [])];
+      const newEntityIndex = updated.length; // Get the index of the new entity
+
       updated.push({ entity: '' });
-      this._tmpConfig.entities = updated; 
+      this._tmpConfig.entities = updated;
+
+      // Set the collapse state for the newly added entity to false (uncollapsed)
+      this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
+      this._tmpConfig._editor_collapse_entity[newEntityIndex] = false; // Explicitly set to uncollapsed
+
       this._render();
       this._valueChanged();
     });
