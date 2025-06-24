@@ -622,6 +622,7 @@ class GoogleMapCardEditor extends HTMLElement {
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
+    this._initialRender = true; // DEĞİŞİKLİK: İlk render durumunu izlemek için bayrak eklendi
   }
 
   setConfig(config) {
@@ -667,9 +668,27 @@ class GoogleMapCardEditor extends HTMLElement {
         selectionStart: -1,
         selectionEnd: -1,
     };
+    
+    // DEĞİŞİKLİK: Başlangıç durumunu belirleme mantığı güncellendi
     let entityCollapseStates = {};
-    let appearanceCollapsed = false;
+    let appearanceCollapsed;
 
+    if (this._initialRender) {
+        // İlk render'da her şeyin kapalı (collapsed) olmasını sağla
+        appearanceCollapsed = true;
+        this._entities.forEach((_, index) => {
+            entityCollapseStates[index] = true;
+        });
+        this._initialRender = false; // Bayrağı kaldır, böylece sonraki render'larda bu blok çalışmaz
+    } else {
+        // Sonraki render'larda mevcut durumu DOM'dan oku ve koru
+        this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
+            entityCollapseStates[item.dataset.index] = item.classList.contains('collapsed');
+        });
+        const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
+        appearanceCollapsed = appearanceHeader ? appearanceHeader.classList.contains('collapsed') : false;
+    }
+    
     if (activeElement) {
         let path = [];
         let current = activeElement;
@@ -700,17 +719,8 @@ class GoogleMapCardEditor extends HTMLElement {
         try {
             activeElementState.selectionStart = activeElement.selectionStart;
             activeElementState.selectionEnd = activeElement.selectionEnd;
-        } catch (e) { }
+        } catch (e) { /* ignore */ }
     }
-    
-    this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
-        entityCollapseStates[item.dataset.index] = item.classList.contains('collapsed');
-    });
-    const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
-    if (appearanceHeader) {
-        appearanceCollapsed = appearanceHeader.classList.contains('collapsed');
-    }
-
 
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
@@ -734,7 +744,7 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconColor = e.icon_color || '#780202';
       const backgroundColor = e.background_color || '#FFFFFF';
 
-      const isCollapsed = entityCollapseStates[index] || false;
+      const isCollapsed = entityCollapseStates[index]; // Durumu buradan al
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
 
@@ -778,6 +788,10 @@ class GoogleMapCardEditor extends HTMLElement {
         </div>
       `;
     }).join('');
+    
+    // DEĞİŞİKLİK: "Common Settings" bölümünün class'ları dinamik olarak belirleniyor
+    const appearanceCollapsedClass = appearanceCollapsed ? 'collapsed' : '';
+    const appearanceContentClass = appearanceCollapsed ? 'hidden' : '';
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -1053,11 +1067,11 @@ class GoogleMapCardEditor extends HTMLElement {
       </style>
       <div class="card-container">
         <div>
-            <div class="section-header" id="appearance-header">
+            <div class="section-header ${appearanceCollapsedClass}" id="appearance-header">
                 <span class="icon">✨</span> Common Settings
                 <span class="arrow">▼</span>
             </div>
-            <div class="section-content" id="appearance-content">
+            <div class="section-content ${appearanceContentClass}" id="appearance-content">
                 <div class="input-row-grid">
                     <label>Aspect ratio:
                         <input id="aspect_ratio" value="${aspect}" placeholder="e.g. 16:9 or 0.5" type="text" />
@@ -1090,18 +1104,7 @@ class GoogleMapCardEditor extends HTMLElement {
 
     this._attachListeners();
 
-    const newAppearanceHeader = this.shadowRoot.getElementById('appearance-header');
-    if (newAppearanceHeader && appearanceCollapsed) {
-        newAppearanceHeader.classList.add('collapsed');
-        newAppearanceHeader.nextElementSibling.classList.add('hidden');
-    }
-
-    this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
-        if (entityCollapseStates[item.dataset.index]) {
-            item.classList.add('collapsed');
-        }
-    });
-
+    // Odaklanılan elementi geri yükle
     if (activeElementState.path) {
         const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
         if (newActiveElement) {
@@ -1110,7 +1113,7 @@ class GoogleMapCardEditor extends HTMLElement {
                 if(newActiveElement.selectionStart !== undefined) {
                     newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
                 }
-            } catch (e) { }
+            } catch (e) { /* ignore */ }
         }
     }
   }
