@@ -725,7 +725,7 @@ class GoogleMapCardEditor extends HTMLElement {
     
     const isApiKeySet = this._config && this._config.api_key;
     const apiKeyInputValue = isApiKeySet ? '' : (this._tmpConfig.api_key || '');
-    const apiKeyPlaceholder = isApiKeySet ? 'API Key is Set. Enter new key to change' : 'Insert your Google Maps API Key';
+    const apiKeyPlaceholder = isApiKeySet ? '***********************' : 'Insert your Google Maps API Key';
 
     const allThemes = Object.keys(this.themes['dark'] || {}).concat(Object.keys(this.themes['light'] || {}));
     const uniqueThemes = [...new Set(allThemes)].sort();
