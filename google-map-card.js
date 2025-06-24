@@ -654,7 +654,6 @@ class GoogleMapCardEditor extends HTMLElement {
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
-    this._debounceTimeout = null;
   }
 
   setConfig(config) {
@@ -694,18 +693,59 @@ class GoogleMapCardEditor extends HTMLElement {
   }
 
   _render() {
+    // === START: FIX-1: Save current UI state before re-rendering ===
     const activeElement = this.shadowRoot.activeElement;
-    let activeEntityIndex = -1;
-    let activeInputClass = '';
-    let cursorStart = -1;
-    let cursorEnd = -1;
+    let activeElementState = {
+        path: null,
+        selectionStart: -1,
+        selectionEnd: -1,
+    };
+    let entityCollapseStates = {};
+    let appearanceCollapsed = false;
 
-    if (activeElement && activeElement.closest('.entity-item')) {
-        activeEntityIndex = parseInt(activeElement.closest('.entity-item').dataset.index);
-        activeInputClass = Array.from(activeElement.classList).find(cls => cls.includes('input'));
-        cursorStart = activeElement.selectionStart;
-        cursorEnd = activeElement.selectionEnd;
+    if (activeElement) {
+        let path = [];
+        let current = activeElement;
+        while (current && current !== this.shadowRoot) {
+            let id = current.id;
+            let classes = Array.from(current.classList).join('.');
+            let tag = current.tagName.toLowerCase();
+            let part = tag;
+            if (id) part += `#${id}`;
+            if (classes) part += `.${classes}`;
+            
+            // For entities, use data-index for stability
+            const entityItem = current.closest('.entity-item');
+            if(entityItem && current.hasAttribute('data-index')) {
+                path.unshift(`[data-index="${current.dataset.index}"]`);
+            } else {
+                let parent = current.parentNode;
+                if (parent) {
+                    let siblings = Array.from(parent.children);
+                    let ownIndex = siblings.indexOf(current);
+                    part += `:nth-child(${ownIndex + 1})`;
+                }
+            }
+            path.unshift(part);
+            current = current.parentElement;
+        }
+        activeElementState.path = path.join(' > ');
+
+        try {
+            activeElementState.selectionStart = activeElement.selectionStart;
+            activeElementState.selectionEnd = activeElement.selectionEnd;
+        } catch (e) { /* Fails on elements that don't support selection */ }
     }
+    
+    this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
+        entityCollapseStates[item.dataset.index] = item.classList.contains('collapsed');
+    });
+    const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
+    if (appearanceHeader) {
+        appearanceCollapsed = appearanceHeader.classList.contains('collapsed');
+    }
+    // === END: FIX-1 ===
+
 
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
@@ -722,16 +762,15 @@ class GoogleMapCardEditor extends HTMLElement {
 
     let entitiesHtml = this._entities.map((e, index) => {
       const entityId = typeof e === 'string' ? e : e.entity;
-      // Use defaults as placeholders if not explicitly set
-      const iconSize = e.icon_size !== undefined ? e.icon_size : this._config.icon_size || 20;
+      const iconSize = e.icon_size !== undefined ? e.icon_size : this._tmpConfig.icon_size || 20;
       const entityHours = e.hours_to_show !== undefined ? e.hours_to_show : 0;
-      const polylineColor = e.polyline_color || '#FFFFFF'; // Default color
-      const polylineWidth = e.polyline_width !== undefined ? e.polyline_width : 1; // Default width
-      const iconColor = e.icon_color || '#780202'; // Default color
-      const backgroundColor = e.background_color || '#FFFFFF'; // Default color
+      const polylineColor = e.polyline_color || '#FFFFFF'; 
+      const polylineWidth = e.polyline_width !== undefined ? e.polyline_width : 1;
+      const iconColor = e.icon_color || '#780202';
+      const backgroundColor = e.background_color || '#FFFFFF';
 
-
-      const isCollapsed = this._tmpConfig._editor_collapse_entity && this._tmpConfig._editor_collapse_entity[index];
+      // NOTE: Collapse state is now handled after render. Default to open.
+      const isCollapsed = entityCollapseStates[index] || false;
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
 
@@ -789,7 +828,6 @@ class GoogleMapCardEditor extends HTMLElement {
           font-family: var(--primary-font-family);
         }
 
-        /* Yeni CSS kuralı: Belirtilen labellerin font boyutunu %85 oranında küçültür */
         .font-resizer {
             font-size: 85%;
         }
@@ -798,7 +836,7 @@ class GoogleMapCardEditor extends HTMLElement {
           padding: 0px;
           border-radius: unset;
           box-shadow: none;
-          max-width: 1000px; /* Increased max-width for wider layout */
+          max-width: 1000px;
           margin: auto;
         }
 
@@ -916,10 +954,10 @@ class GoogleMapCardEditor extends HTMLElement {
           gap: 15px;
         }
 
-        .input-row-grid-three { /* NEW CSS CLASS */
+        .input-row-grid-three {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
-          gap: 15px; /* Maintain consistent gap */
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 15px;
         }
         
         .input-row-grid label,
@@ -988,6 +1026,7 @@ class GoogleMapCardEditor extends HTMLElement {
           padding: 15px;
           border-radius: unset;
           background-color: var(--card-background-color);
+          display: block; /* ensure it's visible by default */
         }
         
         .entity-item.collapsed .entity-details {
@@ -1069,7 +1108,7 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     </div>
                 <label>API Key:
-                    <input id="api_key" value="${apiKey}" placeholder="Your Google Maps API Key" type="text" />
+                    <input id="api_key" value="${apiKey}" placeholder="Your Google Maps API Key" type="password" />
                 </label>
             </div>
 
@@ -1086,15 +1125,33 @@ class GoogleMapCardEditor extends HTMLElement {
     `;
 
     this._attachListeners();
-    this._restoreCollapseStates();
-    
-    if (activeElement && activeElement.closest('.entity-item')) {
-        const newActiveElement = this.shadowRoot.querySelector(`.entity-item[data-index="${activeEntityIndex}"] .${activeInputClass}`);
+
+    // === START: FIX-2: Restore UI state after re-rendering ===
+    const newAppearanceHeader = this.shadowRoot.getElementById('appearance-header');
+    if (newAppearanceHeader && appearanceCollapsed) {
+        newAppearanceHeader.classList.add('collapsed');
+        newAppearanceHeader.nextElementSibling.classList.add('hidden');
+    }
+
+    this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
+        if (entityCollapseStates[item.dataset.index]) {
+            item.classList.add('collapsed');
+        }
+    });
+
+    if (activeElementState.path) {
+        // A more robust querySelector that might survive the re-render
+        const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
         if (newActiveElement) {
             newActiveElement.focus();
-            newActiveElement.setSelectionRange(cursorStart, cursorEnd);
+            try {
+                if(newActiveElement.selectionStart !== undefined) {
+                    newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
+                }
+            } catch (e) { /* Ignored */ }
         }
     }
+    // === END: FIX-2 ===
   }
 
   _attachListeners() {
@@ -1107,63 +1164,44 @@ class GoogleMapCardEditor extends HTMLElement {
       };
     };
 
-    this.shadowRoot.getElementById('api_key')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('api_key')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
-    this.shadowRoot.getElementById('zoom')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('zoom')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
-    this.shadowRoot.getElementById('theme_mode')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('change', () => this._valueChanged());
-    this.shadowRoot.getElementById('aspect_ratio')?.addEventListener('keyup', debounce(() => this._valueChanged(), 750));
+    const valueChangedDebounced = debounce(() => this._valueChanged(), 500);
 
-
-    this.shadowRoot.querySelectorAll('.entity-input').forEach(input => {
-        input.addEventListener('change', () => this._valueChanged());
-        if (input.type === 'text' || input.type === 'number') {
-            input.addEventListener('keyup', debounce(() => this._valueChanged(), 500));
-        }
+    this.shadowRoot.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener('input', valueChangedDebounced); // Use 'input' for instant feedback on typing
+        input.addEventListener('change', () => this._valueChanged()); // 'change' for color pickers, selects
     });
-
-    // New: Listener for entity-id input to fill default values
-    this.shadowRoot.querySelectorAll('.entity-id').forEach(input => {
-      input.addEventListener('change', (e) => this._fillDefaultEntityValues(e.target.dataset.index));
-      input.addEventListener('keyup', debounce((e) => this._fillDefaultEntityValues(e.target.dataset.index), 300));
-    });
-
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
       const updated = [...(this._tmpConfig.entities || [])];
-      const newEntityIndex = updated.length; // Get the index of the new entity
-
       updated.push({ entity: '' });
       this._tmpConfig.entities = updated;
-
-      // Set the collapse state for the newly added entity to false (uncollapsed)
-      this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
-      this._tmpConfig._editor_collapse_entity[newEntityIndex] = false; // Explicitly set to uncollapsed
-
       this._render();
       this._valueChanged();
     });
 
-
     this.shadowRoot.querySelectorAll('.entity-header').forEach(header => {
       header.addEventListener('click', (e) => {
-        if (e.target.classList.contains('action-icon')) {
-            return;
-        }
+        if (e.target.classList.contains('action-icon')) return;
+        
         const entityItem = header.closest('.entity-item');
         if (entityItem) {
             entityItem.classList.toggle('collapsed');
-            const index = parseInt(entityItem.dataset.index);
-            this._tmpConfig._editor_collapse_entity = { ...(this._tmpConfig._editor_collapse_entity || {}) };
-            this._tmpConfig._editor_collapse_entity[index] = entityItem.classList.contains('collapsed');
             const arrowSpan = header.querySelector('.dropdown-arrow');
             if (arrowSpan) {
                 arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
             }
-            this._valueChanged();
         }
       });
+    });
+
+    this.shadowRoot.querySelectorAll('.dropdown-arrow').forEach(arrow => {
+        arrow.addEventListener('click', (e) => {
+            const entityItem = e.target.closest('.entity-item');
+            if (entityItem) {
+                entityItem.classList.toggle('collapsed');
+                e.target.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
+            }
+        });
     });
 
     this.shadowRoot.querySelectorAll('.delete-entity').forEach(button => {
@@ -1172,118 +1210,43 @@ class GoogleMapCardEditor extends HTMLElement {
         if (!isNaN(index)) {
           const currentEntities = [...(this._tmpConfig.entities || [])];
           currentEntities.splice(index, 1);
-
-          let newCollapseStates = { ...(this._tmpConfig._editor_collapse_entity || {}) };
-          if (this._tmpConfig._editor_collapse_entity) {
-              const tempCollapseStates = {}; 
-              Object.keys(newCollapseStates).forEach(key => {
-                  const oldIndex = parseInt(key);
-                  if (oldIndex < index) {
-                      tempCollapseStates[oldIndex] = newCollapseStates[oldIndex];
-                  } else if (oldIndex > index) {
-                      tempCollapseStates[oldIndex - 1] = newCollapseStates[oldIndex];
-                  }
-              });
-              newCollapseStates = tempCollapseStates; 
-          }
-          
-          const newTmpConfig = {
-              ...this._tmpConfig, 
-              entities: currentEntities.length > 0 ? currentEntities : undefined, 
-              _editor_collapse_entity: newCollapseStates 
-          };
-          
-          if (newTmpConfig.entities && newTmpConfig.entities.length === 0) {
-              delete newTmpConfig.entities;
-          }
-
-          this._tmpConfig = newTmpConfig;
-
+          this._tmpConfig.entities = currentEntities;
           this._render();
           this._valueChanged();
         }
       });
     });
 
-    this.shadowRoot.getElementById('appearance-header')?.addEventListener('click', () => {
+    this.shadowRoot.getElementById('appearance-header')?.addEventListener('click', (e) => {
+      if(e.target.closest('input, label, select')) return;
       const header = this.shadowRoot.getElementById('appearance-header');
       const content = this.shadowRoot.getElementById('appearance-content');
       if (header && content) {
           header.classList.toggle('collapsed');
           content.classList.toggle('hidden');
-          this._tmpConfig._editor_collapse_appearance = header.classList.contains('collapsed');
-          this._valueChanged();
       }
     });
   }
 
-  // New method to fill default values for entity-specific inputs
-  _fillDefaultEntityValues(index) {
-    const entityItemDom = this.shadowRoot.querySelector(`.entity-item[data-index="${index}"]`);
-    if (!entityItemDom) return;
-
-    const entityIdInput = entityItemDom.querySelector('.entity-id');
-    const entityId = entityIdInput.value;
-
-    if (entityId) {
-      const currentEntityConfig = this._tmpConfig.entities[index] || {};
-
-      // Get global defaults or internal defaults based on user's request
-      const defaultIconSize = 20;
-      const defaultHoursToShow = 0;
-      const defaultPolylineColor = '#FFFFFF'; // Changed to White
-      const defaultPolylineWidth = 1;
-      const defaultIconColor = '#FF0000'; // Changed to Red
-      const defaultBackgroundColor = '#FFFFFF'; // Changed to White
-
-      // Fill if the field is empty in the current config object
-      if (currentEntityConfig.icon_size === undefined) currentEntityConfig.icon_size = defaultIconSize;
-      if (currentEntityConfig.hours_to_show === undefined) currentEntityConfig.hours_to_show = defaultHoursToShow;
-      if (currentEntityConfig.polyline_color === undefined) currentEntityConfig.polyline_color = defaultPolylineColor;
-      if (currentEntityConfig.polyline_width === undefined) currentEntityConfig.polyline_width = defaultPolylineWidth;
-      if (currentEntityConfig.icon_color === undefined) currentEntityConfig.icon_color = defaultIconColor;
-      if (currentEntityConfig.background_color === undefined) currentEntityConfig.background_color = defaultBackgroundColor;
-      
-      this._tmpConfig.entities[index] = currentEntityConfig;
-      this._render(); // Re-render to show updated default values in inputs
-      this._valueChanged(); // Trigger config change
-    }
-  }
-
-  _restoreCollapseStates() {
-    const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
-    const appearanceContent = this.shadowRoot.getElementById('appearance-content');
-    if (this._tmpConfig._editor_collapse_appearance && appearanceHeader && appearanceContent) {
-        appearanceHeader.classList.add('collapsed');
-        appearanceContent.classList.add('hidden');
-    }
-
-    if (this._tmpConfig._editor_collapse_entity) {
-        this.shadowRoot.querySelectorAll('.entity-item').forEach(entityItem => {
-            const index = parseInt(entityItem.dataset.index);
-            if (this._tmpConfig._editor_collapse_entity[index]) {
-                entityItem.classList.add('collapsed');
-                const arrowSpan = entityItem.querySelector('.dropdown-arrow');
-                if (arrowSpan) {
-                    arrowSpan.textContent = '►';
-                }
-            }
-        });
-    }
-  }
-
   _valueChanged() {
+    const newConfig = {
+      type: 'custom:google-map-card',
+    };
+
     const apiKey = this.shadowRoot.getElementById('api_key').value;
     const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
 
+    if(apiKey) newConfig.api_key = apiKey;
+    if(!isNaN(zoom)) newConfig.zoom = zoom;
+    if(theme !== 'Auto') newConfig.theme_mode = theme;
+    if(aspect) newConfig.aspect_ratio = aspect;
+    
     const newEntities = [];
-    this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom, index) => {
+    this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom) => {
         const entityIdInput = entityItemDom.querySelector('.entity-id');
-        if (!entityIdInput || !entityIdInput.value) {
-            return; 
-        }
+        if (!entityIdInput || !entityIdInput.value) return; 
 
         const entityId = entityIdInput.value;
         const icon_size = entityItemDom.querySelector('.icon_size')?.value;
@@ -1297,7 +1260,6 @@ class GoogleMapCardEditor extends HTMLElement {
         if (icon_size !== '' && !isNaN(parseFloat(icon_size))) entityObj.icon_size = parseFloat(icon_size);
         if (hours_to_show !== '' && !isNaN(parseFloat(hours_to_show))) entityObj.hours_to_show = parseFloat(hours_to_show);
         if (polyline_color) entityObj.polyline_color = polyline_color;
-        // Check if polyline_width is a valid number before assigning
         if (polyline_width !== '' && !isNaN(parseFloat(polyline_width))) entityObj.polyline_width = parseFloat(polyline_width);
         if (icon_color) entityObj.icon_color = icon_color;
         if (background_color) entityObj.background_color = background_color;
@@ -1305,27 +1267,12 @@ class GoogleMapCardEditor extends HTMLElement {
         newEntities.push(entityObj);
     });
 
-    const newConfig = {
-      type: 'custom:google-map-card',
-      api_key: apiKey || undefined,
-      zoom: isNaN(zoom) ? undefined : zoom,
-      theme_mode: theme === 'Auto' ? undefined : theme,
-      aspect_ratio: aspect || undefined,
-      entities: newEntities.length > 0 ? newEntities : undefined,
-    };
+    if(newEntities.length > 0) {
+        newConfig.entities = newEntities;
+    }
 
-    // Remove internal editor-specific properties before dispatching the config
-    Object.keys(newConfig).forEach(key => newConfig[key] === undefined && delete newConfig[key]);
-    if (newConfig._editor_collapse_appearance !== undefined) {
-        delete newConfig._editor_collapse_appearance;
-    }
-    if (newConfig._editor_collapse_entity !== undefined) {
-        delete newConfig._editor_collapse_entity;
-    }
-    // Assuming 'grid_options' might be added globally if implemented later
-    if (newConfig.grid_options !== undefined) { 
-        delete newConfig.grid_options;
-    }
+    // Update internal temp config to reflect changes for the next partial render
+    this._tmpConfig = newConfig;
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
       this._config = newConfig;
@@ -1335,6 +1282,17 @@ class GoogleMapCardEditor extends HTMLElement {
         composed: true
       }));
     }
+  }
+
+  // This method is no longer needed with the current valueChanged implementation
+  // but is kept in case of future logic needs. It can be safely removed.
+  _fillDefaultEntityValues(index) {
+    // Logic can be added here if needed, but the current _valueChanged handles all updates.
+  }
+
+  // This method is no longer needed as the state is restored in _render
+  _restoreCollapseStates() {
+    // Deprecated
   }
 
   getConfig() {
