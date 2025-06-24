@@ -633,32 +633,24 @@ class GoogleMapCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    this._updateEntityDatalist();
+    // Entity list is now rendered directly in _render, no separate update needed
   }
 
   get _entities() {
     return this._tmpConfig.entities || [];
   }
 
-  _getEntitiesForDatalist() {
+  _getAvailableEntities() {
     if (!this._hass || !this._hass.states) {
       return [];
     }
+    // Filter for person, zone, and device_tracker entities
     const filteredEntities = Object.keys(this._hass.states).filter(entityId =>
       entityId.startsWith('person.') ||
       entityId.startsWith('zone.') ||
       entityId.startsWith('device_tracker.')
     );
     return filteredEntities.sort();
-  }
-
-  _updateEntityDatalist() {
-    const datalist = this.shadowRoot.getElementById('ha-entities');
-    if (datalist) {
-      const entityOptions = this._getEntitiesForDatalist()
-        .map(entityId => `<option value="${entityId}">`).join('');
-      datalist.innerHTML = entityOptions;
-    }
   }
 
   _render() {
@@ -732,8 +724,7 @@ class GoogleMapCardEditor extends HTMLElement {
     const themeOptions = ['Auto', ...uniqueThemes]
       .map(t => `<option value="${t}" ${t === theme ? 'selected' : ''}>${t}</option>`).join('');
 
-    const entityOptions = this._getEntitiesForDatalist()
-      .map(entityId => `<option value="${entityId}">`).join('');
+    const availableEntities = this._getAvailableEntities();
 
     let entitiesHtml = this._entities.map((e, index) => {
       const entityId = typeof e === 'string' ? e : e.entity;
@@ -747,6 +738,9 @@ class GoogleMapCardEditor extends HTMLElement {
       const isCollapsed = entityCollapseStates[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
+      
+      const entitySelectOptions = availableEntities
+        .map(id => `<option value="${id}" ${id === entityId ? 'selected' : ''}>${id}</option>`).join('');
 
       return `
         <div class="entity-item ${collapsedClass}" data-index="${index}">
@@ -760,7 +754,10 @@ class GoogleMapCardEditor extends HTMLElement {
           </div>
           <div class="entity-details">
               <label>Entity ID:
-                <input class="entity-input entity-id" data-index="${index}" value="${entityId}" placeholder="e.g. device_tracker.john_doe" list="ha-entities" />
+                 <select class="entity-input entity-id" data-index="${index}" @change=${this._valueChanged}>
+                    <option value="" ${!entityId ? 'selected' : ''}>Select an entity...</option>
+                    ${entitySelectOptions}
+                 </select>
               </label>
               <div class="input-row-grid-three">
                 <label class="font-resizer">Icon Size:
@@ -830,6 +827,7 @@ class GoogleMapCardEditor extends HTMLElement {
           -webkit-appearance: none;
           -moz-appearance: none;
           appearance: none;
+          color: var(--primary-text-color);
         }
 
         select {
@@ -1096,9 +1094,6 @@ class GoogleMapCardEditor extends HTMLElement {
             <button id="add_entity">➕ Add Entity</button>
         </div>
       </div>
-      <datalist id="ha-entities">
-        ${entityOptions}
-      </datalist>
     `;
 
     this._attachListeners();
