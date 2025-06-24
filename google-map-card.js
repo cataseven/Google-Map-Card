@@ -1233,6 +1233,18 @@ class GoogleMapCardEditor extends HTMLElement {
         newConfig.entities = newEntities;
     }
 
+    const managedKeys = ['type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'entities'];
+
+    if (this._config) {
+        for (const key in this._config) {
+            if (Object.prototype.hasOwnProperty.call(this._config, key)) {
+                if (!managedKeys.includes(key)) {
+                    newConfig[key] = this._config[key];
+                }
+            }
+        }
+    }
+
     this._tmpConfig = newConfig;
 
     if (JSON.stringify(this._config) !== JSON.stringify(newConfig)) {
