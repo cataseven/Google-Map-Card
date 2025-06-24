@@ -622,7 +622,7 @@ class GoogleMapCardEditor extends HTMLElement {
     this._hass = null;
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
-    this._initialRender = true; // DEĞİŞİKLİK: İlk render durumunu izlemek için bayrak eklendi
+    this._initialRender = true;
   }
 
   setConfig(config) {
@@ -669,19 +669,16 @@ class GoogleMapCardEditor extends HTMLElement {
         selectionEnd: -1,
     };
     
-    // DEĞİŞİKLİK: Başlangıç durumunu belirleme mantığı güncellendi
     let entityCollapseStates = {};
     let appearanceCollapsed;
 
     if (this._initialRender) {
-        // İlk render'da her şeyin kapalı (collapsed) olmasını sağla
         appearanceCollapsed = true;
         this._entities.forEach((_, index) => {
             entityCollapseStates[index] = true;
         });
-        this._initialRender = false; // Bayrağı kaldır, böylece sonraki render'larda bu blok çalışmaz
+        this._initialRender = false;
     } else {
-        // Sonraki render'larda mevcut durumu DOM'dan oku ve koru
         this.shadowRoot.querySelectorAll('.entity-item').forEach(item => {
             entityCollapseStates[item.dataset.index] = item.classList.contains('collapsed');
         });
@@ -744,7 +741,7 @@ class GoogleMapCardEditor extends HTMLElement {
       const iconColor = e.icon_color || '#780202';
       const backgroundColor = e.background_color || '#FFFFFF';
 
-      const isCollapsed = entityCollapseStates[index]; // Durumu buradan al
+      const isCollapsed = entityCollapseStates[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
       const arrowDirection = isCollapsed ? '►' : '▼';
 
@@ -789,7 +786,6 @@ class GoogleMapCardEditor extends HTMLElement {
       `;
     }).join('');
     
-    // DEĞİŞİKLİK: "Common Settings" bölümünün class'ları dinamik olarak belirleniyor
     const appearanceCollapsedClass = appearanceCollapsed ? 'collapsed' : '';
     const appearanceContentClass = appearanceCollapsed ? 'hidden' : '';
 
@@ -1104,7 +1100,6 @@ class GoogleMapCardEditor extends HTMLElement {
 
     this._attachListeners();
 
-    // Odaklanılan elementi geri yükle
     if (activeElementState.path) {
         const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
         if (newActiveElement) {
