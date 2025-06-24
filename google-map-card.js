@@ -722,7 +722,10 @@ class GoogleMapCardEditor extends HTMLElement {
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
     const zoom = this._tmpConfig.zoom || 11;
-    const apiKey = this._tmpConfig.api_key || '';
+    
+    const isApiKeySet = this._config && this._config.api_key;
+    const apiKeyInputValue = isApiKeySet ? '' : (this._tmpConfig.api_key || '');
+    const apiKeyPlaceholder = isApiKeySet ? 'API Key is Set. Enter new key to change' : 'Insert your Google Maps API Key';
 
     const allThemes = Object.keys(this.themes['dark'] || {}).concat(Object.keys(this.themes['light'] || {}));
     const uniqueThemes = [...new Set(allThemes)].sort();
@@ -1082,7 +1085,7 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     </div>
                 <label>API Key:
-                    <input id="api_key" value="${apiKey}" placeholder="Your Google Maps API Key" type="password" />
+                    <input id="api_key" value="${apiKeyInputValue}" placeholder="${apiKeyPlaceholder}" type="password" autocomplete="new-password" />
                 </label>
             </div>
 
@@ -1192,12 +1195,17 @@ class GoogleMapCardEditor extends HTMLElement {
       type: 'custom:google-map-card',
     };
 
-    const apiKey = this.shadowRoot.getElementById('api_key').value;
+    const newApiKey = this.shadowRoot.getElementById('api_key').value;
+    if (newApiKey) {
+        newConfig.api_key = newApiKey;
+    } else if (this._config && this._config.api_key) {
+        newConfig.api_key = this._config.api_key;
+    }
+
     const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
 
-    if(apiKey) newConfig.api_key = apiKey;
     if(!isNaN(zoom)) newConfig.zoom = zoom;
     if(theme !== 'Auto') newConfig.theme_mode = theme;
     if(aspect) newConfig.aspect_ratio = aspect;
