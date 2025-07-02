@@ -77,7 +77,7 @@ You can search it on card picker or you can use yaml code (Please see Card Examp
 | `polyline_width`  | integer  | Polyline width for tracking                                                |
 | `icon_color`      | string   | Icon color                                                                 |
 | `background_color`| string   | Icon background color                                                      |
-| `follow`          | string   | Centre the map to this entity after location update. If more than 1 entity is followed then zoom level is updated to show all followed entities and map is centered according to middle point of selected entities. Default: False                                                 |
+| `follow`          | boolean (True/False   | Centre the map to this entity after location update. If more than 1 entity is followed then zoom level is updated to show all followed entities and map is centered according to middle point of selected entities. Default: False                                                 |
 
 <br>
 
