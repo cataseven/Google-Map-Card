@@ -77,7 +77,7 @@ You can search it on card picker or you can use yaml code (Please see Card Examp
 | `polyline_width`  | integer  | Polyline width for tracking                                                |
 | `icon_color`      | string   | Icon color                                                                 |
 | `background_color`| string   | Icon background color                                                      |
-| `follow`          | boolean (True/False   | Centre the map to this entity after location update. If more than 1 entity is followed then zoom level is updated to show all followed entities and map is centered according to middle point of selected entities. Default: False                                                 |
+| `follow`          | boolean (True/False)   | Centre the map to this entity after location update. If more than 1 entity is followed then zoom level is updated to show all followed entities and map is centered according to middle point of selected entities. Default: False                                                 |
 
 <br>
 
@@ -109,6 +109,7 @@ entities:
     hours_to_show: 2
     icon_color: white
     background_color: darkblue
+    follow: false
   - entity: zone.home
     polyline_color: "#0000FF"
     polyline_width: 1
@@ -116,11 +117,13 @@ entities:
     hours_to_show: 3
     icon_color: white
     background_color: green
+    follow: true
   - entity: device_tracker.androidphone
     icon_size: 15
     hours_to_show: 0
     icon_color: white
     background_color: green
+    follow: false
 zoom: 11
 theme_mode: Dark_Blueish_Night
 ```
