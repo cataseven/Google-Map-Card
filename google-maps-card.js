@@ -40,7 +40,7 @@ class GoogleMapCard extends HTMLElement {
     if (!config.entities || !config.api_key) {
       throw new Error("Please provide 'entities' and 'api_key' configurations.");
     }
-    this._firstLoadHistoryNeeded = true; 
+    this._firstLoadHistoryNeeded = true;
 
     this.config = config;
     this.zoom = config.zoom || 11;
@@ -54,7 +54,7 @@ class GoogleMapCard extends HTMLElement {
       }
     }
 
-    this.globalIconSize = config.icon_size || 20; 
+    this.globalIconSize = config.icon_size || 20;
     this.globalIconColor = config.icon_color || '#FFFFFF';
     this.globalBackgroundColor = config.background_color || '#FFFFFF';
 
@@ -68,6 +68,7 @@ class GoogleMapCard extends HTMLElement {
         icon_color: entityConfig.icon_color || this.globalIconColor,
         background_color: entityConfig.background_color || this.globalBackgroundColor,
         polyline_width: typeof entityConfig.polyline_width === 'number' ? entityConfig.polyline_width : 1,
+        follow: entityConfig.follow || false,
       };
     });
     
@@ -306,11 +307,12 @@ class GoogleMapCard extends HTMLElement {
           picture: state.attributes.entity_picture,
           icon: state.attributes.icon || this._getDefaultIcon(eid),
           state: state.state,
-          icon_size: entitySpecificConfig.icon_size, 
+          icon_size: entitySpecificConfig.icon_size,
           hours_to_show: entitySpecificConfig.hours_to_show,
           icon_color: entitySpecificConfig.icon_color,
           background_color: entitySpecificConfig.background_color,
           polyline_width: entitySpecificConfig.polyline_width,
+          follow: entitySpecificConfig.follow,
         };
       })
       .filter(Boolean);
@@ -347,9 +349,9 @@ class GoogleMapCard extends HTMLElement {
 
                 if (polyline) {
                     polyline.setPath(path);
-                    polyline.setOptions({ 
-                        strokeColor: polylineColorForEntity, 
-                        strokeOpacity: 0.7, 
+                    polyline.setOptions({
+                        strokeColor: polylineColorForEntity,
+                        strokeOpacity: 0.7,
                         strokeWeight: polylineWidthForEntity
                     });
                 } else {
@@ -392,7 +394,7 @@ class GoogleMapCard extends HTMLElement {
         const iconColorForEntity = loc.icon_color;
         const backgroundColorForEntity = loc.background_color;
         
-        const borderSizeForIcon = 2; 
+        const borderSizeForIcon = 2;
 
         let markerIcon = null;
         let fullPictureUrl = null;
@@ -402,7 +404,7 @@ class GoogleMapCard extends HTMLElement {
             fullPictureUrl = loc.picture.startsWith('/')
                 ? `${window.location.origin}${loc.picture}`
                 : loc.picture;
-            markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, 0, null, null); 
+            markerIcon = await this._createCircularIcon(fullPictureUrl, iconSizeForEntity, 0, null, null);
         } else if (loc.icon) {
             try {
                 const iconParts = loc.icon.split(':');
@@ -489,6 +491,25 @@ class GoogleMapCard extends HTMLElement {
             marker.setMap(null);
         }
     });
+
+    const followedEntities = this._getCurrentLocations().filter(loc => loc.follow);
+
+    if (followedEntities.length === 1) {
+        const followed = followedEntities[0];
+        const newCenter = { lat: followed.lat, lng: followed.lon };
+        
+        if (this.map.getCenter().toUrlValue(6) !== `${newCenter.lat},${newCenter.lng}`) {
+            this.map.panTo(newCenter);
+        }
+
+    } else if (followedEntities.length > 1) {
+        const bounds = new google.maps.LatLngBounds();
+        followedEntities.forEach(loc => {
+            bounds.extend({ lat: loc.lat, lng: loc.lon });
+        });
+        
+        this.map.fitBounds(bounds, 50);
+    }
 
     this._updatePolylines();
   }
@@ -633,7 +654,6 @@ class GoogleMapCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    // Entity list is now rendered directly in _render, no separate update needed
   }
 
   get _entities() {
@@ -644,7 +664,6 @@ class GoogleMapCardEditor extends HTMLElement {
     if (!this._hass || !this._hass.states) {
       return [];
     }
-    // Filter for person, zone, and device_tracker entities
     const filteredEntities = Object.keys(this._hass.states).filter(entityId =>
       entityId.startsWith('person.') ||
       entityId.startsWith('zone.') ||
@@ -730,10 +749,11 @@ class GoogleMapCardEditor extends HTMLElement {
       const entityId = typeof e === 'string' ? e : e.entity;
       const iconSize = e.icon_size !== undefined ? e.icon_size : this._tmpConfig.icon_size || 20;
       const entityHours = e.hours_to_show !== undefined ? e.hours_to_show : 0;
-      const polylineColor = e.polyline_color || '#FFFFFF'; 
+      const polylineColor = e.polyline_color || '#FFFFFF';
       const polylineWidth = e.polyline_width !== undefined ? e.polyline_width : 1;
       const iconColor = e.icon_color || '#780202';
       const backgroundColor = e.background_color || '#FFFFFF';
+      const follow = e.follow || false;
 
       const isCollapsed = entityCollapseStates[index];
       const collapsedClass = isCollapsed ? 'collapsed' : '';
@@ -755,8 +775,8 @@ class GoogleMapCardEditor extends HTMLElement {
           <div class="entity-details">
               <label>Entity ID:
                  <select class="entity-input entity-id" data-index="${index}" @change=${this._valueChanged}>
-                    <option value="" ${!entityId ? 'selected' : ''}>Select an entity...</option>
-                    ${entitySelectOptions}
+                   <option value="" ${!entityId ? 'selected' : ''}>Select an entity...</option>
+                   ${entitySelectOptions}
                  </select>
               </label>
               <div class="input-row-grid-three">
@@ -781,6 +801,14 @@ class GoogleMapCardEditor extends HTMLElement {
                   <input class="entity-input polyline_color" type="color" data-index="${index}" value="${polylineColor}" />
                 </label>
               </div>
+              
+              <div style="margin-top: 15px; margin-bottom: 5px;">
+                  <label style="display: flex; align-items: center; cursor: pointer;">
+                      <input type="checkbox" class="entity-input follow-entity" data-index="${index}" ${follow ? 'checked' : ''} />
+                      <span style="margin-left: 8px;">Follow this entity</span>
+                  </label>
+              </div>
+
           </div>
         </div>
       `;
@@ -923,6 +951,11 @@ class GoogleMapCardEditor extends HTMLElement {
           color: var(--secondary-text-color);
         }
 
+        input[type="checkbox"] {
+          width: auto;
+          margin: 0;
+        }
+        
         .input-row-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -1208,15 +1241,16 @@ class GoogleMapCardEditor extends HTMLElement {
     const newEntities = [];
     this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom) => {
         const entityIdInput = entityItemDom.querySelector('.entity-id');
-        if (!entityIdInput || !entityIdInput.value) return; 
+        if (!entityIdInput || !entityIdInput.value) return;
 
         const entityId = entityIdInput.value;
         const icon_size = entityItemDom.querySelector('.icon_size')?.value;
         const hours_to_show = entityItemDom.querySelector('.hours_to_show')?.value;
         const polyline_color = entityItemDom.querySelector('.polyline_color')?.value;
-        const polyline_width = entityItemDom.querySelector('.polyline_width')?.value; 
+        const polyline_width = entityItemDom.querySelector('.polyline_width')?.value;
         const icon_color = entityItemDom.querySelector('.icon_color')?.value;
         const background_color = entityItemDom.querySelector('.background_color')?.value;
+        const follow = entityItemDom.querySelector('.follow-entity')?.checked;
 
         const entityObj = { entity: entityId };
         if (icon_size !== '' && !isNaN(parseFloat(icon_size))) entityObj.icon_size = parseFloat(icon_size);
@@ -1225,6 +1259,7 @@ class GoogleMapCardEditor extends HTMLElement {
         if (polyline_width !== '' && !isNaN(parseFloat(polyline_width))) entityObj.polyline_width = parseFloat(polyline_width);
         if (icon_color) entityObj.icon_color = icon_color;
         if (background_color) entityObj.background_color = background_color;
+        if (follow) entityObj.follow = true;
         
         newEntities.push(entityObj);
     });
