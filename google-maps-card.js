@@ -44,6 +44,7 @@ class GoogleMapCard extends HTMLElement {
 
     this.config = config;
     this.zoom = config.zoom || 11;
+    this.mapType = config.map_type || 'roadmap';
     this.themeName = config.theme_mode || 'Dark_Blueish_Night';
     this.aspectRatio = config.aspect_ratio || null;
     this.selectedThemeStyles = [];
@@ -186,7 +187,7 @@ class GoogleMapCard extends HTMLElement {
       const mapOptions = {
         center: { lat: avgLat, lng: avgLon },
         zoom: this.zoom,
-        mapTypeId: 'roadmap'
+        mapTypeId: this.mapType
       };
 
       if (this.selectedThemeStyles.length > 0) {
@@ -774,10 +775,10 @@ class GoogleMapCardEditor extends HTMLElement {
           </div>
           <div class="entity-details">
               <label>Entity ID:
-                 <select class="entity-input entity-id" data-index="${index}" @change=${this._valueChanged}>
-                   <option value="" ${!entityId ? 'selected' : ''}>Select an entity...</option>
-                   ${entitySelectOptions}
-                 </select>
+                  <select class="entity-input entity-id" data-index="${index}" @change=${this._valueChanged}>
+                    <option value="" ${!entityId ? 'selected' : ''}>Select an entity...</option>
+                    ${entitySelectOptions}
+                  </select>
               </label>
               <div class="input-row-grid-three">
                 <label class="font-resizer">Icon Size:
@@ -962,6 +963,10 @@ class GoogleMapCardEditor extends HTMLElement {
           gap: 15px;
         }
 
+        .input-row-grid + .input-row-grid {
+          margin-top: 15px;
+        }
+
         .input-row-grid-three {
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
@@ -1114,7 +1119,15 @@ class GoogleMapCardEditor extends HTMLElement {
                     <label>Theme Mode:
                         <select id="theme_mode">${themeOptions}</select>
                     </label>
-                    </div>
+                    <label>Map Type:
+                      <select id="map_type">
+                          <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Map</option>
+                          <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
+                          <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+                          <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
+                      </select>
+                    </label>
+                </div>
                 <label>API Key:
                     <input id="api_key" value="${apiKeyInputValue}" placeholder="${apiKeyPlaceholder}" type="password" autocomplete="new-password" />
                 </label>
@@ -1132,15 +1145,15 @@ class GoogleMapCardEditor extends HTMLElement {
     this._attachListeners();
 
     if (activeElementState.path) {
-        const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
-        if (newActiveElement) {
-            newActiveElement.focus();
-            try {
-                if(newActiveElement.selectionStart !== undefined) {
-                    newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
-                }
-            } catch (e) { /* ignore */ }
-        }
+      const newActiveElement = this.shadowRoot.querySelector(activeElementState.path.replace(/:nth-child\(\d+\)/g, ''));
+      if (newActiveElement) {
+        newActiveElement.focus();
+        try {
+          if(newActiveElement.selectionStart !== undefined) {
+            newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
+          }
+        } catch (e) { /* ignore */ }
+      }
     }
   }
 
@@ -1175,11 +1188,11 @@ class GoogleMapCardEditor extends HTMLElement {
         
         const entityItem = header.closest('.entity-item');
         if (entityItem) {
-            entityItem.classList.toggle('collapsed');
-            const arrowSpan = header.querySelector('.dropdown-arrow');
-            if (arrowSpan) {
-                arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
-            }
+          entityItem.classList.toggle('collapsed');
+          const arrowSpan = header.querySelector('.dropdown-arrow');
+          if (arrowSpan) {
+            arrowSpan.textContent = entityItem.classList.contains('collapsed') ? '►' : '▼';
+          }
         }
       });
     });
@@ -1233,10 +1246,12 @@ class GoogleMapCardEditor extends HTMLElement {
     const zoom = parseFloat(this.shadowRoot.getElementById('zoom').value);
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
+    const mapType = this.shadowRoot.getElementById('map_type').value;
 
     if(!isNaN(zoom)) newConfig.zoom = zoom;
     if(theme !== 'Auto') newConfig.theme_mode = theme;
     if(aspect) newConfig.aspect_ratio = aspect;
+    if(mapType) newConfig.map_type = mapType;
     
     const newEntities = [];
     this.shadowRoot.querySelectorAll('.entity-item').forEach((entityItemDom) => {
@@ -1268,7 +1283,7 @@ class GoogleMapCardEditor extends HTMLElement {
         newConfig.entities = newEntities;
     }
 
-    const managedKeys = ['type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'entities'];
+    const managedKeys = ['type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'map_type', 'entities'];
 
     if (this._config) {
         for (const key in this._config) {
