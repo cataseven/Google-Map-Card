@@ -71,6 +71,7 @@ You can search it on card picker or you can use yaml code (Please see Card Examp
 | `zoom`            | integer  | Zoom level (1–20) (optional)                                                |
 | `theme_mode`      | string   | You can see list on UI editor's dropdown menu (optional)                   |
 | `aspect_ratio`    | string   | Adjust card size (optional)                                                |
+| `map_type`    | string   | Select map type: Map, Satellite, Hybrid, Terrain. Default: Map                                                |
 | `icon_size`       | integer  | (optional)                                                                 |
 | `hours_to_show`   | integer  | Enables route tracking. 0 to disable it, default: 0                         |
 | `polyline_color`  | string   | Polyline color for tracking                                                |
