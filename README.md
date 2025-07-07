@@ -84,9 +84,9 @@ You can search it on card picker or you can use yaml code (Please see Card Examp
 
 # UI Card Editor
 
-![image6](images/gm6.png)  
-![image9](images/gm9.png)
+![image6](images/Ui1.png)
 
+![image12](images/Ui3.png) ![image9](images/Ui2.png)
 <br>
 
 # Themes
