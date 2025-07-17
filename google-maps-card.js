@@ -51,14 +51,14 @@ class GoogleMapCard extends HTMLElement {
 
     this.showScale = config.showScale ?? true;
     this.keyboardShortcuts = config.keyboardShortcuts ?? true;
-    this.panControl = config.panControl ?? true;
+    this.cameraControl = config.cameraControl ?? true;
     this.zoomControl = config.zoomControl ?? true;
     this.streetViewControl = config.streetViewControl ?? true;
     this.fullscreenControl = config.fullscreenControl ?? true;
     this.mapTypeControl = config.mapTypeControl ?? true;
     this.rotateControl = config.rotateControl ?? true;
 
-    this.panControlPosition = config.panControl_position || 'RIGHT_BOTTOM';
+    this.cameraControlPosition = config.cameraControl_position || 'RIGHT_BOTTOM';
     this.zoomControlPosition = config.zoomControl_position || 'RIGHT_BOTTOM';
     this.streetViewControlPosition = config.streetViewControl_position || 'LEFT_BOTTOM';
     this.fullscreenControlPosition = config.fullscreenControl_position || 'TOP_RIGHT';
@@ -208,9 +208,9 @@ class GoogleMapCard extends HTMLElement {
         mapTypeId: this.mapType,
         scaleControl: this.showScale,
         keyboardShortcuts: this.keyboardShortcuts,
-        panControl: this.panControl,
-        panControlOptions: {
-            position: google.maps.ControlPosition[this.panControlPosition]
+        cameraControl: this.cameraControl,
+        cameraControlOptions: {
+            position: google.maps.ControlPosition[this.cameraControlPosition]
         },
         zoomControl: this.zoomControl,
         zoomControlOptions: {
@@ -789,7 +789,7 @@ class GoogleMapCardEditor extends HTMLElement {
     const zoom = this._tmpConfig.zoom || 11;
     const showScale = this._tmpConfig.showScale ?? true;
     const keyboardShortcuts = this._tmpConfig.keyboardShortcuts ?? true;
-    const panControl = this._tmpConfig.panControl ?? true;
+    const cameraControl = this._tmpConfig.cameraControl ?? true;
     const zoomControl = this._tmpConfig.zoomControl ?? true;
     const streetViewControl = this._tmpConfig.streetViewControl ?? true;
     const fullscreenControl = this._tmpConfig.fullscreenControl ?? true;
@@ -1251,7 +1251,7 @@ class GoogleMapCardEditor extends HTMLElement {
             </div>
             <div class="section-content ${controlsContentClass}" id="controls-content">
                 <div class="control-grid">
-                    ${createControlItem('panControl', 'Pan', panControl, this._tmpConfig.panControl_position || 'RIGHT_BOTTOM')}
+                    ${createControlItem('cameraControl', 'Pan', cameraControl, this._tmpConfig.cameraControl_position || 'RIGHT_BOTTOM')}
                     ${createControlItem('zoomControl', 'Zoom', zoomControl, this._tmpConfig.zoomControl_position || 'RIGHT_BOTTOM')}
                     ${createControlItem('mapTypeControl', 'Map Type', mapTypeControl, this._tmpConfig.mapTypeControl_position || 'TOP_LEFT')}
                     ${createControlItem('streetViewControl', 'Street View', streetViewControl, this._tmpConfig.streetViewControl_position || 'LEFT_BOTTOM')}
@@ -1398,7 +1398,7 @@ class GoogleMapCardEditor extends HTMLElement {
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
     const mapType = this.shadowRoot.getElementById('map_type').value;
     
-    const controls = ['panControl', 'zoomControl', 'streetViewControl', 'fullscreenControl', 'mapTypeControl', 'rotateControl'];
+    const controls = ['cameraControl', 'zoomControl', 'streetViewControl', 'fullscreenControl', 'mapTypeControl', 'rotateControl'];
     controls.forEach(control => {
         newConfig[control] = this.shadowRoot.getElementById(control).checked;
         if (newConfig[control]) {
@@ -1447,8 +1447,8 @@ class GoogleMapCardEditor extends HTMLElement {
 
     const managedKeys = [
       'type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'map_type', 'entities',
-      'showScale', 'keyboardShortcuts', 'panControl', 'zoomControl', 'streetViewControl',
-      'fullscreenControl', 'mapTypeControl', 'rotateControl', 'panControl_position', 
+      'showScale', 'keyboardShortcuts', 'cameraControl', 'zoomControl', 'streetViewControl',
+      'fullscreenControl', 'mapTypeControl', 'rotateControl', 'cameraControl_position', 
       'zoomControl_position', 'streetViewControl_position', 'fullscreenControl_position', 
       'mapTypeControl_position', 'rotateControl_position'
     ];
@@ -1498,13 +1498,13 @@ GoogleMapCard.getStubConfig = () => {
     entities: [],
     showScale: true,
     keyboardShortcuts: true,
-    panControl: true,
+    cameraControl: true,
     zoomControl: true,
     streetViewControl: true,
     fullscreenControl: true,
     mapTypeControl: true,
     rotateControl: true,
-    panControl_position: 'RIGHT_BOTTOM',
+    cameraControl_position: 'RIGHT_BOTTOM',
     zoomControl_position: 'RIGHT_BOTTOM',
     streetViewControl_position: 'LEFT_BOTTOM',
     fullscreenControl_position: 'TOP_RIGHT',
