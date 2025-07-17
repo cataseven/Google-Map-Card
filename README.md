@@ -95,7 +95,7 @@ or define it in YAML (see Card Example below):
 | `streetViewControl`            | boolean   | Show/hide Street View control (default: true)                                                                                 |
 | `fullscreenControl`            | boolean   | Show/hide fullscreen control (default: true)                                                                                   |
 | `mapTypeControl`               | boolean   | Show/hide map type selector (default: true)                                                                                    |
-| `rotateControl`                | boolean   | Show/hide tilt/rotate control (default: true)                                                                                  |
+| `rotateControl`                | boolean   | Show/hide tilt/rotate control (default: true but Tilt control works under some conditions set by Google like zoom level and spesific cities)                                                                                  |
 | `showScale`                    | boolean   | Show/hide scale bar (default: true)                                                                                           |
 | `keyboardShortcuts`            | boolean   | Enable/disable keyboard navigation (default: true)                                                                             |
 | **Control Positions**:          |           | Use `<control>_position` to set each control’s placement (see below)                                                          |
@@ -133,8 +133,8 @@ or define it in YAML (see Card Example below):
 
 # UI Card Editor
 
-![image6](images/Ui1.png)  
-![image12](images/Ui3.png) ![image9](images/Ui2.png)  
+![image61](images/mapsui1.png) ![image62](images/mapsui2.png)    
+![image63](images/mapsui3.png) ![image64](images/mapsui4.png)
 <br>
 
 # Themes
@@ -149,32 +149,34 @@ You can choose your best theme—40 now and more to come!
 
 ```yaml
 type: custom:google-map-card
-api_key: 123457adasd56a4d78ad
-entities:
-  - entity: person.animal
-    polyline_color: "#FF0000"
-    polyline_width: 2
-    icon_size: 15
-    hours_to_show: 2
-    icon_color: white
-    background_color: darkblue
-    follow: false
-  - entity: zone.home
-    polyline_color: "#0000FF"
-    polyline_width: 1
-    icon_size: 20
-    hours_to_show: 3
-    icon_color: white
-    background_color: green
-    follow: true
-  - entity: device_tracker.androidphone
-    icon_size: 15
-    hours_to_show: 0
-    icon_color: white
-    background_color: green
-    follow: false
-zoom: 11
+api_key: 123131231231231PE
+zoom: 8
 theme_mode: Dark_Blueish_Night
+aspect_ratio: 1.53:1
+map_type: roadmap
+entities:
+  - entity: device_tracker.flightradar24
+    icon_size: 25
+    hours_to_show: 4
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#940000"
+    background_color: "#f5f5f5"
+    follow: true
+  - entity: person.cenk
+    icon_size: 40
+    hours_to_show: 0
+    polyline_color: "#f1eeee"
+    polyline_width: 1
+    icon_color: "#ffffff"
+    background_color: "#f5f5f5"
+  - entity: person.derya
+    icon_size: 40
+    hours_to_show: 0
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#ffffff"
+    background_color: "#ffffff"
 panControl: true
 panControl_position: RIGHT_BOTTOM
 zoomControl: true
