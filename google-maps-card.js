@@ -47,6 +47,24 @@ class GoogleMapCard extends HTMLElement {
     this.mapType = config.map_type || 'roadmap';
     this.themeName = config.theme_mode || 'Dark_Blueish_Night';
     this.aspectRatio = config.aspect_ratio || null;
+    
+
+    this.showScale = config.showScale ?? true;
+    this.keyboardShortcuts = config.keyboardShortcuts ?? true;
+    this.panControl = config.panControl ?? true;
+    this.zoomControl = config.zoomControl ?? true;
+    this.streetViewControl = config.streetViewControl ?? true;
+    this.fullscreenControl = config.fullscreenControl ?? true;
+    this.mapTypeControl = config.mapTypeControl ?? true;
+    this.rotateControl = config.rotateControl ?? true;
+
+    this.panControlPosition = config.panControl_position || 'RIGHT_BOTTOM';
+    this.zoomControlPosition = config.zoomControl_position || 'RIGHT_BOTTOM';
+    this.streetViewControlPosition = config.streetViewControl_position || 'LEFT_BOTTOM';
+    this.fullscreenControlPosition = config.fullscreenControl_position || 'TOP_RIGHT';
+    this.mapTypeControlPosition = config.mapTypeControl_position || 'TOP_LEFT';
+    this.rotateControlPosition = config.rotateControl_position || 'LEFT_BOTTOM';
+
     this.selectedThemeStyles = [];
     for (const mode in this.allThemes) {
       if (this.allThemes[mode][this.themeName]) {
@@ -187,7 +205,33 @@ class GoogleMapCard extends HTMLElement {
       const mapOptions = {
         center: { lat: avgLat, lng: avgLon },
         zoom: this.zoom,
-        mapTypeId: this.mapType
+        mapTypeId: this.mapType,
+        scaleControl: this.showScale,
+        keyboardShortcuts: this.keyboardShortcuts,
+        panControl: this.panControl,
+        panControlOptions: {
+            position: google.maps.ControlPosition[this.panControlPosition]
+        },
+        zoomControl: this.zoomControl,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition[this.zoomControlPosition]
+        },
+        streetViewControl: this.streetViewControl,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition[this.streetViewControlPosition]
+        },
+        fullscreenControl: this.fullscreenControl,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition[this.fullscreenControlPosition]
+        },
+        mapTypeControl: this.mapTypeControl,
+        mapTypeControlOptions: {
+            position: google.maps.ControlPosition[this.mapTypeControlPosition]
+        },
+        rotateControl: this.rotateControl,
+        rotateControlOptions: {
+            position: google.maps.ControlPosition[this.rotateControlPosition]
+        }
       };
 
       if (this.selectedThemeStyles.length > 0) {
@@ -645,6 +689,11 @@ class GoogleMapCardEditor extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.themes = get_map_themes();
     this._initialRender = true;
+    this.controlPositions = [
+      'TOP_CENTER', 'TOP_LEFT', 'TOP_RIGHT', 'LEFT_TOP', 'RIGHT_TOP',
+      'LEFT_CENTER', 'RIGHT_CENTER', 'LEFT_BOTTOM', 'RIGHT_BOTTOM',
+      'BOTTOM_CENTER', 'BOTTOM_LEFT', 'BOTTOM_RIGHT'
+    ];
   }
 
   setConfig(config) {
@@ -683,9 +732,11 @@ class GoogleMapCardEditor extends HTMLElement {
     
     let entityCollapseStates = {};
     let appearanceCollapsed;
+    let controlsCollapsed;
 
     if (this._initialRender) {
         appearanceCollapsed = true;
+        controlsCollapsed = true;
         this._entities.forEach((_, index) => {
             entityCollapseStates[index] = true;
         });
@@ -696,32 +747,34 @@ class GoogleMapCardEditor extends HTMLElement {
         });
         const appearanceHeader = this.shadowRoot.getElementById('appearance-header');
         appearanceCollapsed = appearanceHeader ? appearanceHeader.classList.contains('collapsed') : false;
+        const controlsHeader = this.shadowRoot.getElementById('controls-header');
+        controlsCollapsed = controlsHeader ? controlsHeader.classList.contains('collapsed') : false;
     }
     
     if (activeElement) {
         let path = [];
         let current = activeElement;
         while (current && current !== this.shadowRoot) {
-            let id = current.id;
-            let classes = Array.from(current.classList).join('.');
-            let tag = current.tagName.toLowerCase();
-            let part = tag;
-            if (id) part += `#${id}`;
-            if (classes) part += `.${classes}`;
-            
-            const entityItem = current.closest('.entity-item');
-            if(entityItem && current.hasAttribute('data-index')) {
-                path.unshift(`[data-index="${current.dataset.index}"]`);
-            } else {
-                let parent = current.parentNode;
-                if (parent) {
-                    let siblings = Array.from(parent.children);
-                    let ownIndex = siblings.indexOf(current);
-                    part += `:nth-child(${ownIndex + 1})`;
-                }
-            }
-            path.unshift(part);
-            current = current.parentElement;
+          let id = current.id;
+          let classes = Array.from(current.classList).join('.');
+          let tag = current.tagName.toLowerCase();
+          let part = tag;
+          if (id) part += `#${id}`;
+          if (classes) part += `.${classes}`;
+          
+          const entityItem = current.closest('.entity-item');
+          if(entityItem && current.hasAttribute('data-index')) {
+              path.unshift(`[data-index="${current.dataset.index}"]`);
+          } else {
+              let parent = current.parentNode;
+              if (parent) {
+                  let siblings = Array.from(parent.children);
+                  let ownIndex = siblings.indexOf(current);
+                  part += `:nth-child(${ownIndex + 1})`;
+              }
+          }
+          path.unshift(part);
+          current = current.parentElement;
         }
         activeElementState.path = path.join(' > ');
 
@@ -734,6 +787,14 @@ class GoogleMapCardEditor extends HTMLElement {
     const theme = this._tmpConfig.theme_mode || 'Auto';
     const aspect = this._tmpConfig.aspect_ratio || '';
     const zoom = this._tmpConfig.zoom || 11;
+    const showScale = this._tmpConfig.showScale ?? true;
+    const keyboardShortcuts = this._tmpConfig.keyboardShortcuts ?? true;
+    const panControl = this._tmpConfig.panControl ?? true;
+    const zoomControl = this._tmpConfig.zoomControl ?? true;
+    const streetViewControl = this._tmpConfig.streetViewControl ?? true;
+    const fullscreenControl = this._tmpConfig.fullscreenControl ?? true;
+    const mapTypeControl = this._tmpConfig.mapTypeControl ?? true;
+    const rotateControl = this._tmpConfig.rotateControl ?? true;
     
     const isApiKeySet = this._config && this._config.api_key;
     const apiKeyInputValue = isApiKeySet ? '' : (this._tmpConfig.api_key || '');
@@ -817,6 +878,26 @@ class GoogleMapCardEditor extends HTMLElement {
     
     const appearanceCollapsedClass = appearanceCollapsed ? 'collapsed' : '';
     const appearanceContentClass = appearanceCollapsed ? 'hidden' : '';
+    const controlsCollapsedClass = controlsCollapsed ? 'collapsed' : '';
+    const controlsContentClass = controlsCollapsed ? 'hidden' : '';
+
+    const positionOptions = (controlId, currentValue) => {
+        return this.controlPositions.map(pos => 
+            `<option value="${pos}" ${pos === currentValue ? 'selected' : ''}>${pos.replace(/_/g, ' ')}</option>`
+        ).join('');
+    };
+
+    const createControlItem = (id, name, isChecked, positionValue) => `
+        <div class="control-item">
+            <label class="checkbox-label">
+                <input type="checkbox" id="${id}" ${isChecked ? 'checked' : ''} />
+                <span>${name}</span>
+            </label>
+            <select id="${id}_position" class="position-select" ${!isChecked ? 'disabled' : ''}>
+                ${positionOptions(id, positionValue)}
+            </select>
+        </div>
+    `;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -877,6 +958,12 @@ class GoogleMapCardEditor extends HTMLElement {
           outline: none;
         }
         
+        select[disabled] {
+          background-color: var(--disabled-text-color);
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         @media (prefers-color-scheme: dark) {
           select {
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3csvg%3e");
@@ -955,6 +1042,16 @@ class GoogleMapCardEditor extends HTMLElement {
         input[type="checkbox"] {
           width: auto;
           margin: 0;
+          accent-color: var(--primary-color);
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .checkbox-label span {
+            margin-left: 8px;
         }
         
         .input-row-grid {
@@ -984,6 +1081,21 @@ class GoogleMapCardEditor extends HTMLElement {
         .input-row-grid-three input,
         .input-row-grid-three select {
           margin-bottom: 0;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 15px;
+        }
+        
+        .control-item .checkbox-label {
+            margin: 0;
+        }
+        
+        .position-select {
+            margin-top: 8px;
+            margin-bottom: 0;
         }
 
         .entity-list-container {
@@ -1103,7 +1215,7 @@ class GoogleMapCardEditor extends HTMLElement {
       <div class="card-container">
         <div>
             <div class="section-header ${appearanceCollapsedClass}" id="appearance-header">
-                <span class="icon">✨</span> Common Settings
+                <span class="icon">✨</span> Main Settings
                 <span class="arrow">▼</span>
             </div>
             <div class="section-content ${appearanceContentClass}" id="appearance-content">
@@ -1121,7 +1233,7 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     <label>Map Type:
                       <select id="map_type">
-                          <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Map</option>
+                          <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Roadmap</option>
                           <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
                           <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
                           <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
@@ -1131,6 +1243,25 @@ class GoogleMapCardEditor extends HTMLElement {
                 <label>API Key:
                     <input id="api_key" value="${apiKeyInputValue}" placeholder="${apiKeyPlaceholder}" type="password" autocomplete="new-password" />
                 </label>
+            </div>
+            
+            <div class="section-header ${controlsCollapsedClass}" id="controls-header">
+                <span class="icon">🕹️</span> Map Buttons (Show/Hide & Positioning)
+                <span class="arrow">▼</span>
+            </div>
+            <div class="section-content ${controlsContentClass}" id="controls-content">
+                <div class="control-grid">
+                    ${createControlItem('panControl', 'Pan', panControl, this._tmpConfig.panControl_position || 'RIGHT_BOTTOM')}
+                    ${createControlItem('zoomControl', 'Zoom', zoomControl, this._tmpConfig.zoomControl_position || 'RIGHT_BOTTOM')}
+                    ${createControlItem('mapTypeControl', 'Map Type', mapTypeControl, this._tmpConfig.mapTypeControl_position || 'TOP_LEFT')}
+                    ${createControlItem('streetViewControl', 'Street View', streetViewControl, this._tmpConfig.streetViewControl_position || 'LEFT_BOTTOM')}
+                    ${createControlItem('fullscreenControl', 'Fullscreen', fullscreenControl, this._tmpConfig.fullscreenControl_position || 'TOP_RIGHT')}
+                    ${createControlItem('rotateControl', 'Tilt', rotateControl, this._tmpConfig.rotateControl_position || 'LEFT_BOTTOM')}
+                </div>
+                <div style="margin-top:20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <label class="checkbox-label"><input type="checkbox" id="showScale" ${showScale ? 'checked' : ''} /> <span>Scale</span></label>
+                  <label class="checkbox-label"><input type="checkbox" id="keyboardShortcuts" ${keyboardShortcuts ? 'checked' : ''} /> <span>Keyboard</span></label>
+                </div>
             </div>
 
             <div class="section-title">Entities (required)</div>
@@ -1172,6 +1303,15 @@ class GoogleMapCardEditor extends HTMLElement {
     this.shadowRoot.querySelectorAll('input, select').forEach(input => {
         input.addEventListener('input', valueChangedDebounced);
         input.addEventListener('change', () => this._valueChanged());
+
+        if (input.type === 'checkbox' && (input.id.includes('Control') || input.id.includes('pan'))) {
+            input.addEventListener('change', (e) => {
+                const positionSelect = this.shadowRoot.getElementById(`${e.target.id}_position`);
+                if(positionSelect) {
+                    positionSelect.disabled = !e.target.checked;
+                }
+            });
+        }
     });
 
     this.shadowRoot.getElementById('add_entity')?.addEventListener('click', () => {
@@ -1229,6 +1369,16 @@ class GoogleMapCardEditor extends HTMLElement {
           content.classList.toggle('hidden');
       }
     });
+
+    this.shadowRoot.getElementById('controls-header')?.addEventListener('click', (e) => {
+      if(e.target.closest('input, label, select')) return;
+      const header = this.shadowRoot.getElementById('controls-header');
+      const content = this.shadowRoot.getElementById('controls-content');
+      if (header && content) {
+          header.classList.toggle('collapsed');
+          content.classList.toggle('hidden');
+      }
+    });
   }
 
   _valueChanged() {
@@ -1247,6 +1397,18 @@ class GoogleMapCardEditor extends HTMLElement {
     const theme = this.shadowRoot.getElementById('theme_mode').value;
     const aspect = this.shadowRoot.getElementById('aspect_ratio').value;
     const mapType = this.shadowRoot.getElementById('map_type').value;
+    
+    const controls = ['panControl', 'zoomControl', 'streetViewControl', 'fullscreenControl', 'mapTypeControl', 'rotateControl'];
+    controls.forEach(control => {
+        newConfig[control] = this.shadowRoot.getElementById(control).checked;
+        if (newConfig[control]) {
+            const position = this.shadowRoot.getElementById(`${control}_position`).value;
+            newConfig[`${control}_position`] = position;
+        }
+    });
+
+    newConfig.showScale = this.shadowRoot.getElementById('showScale').checked;
+    newConfig.keyboardShortcuts = this.shadowRoot.getElementById('keyboardShortcuts').checked;
 
     if(!isNaN(zoom)) newConfig.zoom = zoom;
     if(theme !== 'Auto') newConfig.theme_mode = theme;
@@ -1283,7 +1445,13 @@ class GoogleMapCardEditor extends HTMLElement {
         newConfig.entities = newEntities;
     }
 
-    const managedKeys = ['type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'map_type', 'entities'];
+    const managedKeys = [
+      'type', 'api_key', 'zoom', 'theme_mode', 'aspect_ratio', 'map_type', 'entities',
+      'showScale', 'keyboardShortcuts', 'panControl', 'zoomControl', 'streetViewControl',
+      'fullscreenControl', 'mapTypeControl', 'rotateControl', 'panControl_position', 
+      'zoomControl_position', 'streetViewControl_position', 'fullscreenControl_position', 
+      'mapTypeControl_position', 'rotateControl_position'
+    ];
 
     if (this._config) {
         for (const key in this._config) {
@@ -1328,6 +1496,20 @@ GoogleMapCard.getStubConfig = () => {
     api_key: '',
     zoom: 11,
     entities: [],
+    showScale: true,
+    keyboardShortcuts: true,
+    panControl: true,
+    zoomControl: true,
+    streetViewControl: true,
+    fullscreenControl: true,
+    mapTypeControl: true,
+    rotateControl: true,
+    panControl_position: 'RIGHT_BOTTOM',
+    zoomControl_position: 'RIGHT_BOTTOM',
+    streetViewControl_position: 'LEFT_BOTTOM',
+    fullscreenControl_position: 'TOP_RIGHT',
+    mapTypeControl_position: 'TOP_LEFT',
+    rotateControl_position: 'LEFT_BOTTOM',
   };
 };
 
