@@ -198,3 +198,6 @@ keyboardShortcuts: true
 ![image1](images/gm1.png)  
 ![image2](images/gm2.png)  
 ![image3](images/gm3.png)
+
+## ⭐ Support
+If you like this card, feel free to ⭐ star the project on GitHub and share it with the Home Assistant community!
