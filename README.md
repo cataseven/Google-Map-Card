@@ -81,7 +81,7 @@ or define it in YAML (see Card Example below):
 | `zoom`                         | integer   | Zoom level (1–20) (optional, default: 11)                                                                                     |
 | `theme_mode`                   | string    | Choose from built‑in theme list in UI editor (optional)                                                                       |
 | `aspect_ratio`                 | string    | Card aspect ratio, e.g. `16:9`, `4:3`, `0.75`, `400px` (optional)                                                              |
-| `map_type`                     | string    | Map style: `Map` (roadmap), `Satellite`, `Hybrid`, `Terrain` (default: `Map`)                                                |
+| `map_type`                     | string    | Map style: `Roadmap` (roadmap), `Satellite`, `Hybrid`, `Terrain` (default: `Map`)                                                |
 | `icon_size`                    | integer   | Default icon size for all entities (optional)                                                                                 |
 | `icon_color`                   | string    | Default icon color (optional)                                                                                                 |
 | `background_color`             | string    | Default icon background color (optional)                                                                                       |
@@ -90,7 +90,7 @@ or define it in YAML (see Card Example below):
 | `polyline_width`               | integer   | Polyline width for route history (optional)                                                                                   |
 | `follow`                       | boolean   | Center map on this entity after update; if multiple entities have `follow: true`, map bounds adjust to include all (default: false) |
 | **Map Controls**:               |           | **Toggle visibility & position**                                                                                              |
-| `panControl`                   | boolean   | Show/hide pan control (default: true)                                                                                         |
+| `cameraControl`                   | boolean   | Show/hide pan control (default: true)                                                                                         |
 | `zoomControl`                  | boolean   | Show/hide zoom control (default: true)                                                                                        |
 | `streetViewControl`            | boolean   | Show/hide Street View control (default: true)                                                                                 |
 | `fullscreenControl`            | boolean   | Show/hide fullscreen control (default: true)                                                                                   |
@@ -99,7 +99,7 @@ or define it in YAML (see Card Example below):
 | `showScale`                    | boolean   | Show/hide scale bar (default: true)                                                                                           |
 | `keyboardShortcuts`            | boolean   | Enable/disable keyboard navigation (default: true)                                                                             |
 | **Control Positions**:          |           | Use `<control>_position` to set each control’s placement (see below)                                                          |
-| `panControl_position`          | string    | Position for pan control (e.g. `RIGHT_BOTTOM`)                                                                                 |
+| `cameraControl_position`          | string    | Position for pan control (e.g. `RIGHT_BOTTOM`)                                                                                 |
 | `zoomControl_position`         | string    | Position for zoom control (e.g. `RIGHT_BOTTOM`)                                                                                |
 | `streetViewControl_position`   | string    | Position for Street View control (e.g. `LEFT_BOTTOM`)                                                                          |
 | `fullscreenControl_position`   | string    | Position for fullscreen control (e.g. `TOP_RIGHT`)                                                                             |
@@ -177,8 +177,8 @@ entities:
     polyline_width: 1
     icon_color: "#ffffff"
     background_color: "#ffffff"
-panControl: true
-panControl_position: RIGHT_BOTTOM
+cameraControl: true
+cameraControl_position: RIGHT_BOTTOM
 zoomControl: true
 zoomControl_position: RIGHT_BOTTOM
 streetViewControl: true
