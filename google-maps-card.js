@@ -109,17 +109,28 @@ class GoogleMapCard extends HTMLElement {
   }
 
   _loadGoogleMapsScript() {
-    if (window.google && window.google.maps) return Promise.resolve();
-
-    return new Promise((resolve, reject) => {
+    if (window.google && window.google.maps) {
+      return Promise.resolve();
+    }
+    if (window._googleMapsPromise) {
+      return window._googleMapsPromise;
+    }
+    window._googleMapsPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${this.config.api_key}&libraries=geometry`;
       script.async = true;
       script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+      script.onload = () => {
+        resolve();
+      };
+      script.onerror = () => {
+        window._googleMapsPromise = null; 
+        reject(new Error('Failed to load Google Maps script'));
+      };
       document.head.appendChild(script);
     });
+  
+    return window._googleMapsPromise;
   }
 
   _initialRender() {
