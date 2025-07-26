@@ -1209,7 +1209,7 @@ class GoogleMapCardEditor extends HTMLElement {
           }
   
           .entity-list-container {
-            margin-top: 20px;
+            margin-top: 7px;
           }
           
           .entity-item {
@@ -1317,8 +1317,7 @@ class GoogleMapCardEditor extends HTMLElement {
           }
   
           .section-title {
-            margin-bottom: 10px;
-            margin-top: 20px;
+            margin-top: 45px;
             color: var(--primary-text-color);
           }
         </style>
