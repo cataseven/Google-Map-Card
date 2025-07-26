@@ -416,25 +416,40 @@ async _resolveTrackerEntity(entityId) {
 
                 let polyline = this.polylines.get(eid);
 
+                const polylineOptions = {
+                    strokeColor: polylineColorForEntity,
+                    strokeOpacity: 0.7,
+                    strokeWeight: polylineWidthForEntity,
+                    icons: [{
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE, // Daire sembolü
+                            scale: polylineWidthForEntity * 1.5 + 2, // Daire boyutu, çizgi kalınlığına göre ayarlandı
+                            fillColor: polylineColorForEntity,
+                            fillOpacity: 1,
+                            strokeWeight: 0 // Kenarlık olmasın
+                        },
+                        offset: '0%',
+                        repeat: '20px' // Her 20px'te bir daire tekrar etsin
+                    }]
+                };
+
                 if (polyline) {
                     polyline.setPath(path);
-                    polyline.setOptions({
-                        strokeColor: polylineColorForEntity,
-                        strokeOpacity: 0.7,
-                        strokeWeight: polylineWidthForEntity
-                    });
+                    polyline.setOptions(polylineOptions); // Opsiyonları güncelle
                 } else {
                     polyline = new google.maps.Polyline({
                         path: path,
                         geodesic: true,
-                        strokeColor: polylineColorForEntity,
-                        strokeOpacity: 0.7,
-                        strokeWeight: polylineWidthForEntity,
-                        map: this.map
+                        map: this.map,
+                        ...polylineOptions // Opsiyonları doğrudan ekle
                     });
                     this.polylines.set(eid, polyline);
                 }
                 polylinesToKeep.add(eid);
+            } else if (this.polylines.has(eid)) {
+                // Yeterli nokta yoksa polyline'ı kaldır
+                this.polylines.get(eid).setMap(null);
+                this.polylines.delete(eid);
             }
         }
     });
@@ -587,8 +602,8 @@ async _resolveTrackerEntity(entityId) {
     const canvas = document.createElement('canvas');
     
     const contentDiameter = size;
-    const iconPadding = imageUrl.endsWith('.svg') ? 4 : 0;
-    const borderThickness = imageUrl.endsWith('.svg') ? borderSize : 0;
+    const iconPadding = imageUrl && imageUrl.endsWith('.svg') ? 4 : 0;
+    const borderThickness = imageUrl && imageUrl.endsWith('.svg') ? borderSize : 0;
 
     const totalCanvasDiameter = contentDiameter + (2 * iconPadding) + (2 * borderThickness);
     canvas.width = totalCanvasDiameter;
@@ -600,14 +615,14 @@ async _resolveTrackerEntity(entityId) {
     const centerX = totalCanvasDiameter / 2;
     const centerY = totalCanvasDiameter / 2;
 
-    if (imageUrl.endsWith('.svg') && backgroundColor) {
+    if (backgroundColor) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, totalCanvasDiameter / 2, 0, Math.PI * 2);
       ctx.fillStyle = backgroundColor;
       ctx.fill();
     }
 
-    if (imageUrl.endsWith('.svg') && borderThickness > 0) {
+    if (borderThickness > 0) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, (totalCanvasDiameter - borderThickness) / 2, 0, Math.PI * 2); 
       ctx.strokeStyle = iconColor || '#000000';
@@ -615,75 +630,84 @@ async _resolveTrackerEntity(entityId) {
       ctx.stroke();
     }
 
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, contentDiameter / 2, 0, Math.PI * 2);
-    ctx.clip();
+    if (imageUrl) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, contentDiameter / 2, 0, Math.PI * 2);
+        ctx.clip();
 
-    const drawX = (totalCanvasDiameter - contentDiameter) / 2;
-    const drawY = (totalCanvasDiameter - contentDiameter) / 2;
+        const drawX = (totalCanvasDiameter - contentDiameter) / 2;
+        const drawY = (totalCanvasDiameter - contentDiameter) / 2;
 
-    if (imageUrl.endsWith('.svg')) {
-      try {
-        const response = await fetch(imageUrl);
-        let svgText = await response.text();
+        if (imageUrl.endsWith('.svg')) {
+            try {
+                const response = await fetch(imageUrl);
+                let svgText = await response.text();
 
-        if (iconColor) {
-            svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
-            svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
+                if (iconColor) {
+                    svgText = svgText.replace(/fill="[^"]*?"/g, `fill="${iconColor}"`);
+                    svgText = svgText.replace(/stroke="[^"]*?"/g, `stroke="${iconColor}"`);
 
-            svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
-              let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
-              return `style="${newStyle}"`;
-            });
-            if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
-                svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
+                    svgText = svgText.replace(/style="([^"]*?)(fill:[^;]*?;?|stroke:[^;]*?;?)"/g, (match, p1) => {
+                        let newStyle = p1.replace(/fill:[^;]*;?/g, `fill:${iconColor};`).replace(/stroke:[^;]*;?/g, `stroke:${iconColor};`);
+                        return `style="${newStyle}"`;
+                    });
+                    if (!svgText.includes('fill=') && !svgText.includes('stroke=') && svgText.includes('<path')) {
+                        svgText = svgText.replace(/<path/g, `<path fill="${iconColor}"`);
+                    }
+                }
+
+                const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+                const newImageUrl = URL.createObjectURL(svgBlob);
+
+                return new Promise((resolveInner) => {
+                    const image = new Image();
+                    image.onload = () => {
+                        ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
+                        URL.revokeObjectURL(newImageUrl);
+                        resolveInner({
+                            url: canvas.toDataURL(),
+                            scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
+                            anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
+                        });
+                    };
+                    image.onerror = () => {
+                        console.warn('Failed to load modified SVG image for marker:', imageUrl);
+                        URL.revokeObjectURL(newImageUrl);
+                        resolveInner(null);
+                    };
+                    image.src = newImageUrl;
+                });
+
+            } catch (e) {
+                console.error('Error fetching or processing SVG:', e);
+                return null;
             }
-        }
-
-        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-        const newImageUrl = URL.createObjectURL(svgBlob);
-
-        return new Promise((resolveInner) => {
-          const image = new Image();
-          image.onload = () => {
-            ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
-            URL.revokeObjectURL(newImageUrl);
-            resolveInner({
-              url: canvas.toDataURL(),
-              scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
-              anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
+        } else {
+            return new Promise((resolveInner) => {
+                const image = new Image();
+                image.crossOrigin = 'Anonymous';
+                image.onload = () => {
+                    ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
+                    resolveInner({
+                        url: canvas.toDataURL(),
+                        scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
+                        anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
+                    });
+                };
+                image.onerror = () => {
+                    console.warn('Failed to load image for marker:', imageUrl);
+                    resolveInner(null);
+                };
+                image.src = imageUrl;
             });
-          };
-          image.onerror = () => {
-            console.warn('Failed to load modified SVG image for marker:', imageUrl);
-            URL.revokeObjectURL(newImageUrl);
-            resolveInner(null);
-          };
-          image.src = newImageUrl;
-        });
-
-      } catch (e) {
-        console.error('Error fetching or processing SVG:', e);
-        return null;
-      }
+        }
     } else {
-      return new Promise((resolveInner) => {
-        const image = new Image();
-        image.crossOrigin = 'Anonymous';
-        image.onload = () => {
-          ctx.drawImage(image, drawX, drawY, contentDiameter, contentDiameter);
-          resolveInner({
+        // No image provided, just return the canvas with background/border if drawn
+        return Promise.resolve({
             url: canvas.toDataURL(),
             scaledSize: new google.maps.Size(totalCanvasDiameter, totalCanvasDiameter),
-            anchor: new google.maps.Point(totalCanvasDiameter/2, totalCanvasDiameter/2)
-          });
-        };
-        image.onerror = () => {
-          console.warn('Failed to load image for marker:', imageUrl);
-          resolveInner(null);
-        };
-        image.src = imageUrl;
-      });
+            anchor: new google.maps.Point(totalCanvasDiameter / 2, totalCanvasDiameter / 2)
+        });
     }
   }
 
@@ -788,7 +812,7 @@ class GoogleMapCardEditor extends HTMLElement {
           
           const entityItem = current.closest('.entity-item');
           if(entityItem && current.hasAttribute('data-index')) {
-              path.unshift(`[data-index="${current.dataset.index}"]`);
+            path.unshift(`[data-index="${current.dataset.index}"]`);
           } else {
             let parent = current.parentNode;
             if (parent) {
@@ -1257,10 +1281,10 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     <label>Map Type:
                       <select id="map_type">
-                            <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Roadmap</option>
-                            <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
-                            <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
-                            <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
+                              <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Roadmap</option>
+                              <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
+                              <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+                              <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
                       </select>
                     </label>
                 </div>
