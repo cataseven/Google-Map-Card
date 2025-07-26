@@ -288,14 +288,28 @@ class GoogleMapCard extends HTMLElement {
     return [];
   }
 
+async _resolveTrackerEntity(entityId) {
+    if (!this._hass || !entityId.startsWith('person.')) {
+      return entityId; 
+    }
+    const personState = this._hass.states[entityId];
+    if (personState && personState.attributes.source) {
+      console.log(`Resolved ${entityId} to its source: ${personState.attributes.source}`);
+      return personState.attributes.source; 
+    }
+    return entityId; 
+  }
+
   async _loadAllInitialHistory() {
     this.locationHistory = {};
     const promises = this.config.entities.map(async entityConfig => {
-        const eid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
-        const entitySpecificConfig = this.entityConfigs[eid];
+        const originalEid = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
+        const trackerEid = await this._resolveTrackerEntity(originalEid); 
+        
+        const entitySpecificConfig = this.entityConfigs[originalEid];
         if (entitySpecificConfig && entitySpecificConfig.hours_to_show > 0) {
-            const history = await this._loadHistoryForEntity(eid, entitySpecificConfig.hours_to_show);
-            this.locationHistory[eid] = history;
+            const history = await this._loadHistoryForEntity(trackerEid, entitySpecificConfig.hours_to_show);
+            this.locationHistory[originalEid] = history; 
         }
     });
     await Promise.all(promises);
@@ -329,9 +343,8 @@ class GoogleMapCard extends HTMLElement {
       const lastEntry = this.locationHistory[eid][this.locationHistory[eid].length - 1];
       const latChanged = lastEntry ? Math.abs(lastEntry.lat - state.attributes.latitude) > 0.000001 : true;
       const lonChanged = lastEntry ? Math.abs(lastEntry.lon - state.attributes.longitude) > 0.000001 : true;
-      const timePassed = lastEntry ? (new Date(state.last_updated).getTime() - lastEntry.timestamp) > 5000 : true;
 
-      if (!lastEntry || (latChanged || lonChanged || timePassed)) {
+      if (!lastEntry || (latChanged || lonChanged)) {
         this.locationHistory[eid].push({
           lat: state.attributes.latitude,
           lon: state.attributes.longitude,
@@ -777,12 +790,12 @@ class GoogleMapCardEditor extends HTMLElement {
           if(entityItem && current.hasAttribute('data-index')) {
               path.unshift(`[data-index="${current.dataset.index}"]`);
           } else {
-              let parent = current.parentNode;
-              if (parent) {
-                  let siblings = Array.from(parent.children);
-                  let ownIndex = siblings.indexOf(current);
-                  part += `:nth-child(${ownIndex + 1})`;
-              }
+            let parent = current.parentNode;
+            if (parent) {
+                let siblings = Array.from(parent.children);
+                let ownIndex = siblings.indexOf(current);
+                part += `:nth-child(${ownIndex + 1})`;
+            }
           }
           path.unshift(part);
           current = current.parentElement;
@@ -792,7 +805,7 @@ class GoogleMapCardEditor extends HTMLElement {
         try {
             activeElementState.selectionStart = activeElement.selectionStart;
             activeElementState.selectionEnd = activeElement.selectionEnd;
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
     }
 
     const theme = this._tmpConfig.theme_mode || 'Auto';
@@ -877,8 +890,8 @@ class GoogleMapCardEditor extends HTMLElement {
               
               <div style="margin-top: 15px; margin-bottom: 5px;">
                   <label style="display: flex; align-items: center; cursor: pointer;">
-                      <input type="checkbox" class="entity-input follow-entity" data-index="${index}" ${follow ? 'checked' : ''} />
-                      <span style="margin-left: 8px;">Follow this entity</span>
+                    <input type="checkbox" class="entity-input follow-entity" data-index="${index}" ${follow ? 'checked' : ''} />
+                    <span style="margin-left: 8px;">Follow this entity</span>
                   </label>
               </div>
 
@@ -1244,10 +1257,10 @@ class GoogleMapCardEditor extends HTMLElement {
                     </label>
                     <label>Map Type:
                       <select id="map_type">
-                          <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Roadmap</option>
-                          <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
-                          <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
-                          <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
+                            <option value="roadmap" ${this._tmpConfig.map_type === 'roadmap' || !this._tmpConfig.map_type ? 'selected' : ''}>Roadmap</option>
+                            <option value="satellite" ${this._tmpConfig.map_type === 'satellite' ? 'selected' : ''}>Satellite</option>
+                            <option value="hybrid" ${this._tmpConfig.map_type === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+                            <option value="terrain" ${this._tmpConfig.map_type === 'terrain' ? 'selected' : ''}>Terrain</option>
                       </select>
                     </label>
                 </div>
@@ -1294,7 +1307,7 @@ class GoogleMapCardEditor extends HTMLElement {
           if(newActiveElement.selectionStart !== undefined) {
             newActiveElement.setSelectionRange(activeElementState.selectionStart, activeElementState.selectionEnd);
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
       }
     }
   }
