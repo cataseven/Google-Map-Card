@@ -162,9 +162,17 @@ or define it in YAML (see Card Example below):
 
 # UI Card Editor
 
-![image61](images/mapsui1.png) ![image62](images/mapsui2.png)    
-![image63](images/mapsui3.png) ![image64](images/mapsui4.png)
+![image61](images/ui1.png) ![image62](images/ui2.png)
 <br>
+![image63](images/ui3.png) ![image64](images/ui4.png)
+<br>
+![image64](images/ui5.png)
+<br>
+
+# Enabling Clustring
+
+If you set clustring on then route history markers will be groupped accordingto zoom zevel. More zoom more granularity. This increases performance on slow systems
+![image7](images/cluster.png)  
 
 # Themes
 
