@@ -72,39 +72,68 @@ or define it in YAML (see Card Example below):
 
 <br>
 
-# Parameters
 
-| Key                            | Type      | Description                                                                                                                   |
-|--------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------|
-| `api_key`                      | string    | Your Google Maps Embed API key (required)                                                                                     |
-| `entities`                     | list      | One or more `person.`, `zone.`, or `device_tracker.` entities (required)                                                      |
-| `zoom`                         | integer   | Zoom level (1–20) (optional, default: 11)                                                                                     |
-| `theme_mode`                   | string    | Choose from built‑in theme list in UI editor (optional)                                                                       |
-| `aspect_ratio`                 | string    | Card aspect ratio, e.g. `16:9`, `4:3`, `0.75`, `400px` (optional)                                                              |
-| `map_type`                     | string    | Map style: `Roadmap` (roadmap), `Satellite`, `Hybrid`, `Terrain` (default: `Map`)                                                |
-| `icon_size`                    | integer   | Default icon size for all entities (optional)                                                                                 |
-| `icon_color`                   | string    | Default icon color (optional)                                                                                                 |
-| `background_color`             | string    | Default icon background color (optional)                                                                                       |
-| `hours_to_show`                | integer   | Enables route tracking: N hours of history (0 = disable, default: 0)                                                          |
-| `polyline_color`               | string    | Polyline color for route history (optional)                                                                                   |
-| `polyline_width`               | integer   | Polyline width for route history (optional)                                                                                   |
-| `follow`                       | boolean   | Center map on this entity after update; if multiple entities have `follow: true`, map bounds adjust to include all (default: false) |
-| **Map Controls**:               |           | **Toggle visibility & position**                                                                                              |
-| `cameraControl`                   | boolean   | Show/hide pan control (default: true)                                                                                         |
-| `zoomControl`                  | boolean   | Show/hide zoom control (default: true)                                                                                        |
-| `streetViewControl`            | boolean   | Show/hide Street View control (default: true)                                                                                 |
-| `fullscreenControl`            | boolean   | Show/hide fullscreen control (default: true)                                                                                   |
-| `mapTypeControl`               | boolean   | Show/hide map type selector (default: true)                                                                                    |
-| `rotateControl`                | boolean   | Show/hide tilt/rotate control (default: true but Tilt control works under some conditions set by Google like zoom level and spesific cities)                                                                                  |
-| `showScale`                    | boolean   | Show/hide scale bar (default: true)                                                                                           |
-| `keyboardShortcuts`            | boolean   | Enable/disable keyboard navigation (default: true)                                                                             |
-| **Control Positions**:          |           | Use `<control>_position` to set each control’s placement (see below)                                                          |
-| `cameraControl_position`          | string    | Position for pan control (e.g. `RIGHT_BOTTOM`)                                                                                 |
-| `zoomControl_position`         | string    | Position for zoom control (e.g. `RIGHT_BOTTOM`)                                                                                |
-| `streetViewControl_position`   | string    | Position for Street View control (e.g. `LEFT_BOTTOM`)                                                                          |
-| `fullscreenControl_position`   | string    | Position for fullscreen control (e.g. `TOP_RIGHT`)                                                                             |
-| `mapTypeControl_position`      | string    | Position for map type selector (e.g. `TOP_LEFT`)                                                                               |
-| `rotateControl_position`       | string    | Position for rotate control (e.g. `LEFT_BOTTOM`)                                                                               |
+## 🔧 Parameters
+
+### 🧹 General Options
+
+| Key            | Type    | Description                                                                   |
+| -------------- | ------- | ----------------------------------------------------------------------------- |
+| `type`         | string  | Required for Home Assistant custom card. Must be `custom:google-map-card`.    |
+| `api_key`      | string  | Your Google Maps Embed API key (**required**).                                |
+| `zoom`         | integer | Initial zoom level (1–20).                                                    |
+| `theme_mode`   | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.).             |
+| `aspect_ratio` | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.).              |
+| `map_type`     | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`. |
+| `marker_clustring`     | boolean  | If `true`, markers will be groupped depending on zoom level. Increases performance for slow systems. |
+
+### 👤 Entities
+
+| Key                | Type    | Description                                                                                                          |
+| ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `entities`         | list    | A list of `device_tracker`, `person`, or `zone` entities to show on the map (**required**).                          |
+| `entity`           | string  | Entity ID to track.                                                                                                  |
+| `icon_size`        | integer | Size of the icon for this entity.                                                                                    |
+| `icon_color`       | string  | Icon color (e.g., `#ffffff`).                                                                                        |
+| `background_color` | string  | Background color of the icon.                                                                                        |
+| `hours_to_show`    | integer | Number of hours of location history to show. Use `0` to disable history.                                             |
+| `polyline_color`   | string  | Color of the polyline for route history.                                                                             |
+| `polyline_width`   | integer | Width of the polyline for route history.                                                                             |
+| `follow`           | boolean | If `true`, map will center on this entity. When multiple entities have `follow: true`, the map will fit all of them. |
+
+### 🕹️ Map Buttons
+
+| Key                 | Type    | Description                                                                                     |
+| ------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `cameraControl`     | boolean | Show or hide pan control.                                                                       |
+| `zoomControl`       | boolean | Show or hide zoom control.                                                                      |
+| `streetViewControl` | boolean | Show or hide Street View control.                                                               |
+| `fullscreenControl` | boolean | Show or hide fullscreen control.                                                                |
+| `mapTypeControl`    | boolean | Show or hide map type selector.                                                                 |
+| `rotateControl`     | boolean | Show or hide rotate/tilt control. Only works in some cities or zoom levels (Google limitation). |
+| `showScale`         | boolean | Show or hide the scale bar.                                                                     |
+| `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
+
+### 🔝 Button Positions
+
+| Key                          | Type   | Description                                         |
+| ---------------------------- | ------ | --------------------------------------------------- |
+| `cameraControl_position`     | string | Position of the pan control (e.g., `RIGHT_BOTTOM`). |
+| `zoomControl_position`       | string | Position of the zoom control.                       |
+| `streetViewControl_position` | string | Position of the Street View control.                |
+| `fullscreenControl_position` | string | Position of the fullscreen control.                 |
+| `mapTypeControl_position`    | string | Position of the map type selector.                  |
+| `rotateControl_position`     | string | Position of the rotate/tilt control.                |
+
+### 🎯 Zones
+
+| Key       | Type    | Description                                               |
+| --------- | ------- | --------------------------------------------------------- |
+| `zones`   | object  | Defines `zone` entities to show on the map, with styling. |
+| `show`    | boolean | Whether to display the zone or not.                       |
+| `color`   | string  | Fill color for the zone area (e.g., `#3498db`).           |
+| `opacity` | float   | Opacity for the zone fill color (0.0 to 1.0).             |
+
 
 **The following control positions are supported:** 
 
@@ -149,15 +178,63 @@ You can choose your best theme—40 now and more to come!
 
 ```yaml
 type: custom:google-map-card
-api_key: 123131231231231PE
-zoom: 8
+api_key: <<YOUR API KEY>>
+zoom: 10
 theme_mode: Dark_Blueish_Night
-aspect_ratio: 1.53:1
+aspect_ratio: "1:1.56"
 map_type: roadmap
+marker_clustering: true
+cameraControl: true
+cameraControl_position: RIGHT_BOTTOM
+zoomControl: true
+zoomControl_position: RIGHT_BOTTOM
+streetViewControl: true
+streetViewControl_position: LEFT_BOTTOM
+fullscreenControl: true
+fullscreenControl_position: TOP_RIGHT
+mapTypeControl: true
+mapTypeControl_position: TOP_LEFT
+rotateControl: true
+rotateControl_position: LEFT_BOTTOM
+showScale: true
+keyboardShortcuts: true
+zones:
+  zone.work:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.work_2:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.efendilig:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.bahcesehir:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.home:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.kuzguncuk:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.school:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
+  zone.pond:
+    show: true
+    color: "#3498db"
+    opacity: 0.25
 entities:
   - entity: device_tracker.flightradar24
     icon_size: 25
-    hours_to_show: 4
+    hours_to_show: 6
     polyline_color: "#ffffff"
     polyline_width: 1
     icon_color: "#940000"
@@ -177,20 +254,6 @@ entities:
     polyline_width: 1
     icon_color: "#ffffff"
     background_color: "#ffffff"
-cameraControl: true
-cameraControl_position: RIGHT_BOTTOM
-zoomControl: true
-zoomControl_position: RIGHT_BOTTOM
-streetViewControl: true
-streetViewControl_position: LEFT_BOTTOM
-fullscreenControl: true
-fullscreenControl_position: TOP_RIGHT
-mapTypeControl: true
-mapTypeControl_position: TOP_LEFT
-rotateControl: true
-rotateControl_position: LEFT_BOTTOM
-showScale: true
-keyboardShortcuts: true
 ```
 
 # Screenshots
