@@ -85,7 +85,7 @@ or define it in YAML (see Card Example below):
 | `theme_mode`   | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.).             |
 | `aspect_ratio` | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.).              |
 | `map_type`     | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`. |
-| `marker_clustring`     | boolean  | If `true`, markers will be groupped depending on zoom level. Increases performance for slow systems. |
+| `marker_clustring`     | boolean  | If `true`, route history markers will be groupped depending on zoom level. Increases performance for slow systems. |
 
 ### 👤 Entities
 
