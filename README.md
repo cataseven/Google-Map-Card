@@ -1,6 +1,6 @@
 # Google Maps Card for Home Assistant
 
-A simple and responsive Lovelace custom card that displays the location of `person.`, `zone.` or `device_tracker.` entities and tracks their routes using the Google Maps JavaScript API.
+The BEST MAP CARD EVER! Responsive Lovelace custom card that displays the location of `person.`, `zone.` or `device_tracker.` entities and tracks their routes using the Google Maps JavaScript API.
 
 <br>
 
