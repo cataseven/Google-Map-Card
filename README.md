@@ -173,12 +173,20 @@ or define it in YAML (see Card Example below):
 
 # UI Card Editor
 
-![image61](images/ui1.png) ![image62](images/ui2.png)
+ ![image61](images/ui1.png) ![image64](images/ui5.png)
 <br>
 ![image63](images/ui3.png) ![image64](images/ui4.png)
 <br>
-![image64](images/ui5.png)
+![image62](images/ui2.png) ![image64](images/leyers.png) 
 <br>
+
+# Live Traffic Info by Google Maps
+Optional. Real time traffic layer
+![image7](images/traffic.png)  
+
+# Live Weather Layer by Open Weather API
+Optional. You need to create api key from openweathermap.org. 
+![image7](images/cloud.png)  
 
 # Enabling Clustring
 
