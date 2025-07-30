@@ -5,7 +5,9 @@ A simple and responsive Lovelace custom card that displays the location of `pers
 <br>
 
 # Features
-
+- Live Traffic Info
+- Weather Layers (via Open Weather API Key)
+- Show Zones 
 - Street View  
 - Route tracking  
 - Themes (40+ built‑in)  
@@ -113,6 +115,15 @@ or define it in YAML (see Card Example below):
 | `rotateControl`     | boolean | Show or hide rotate/tilt control. Only works in some cities or zoom levels (Google limitation). |
 | `showScale`         | boolean | Show or hide the scale bar.                                                                     |
 | `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
+
+### 📚 Layers
+
+| Key                 | Type    | Description                                                                                     |
+| ------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `show_traffic`      | boolean | Show or hide live traffic. No extra api key needed                                               |
+| `weather_layer`     |string | Add weather layer. `none`, `precipitation_new`, `pressure_new`, `wind_new`, `temp_new`, `clouds_new` |
+| `owm_api_key` | string | Create api and restrict it 1000 per day https://home.openweathermap.org/api_keys                       |
+
 
 ### 🔝 Button Positions
 
