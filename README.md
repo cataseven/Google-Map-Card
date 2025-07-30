@@ -191,7 +191,7 @@ Optional. You need to create api key from openweathermap.org. Even they says lay
 
 ![image7](images/cloud.png)
 
-![image7](images/open.png) 
+![image7](images/Open.png) 
 
 # Enabling Clustring
 
