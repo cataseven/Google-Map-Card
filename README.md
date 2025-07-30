@@ -21,6 +21,7 @@ A simple and responsive Lovelace custom card that displays the location of `pers
 - **Scale bar** and **keyboard shortcuts** support  
 - **Follow** mode: auto‑center map on selected entity/entities  
 
+![image4](images/tra.png)
 <br>
 
 # Attention
@@ -182,11 +183,15 @@ or define it in YAML (see Card Example below):
 
 # Live Traffic Info by Google Maps
 Optional. Real time traffic layer
+
 ![image7](images/traffic.png)  
 
 # Live Weather Layer by Open Weather API
-Optional. You need to create api key from openweathermap.org. 
-![image7](images/cloud.png)  
+Optional. You need to create api key from openweathermap.org. Even they says layers are free, It is safer to restrict it 1000 calls per day
+
+![image7](images/cloud.png)
+
+![image7](images/open.png) 
 
 # Enabling Clustring
 
@@ -225,6 +230,9 @@ rotateControl: true
 rotateControl_position: LEFT_BOTTOM
 showScale: true
 keyboardShortcuts: true
+show_traffic: false
+weather_layer: none
+owm_api_key: <<YOUR OPEN WEATHER API KEY>>
 zones:
   zone.work:
     show: true
