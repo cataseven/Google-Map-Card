@@ -34,6 +34,9 @@ https://console.cloud.google.com/google/maps-apis/api-list
 💡 Most Google APIs have quotas and exceeding limits may incur charges.  
 Google Maps JavaScript API itself has no daily limit, but watch your monthly quota to stay on the safe Side. Set limit and quota alarm for your api. Google can change policy anytime so also follow policy Changes.
 
+Also watch this review by @BeardedTinker before creating API. Search how to limit your API to stay within free-to-use limits
+https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek
+
 Create API key and click the “Show key” button in the console:
 
 ![image5](images/gm5.png)
