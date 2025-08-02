@@ -33,7 +33,7 @@ https://console.cloud.google.com/google/maps-apis/api-list
 
 # Attention
 
-💡 Most Google APIs have quotas and exceeding limits may incur charges. However Google Maps JavaScript API itself has no daily limit and it is free and unlimited by August, 2025
+💡 Most Google APIs have quotas and exceeding limits may incur charges. However Google Maps JavaScript API itself has no daily limit and it is free and unlimited as of August, 2025 until any policy change
 ![image5](images/kota.png)
 
 However it is good watch your monthly quota to stay on the safe side. Here is the link for quota stats: https://console.cloud.google.com/google/maps-apis/quotas?
