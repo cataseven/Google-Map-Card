@@ -96,10 +96,13 @@ Optional. Real time traffic layer
 
 ![image7](images/traffic.png)  
 
-# Live Weather Layer by Open Weather API
-Optional. You need to create api key from openweathermap.org. Even they says layers are free, It is safer to restrict it 1000 calls per day
+# Live Weather Layer by Open Weather API (Optional)
 
 ![image7](images/cloud.png)
+
+You need to create api key from openweathermap.org. Please create API v1.0. It is free. Please find the section below and create free API on https://openweathermap.org/price. **DO NOT** create API of One Call API 3.0
+
+API v1.0 is enough and it is free.
 
 ![image7](images/free.png) 
 
