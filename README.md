@@ -82,7 +82,39 @@ or define it in YAML (see Card Example below):
 
 <br>
 
+# UI Card Editor
 
+ ![image61](images/ui1.png) ![image64](images/ui5.png)
+<br>
+![image63](images/ui3.png) ![image64](images/ui4.png)
+<br>
+![image62](images/ui2.png) ![image64](images/leyers.png) 
+<br>
+
+# Live Traffic Info by Google Maps
+Optional. Real time traffic layer
+
+![image7](images/traffic.png)  
+
+# Live Weather Layer by Open Weather API
+Optional. You need to create api key from openweathermap.org. Even they says layers are free, It is safer to restrict it 1000 calls per day
+
+![image7](images/cloud.png)
+
+![image7](images/free.png) 
+
+# Enabling Clustring
+
+If you set clustring on then route history markers will be groupped accordingto zoom zevel. More zoom more granularity. This increases performance on slow systems
+![image7](images/cluster.png)  
+
+# Themes
+
+You can choose your best theme—40 now and more to come!  
+![image7](images/gm7.png)  
+![image8](images/gm8.png)
+
+<br>
 ## 🔧 Parameters
 
 ### 🧹 General Options
@@ -176,43 +208,7 @@ or define it in YAML (see Card Example below):
 | `BOTTOM_LEFT`    | Control placed along the bottom left of the map, with sub‑elements “flowing” toward the bottom center.                |
 | `BOTTOM_RIGHT`   | Control placed along the bottom right of the map, with sub‑elements “flowing” toward the bottom center.               |
 
-
 <br>
-
-# UI Card Editor
-
- ![image61](images/ui1.png) ![image64](images/ui5.png)
-<br>
-![image63](images/ui3.png) ![image64](images/ui4.png)
-<br>
-![image62](images/ui2.png) ![image64](images/leyers.png) 
-<br>
-
-# Live Traffic Info by Google Maps
-Optional. Real time traffic layer
-
-![image7](images/traffic.png)  
-
-# Live Weather Layer by Open Weather API
-Optional. You need to create api key from openweathermap.org. Even they says layers are free, It is safer to restrict it 1000 calls per day
-
-![image7](images/cloud.png)
-
-![image7](images/Open.png) 
-
-# Enabling Clustring
-
-If you set clustring on then route history markers will be groupped accordingto zoom zevel. More zoom more granularity. This increases performance on slow systems
-![image7](images/cluster.png)  
-
-# Themes
-
-You can choose your best theme—40 now and more to come!  
-![image7](images/gm7.png)  
-![image8](images/gm8.png)
-
-<br>
-
 # Card Example
 
 ```yaml
