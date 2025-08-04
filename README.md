@@ -221,6 +221,7 @@ zoom: 10
 theme_mode: Dark_Blueish_Night
 aspect_ratio: "1:1.56"
 map_type: roadmap
+gesture_handling: greedy
 marker_clustering: true
 cameraControl: true
 cameraControl_position: RIGHT_BOTTOM
@@ -244,6 +245,7 @@ zones:
     show: true
     color: "#3498db"
     opacity: 0.25
+    follow: false
   zone.work_2:
     show: true
     color: "#3498db"
@@ -260,6 +262,7 @@ zones:
     show: true
     color: "#3498db"
     opacity: 0.25
+    follow: true
   zone.kuzguncuk:
     show: true
     color: "#3498db"
