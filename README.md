@@ -130,6 +130,7 @@ You can choose your best theme—40 now and more to come!
 | `theme_mode`   | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.).             |
 | `aspect_ratio` | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.).              |
 | `map_type`     | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`. |
+| `zoom_type`    | string  | Zoom type: `cooperative` for CTRL+SCROLL, `greedy` for just SCROLL, `auto` |
 | `marker_clustring`     | boolean  | If `true`, route history markers will be groupped depending on zoom level. Increases performance for slow systems. |
 
 ### 👤 Entities
@@ -187,6 +188,7 @@ You can choose your best theme—40 now and more to come!
 | `show`    | boolean | Whether to display the zone or not.                       |
 | `color`   | string  | Fill color for the zone area (e.g., `#3498db`).           |
 | `opacity` | float   | Opacity for the zone fill color (0.0 to 1.0).             |
+| `follow`  | boolean | Centre the map                                            |
 
 
 **The following control positions are supported:** 
