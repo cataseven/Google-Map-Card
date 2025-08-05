@@ -84,12 +84,20 @@ or define it in YAML (see Card Example below):
 
 # UI Card Editor
 
- ![image61](images/ui1.png) ![image64](images/ui5.png)
+![image61](images/ui1.png)
+
+![image62](images/main.png)
+
+![image63](images/layers.png)
+
+![image65](images/zone.png)
+
+![image66](images/mapbuttons.png)
+
+![image64](images/ui5.png)
 <br>
-![image63](images/layers.png) ![image64](images/mapbuttons.png)
-<br>
-![image62](images/zone.png)
-<br>
+
+
 
 # Live Traffic Info by Google Maps
 Optional. Real time traffic layer
