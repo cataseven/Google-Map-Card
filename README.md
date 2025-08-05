@@ -86,9 +86,9 @@ or define it in YAML (see Card Example below):
 
  ![image61](images/ui1.png) ![image64](images/ui5.png)
 <br>
-![image63](images/ui3.png) ![image64](images/ui4.png)
+![image63](images/layers.png) ![image64](images/mapbuttons.png)
 <br>
-![image62](images/ui2.png) ![image64](images/leyers.png) 
+![image62](images/zone.png)
 <br>
 
 # Live Traffic Info by Google Maps
