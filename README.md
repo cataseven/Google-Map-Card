@@ -140,6 +140,7 @@ You can choose your best theme—40 now and more to come!
 | `map_type`     | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`. |
 | `zoom_type`    | string  | Zoom type: `cooperative` for CTRL+SCROLL, `greedy` for just SCROLL, `auto` |
 | `marker_clustring`     | boolean  | If `true`, route history markers will be groupped depending on zoom level. Increases performance for slow systems. |
+| `zone_clustering`     | boolean  | If `true`, entities in the same zone will be groupped until zoom level is higher than 18 |
 
 ### 👤 Entities
 
@@ -237,6 +238,7 @@ aspect_ratio: "1:1.56"
 map_type: roadmap
 gesture_handling: greedy
 marker_clustering: true
+zone_clustering: true
 show_traffic_button: true
 show_traffic_button_position: TOP_RIGHT
 show_weather_button: true
