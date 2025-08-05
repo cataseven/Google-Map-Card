@@ -159,6 +159,9 @@ You can choose your best theme—40 now and more to come!
 | `rotateControl`     | boolean | Show or hide rotate/tilt control. Only works in some cities or zoom levels (Google limitation). |
 | `showScale`         | boolean | Show or hide the scale bar.                                                                     |
 | `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
+| `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
+| `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
+
 
 ### 📚 Layers
 
@@ -179,7 +182,8 @@ You can choose your best theme—40 now and more to come!
 | `fullscreenControl_position` | string | Position of the fullscreen control.                 |
 | `mapTypeControl_position`    | string | Position of the map type selector.                  |
 | `rotateControl_position`     | string | Position of the rotate/tilt control.                |
-
+| `show_traffic_button_position`    | string | Position of the traffic layer toggle button    |
+| `show_weather_button_position`     | string | Position of the weather layer dropdown menu   |
 ### 🎯 Zones
 
 | Key       | Type    | Description                                               |
@@ -225,6 +229,10 @@ aspect_ratio: "1:1.56"
 map_type: roadmap
 gesture_handling: greedy
 marker_clustering: true
+show_traffic_button: true
+show_traffic_button_position: TOP_RIGHT
+show_weather_button: true
+show_weather_button_position: TOP_RIGHT
 cameraControl: true
 cameraControl_position: RIGHT_BOTTOM
 zoomControl: true
