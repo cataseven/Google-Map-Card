@@ -84,15 +84,15 @@ or define it in YAML (see Card Example below):
 
 # UI Card Editor
 
-![image61](images/ui1.png)
+![image61](images/allmenu.png)
 
-![image62](images/main.png)
+![image62](images/main1.png)
 
 ![image63](images/layers.png)
 
 ![image65](images/zone.png)
 
-![image66](images/mapbuttons.png)
+![image66](images/mbutton.png)
 
 ![image64](images/ui5.png)
 <br>
