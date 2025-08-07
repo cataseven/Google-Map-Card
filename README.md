@@ -231,93 +231,77 @@ You can choose your best theme—40 now and more to come!
 
 ```yaml
 type: custom:google-map-card
-api_key: <<YOUR API KEY>>
-zoom: 10
+api_key: <<GOOGLE API KEY>>
+owm_api_key: <<OPEN WEATHER API KEY>>
 theme_mode: Dark_Blueish_Night
-aspect_ratio: "1:1.56"
 map_type: roadmap
+zoom: 16
+aspect_ratio: 1.53:1
+weather_layer: clouds_new
+proximity_clustering: true
+proximity_radius: 5
+marker_clustering: false
 gesture_handling: greedy
-marker_clustering: true
-zone_clustering: true
+camera_control: false
+zoom_control: false
+zoom_control_position: RIGHT_BOTTOM
+street_view_control: false
+street_view_control_position: LEFT_BOTTOM
+fullscreen_control: false
+fullscreen_control_position: RIGHT_TOP
+map_type_control: false
+map_type_control_position: TOP_LEFT
+map_type_control_style: DROPDOWN_MENU
+rotate_control: false
+pan_control: true
+show_scale: false
+scaleControlPosition: BOTTOM_LEFT
+keyboard_shortcuts: false
 show_traffic_button: true
 show_traffic_button_position: TOP_RIGHT
 show_weather_button: true
 show_weather_button_position: TOP_RIGHT
-cameraControl: true
-cameraControl_position: RIGHT_BOTTOM
-zoomControl: true
-zoomControl_position: RIGHT_BOTTOM
-streetViewControl: true
-streetViewControl_position: LEFT_BOTTOM
-fullscreenControl: true
-fullscreenControl_position: TOP_RIGHT
-mapTypeControl: true
-mapTypeControl_position: TOP_LEFT
-rotateControl: true
-rotateControl_position: LEFT_BOTTOM
-showScale: true
-keyboardShortcuts: true
+show_recenter_button: true
+show_recenter_button_position: LEFT_BOTTOM
 show_traffic: false
-weather_layer: none
-owm_api_key: <<YOUR OPEN WEATHER API KEY>>
+entities:
+  - entity: device_tracker.flightradar24
+    icon_size: 30
+    hours_to_show: 10
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#780202"
+    background_color: "#ffffff"
+  - entity: person.cenk
+    icon_size: 30
+    hours_to_show: 0
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#780202"
+    background_color: "#ffffff"
+  - entity: person.derya
+    icon_size: 30
+    hours_to_show: 0
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#780202"
+    background_color: "#ffffff"
 zones:
   zone.work:
-    show: true
+    show: false
     color: "#3498db"
-    opacity: 0.25
     follow: false
+    label_color: "#c4dbf9"
   zone.work_2:
-    show: true
+    show: false
     color: "#3498db"
-    opacity: 0.25
-  zone.efendilig:
-    show: true
-    color: "#3498db"
-    opacity: 0.25
-  zone.bahcesehir:
-    show: true
-    color: "#3498db"
-    opacity: 0.25
+    follow: false
+    label_color: "#c4dbf9"
   zone.home:
     show: true
     color: "#3498db"
-    opacity: 0.25
-    follow: true
-  zone.kuzguncuk:
-    show: true
-    color: "#3498db"
-    opacity: 0.25
-  zone.school:
-    show: true
-    color: "#3498db"
-    opacity: 0.25
-  zone.pond:
-    show: true
-    color: "#3498db"
-    opacity: 0.25
-entities:
-  - entity: device_tracker.flightradar24
-    icon_size: 25
-    hours_to_show: 6
-    polyline_color: "#ffffff"
-    polyline_width: 1
-    icon_color: "#940000"
-    background_color: "#f5f5f5"
-    follow: true
-  - entity: person.cenk
-    icon_size: 40
-    hours_to_show: 0
-    polyline_color: "#f1eeee"
-    polyline_width: 1
-    icon_color: "#ffffff"
-    background_color: "#f5f5f5"
-  - entity: person.derya
-    icon_size: 40
-    hours_to_show: 0
-    polyline_color: "#ffffff"
-    polyline_width: 1
-    icon_color: "#ffffff"
-    background_color: "#ffffff"
+    follow: false
+    label_color: "#c4dbf9"
 ```
 
 # Screenshots
