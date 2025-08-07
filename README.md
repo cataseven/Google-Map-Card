@@ -140,7 +140,9 @@ You can choose your best theme—40 now and more to come!
 | `map_type`     | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`. |
 | `zoom_type`    | string  | Zoom type: `cooperative` for CTRL+SCROLL, `greedy` for just SCROLL, `auto` |
 | `marker_clustring`     | boolean  | If `true`, route history markers will be groupped depending on zoom level. Increases performance for slow systems. |
-| `zone_clustering`     | boolean  | If `true`, entities in the same zone will be groupped until zoom level is higher than 18 |
+| `proximity_clustering`     | boolean  | If `true`, entities within the defined radius will be groupped until zoom level is higher than 18 |
+| `proximity_radius`     | number  | Radius of proximity cluster default: 150 |
+
 
 ### 👤 Entities
 
@@ -170,6 +172,7 @@ You can choose your best theme—40 now and more to come!
 | `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
 | `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
 | `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
+| `show_recenter_button` | boolean | Show or hide Recenter Map Button.                                                            |
 
 
 ### 📚 Layers
@@ -193,6 +196,7 @@ You can choose your best theme—40 now and more to come!
 | `rotateControl_position`     | string | Position of the rotate/tilt control.                |
 | `show_traffic_button_position`    | string | Position of the traffic layer toggle button    |
 | `show_weather_button_position`     | string | Position of the weather layer dropdown menu   |
+| `show_recenter_button_position`     | string | Position of the recenter map button   |
 ### 🎯 Zones
 
 | Key       | Type    | Description                                               |
