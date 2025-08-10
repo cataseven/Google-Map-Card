@@ -51,7 +51,7 @@ Create API key and click the “Show key” button in the console:
 
 # Installation
 
-## Via HACS (Recommended)
+## Via HACS
 
 1. Go to **HACS**  
 2. Search for **Google Map Card**  
