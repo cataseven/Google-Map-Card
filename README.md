@@ -57,20 +57,6 @@ Create API key and click the “Show key” button in the console:
 2. Search for **Google Map Card**  
 3. Download & install  
 
-## Manual
-
-1. Download `google-map-card.js` and `themes.js`  
-2. Place them in `www/community/Google-Map-Card/`  
-3. Add to your Lovelace **resources**:
-
-    ```yaml
-    resources:
-      - url: /local/community/Google-Map-Card/google-map-card.js
-        type: module
-    ```
-
-<br>
-
 # Adding the Card to Dashboard
 
 Add via the Lovelace card picker (search “Google Map Card”)  
