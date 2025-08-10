@@ -60,12 +60,12 @@ Create API key and click the “Show key” button in the console:
 ## Manual
 
 1. Download `google-map-card.js` and `themes.js`  
-2. Place them in `www/community/google-map-card/`  
+2. Place them in `www/community/Google-Map-Card/`  
 3. Add to your Lovelace **resources**:
 
     ```yaml
     resources:
-      - url: /local/community/google-map-card/google-map-card.js
+      - url: /local/community/Google-Map-Card/google-map-card.js
         type: module
     ```
 
