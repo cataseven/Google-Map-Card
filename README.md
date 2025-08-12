@@ -128,7 +128,7 @@ You can choose your best theme—40 now and more to come!
 | `marker_clustring`     | boolean  | If `true`, route history markers will be groupped depending on zoom level. Increases performance for slow systems. |
 | `proximity_clustering`     | boolean  | If `true`, entities within the defined radius will be groupped until zoom level is higher than 17 |
 | `proximity_radius`     | number  | Radius of proximity cluster default: 150 |
-
+| `spiderfy`     | boolean  | If `true`, after some zoom level, icons of entities with exact loction will seperated by some distance in order to see all icons |
 
 ### 👤 Entities
 
