@@ -143,6 +143,9 @@ You can choose your best theme—40 now and more to come!
 | `polyline_color`   | string  | Color of the polyline for route history.                                                                             |
 | `polyline_width`   | integer | Width of the polyline for route history.                                                                             |
 | `follow`           | boolean | If `true`, map will center on this entity. When multiple entities have `follow: true`, the map will fit all of them. |
+| `history_start_date`           | string | Date range start date for history tracking. Overrides `hours_to_show` |
+| `history_end_date`           | string | Date range start date for history tracking. Overrides `hours_to_show`|
+
 
 ### 🕹️ Map Buttons
 
@@ -269,6 +272,8 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+    history_start_date: "2025-08-12T09:00:00.000Z"
+    history_end_date: "2025-08-13T09:00:00.000Z"
   - entity: person.derya
     icon_size: 30
     hours_to_show: 0
@@ -276,6 +281,8 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+    history_start_date: "2025-08-12T09:00:00.000Z"
+    history_end_date: "2025-08-13T09:00:00.000Z"
 zones:
   zone.work:
     show: false
