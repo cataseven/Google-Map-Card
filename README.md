@@ -72,7 +72,7 @@ or define it in YAML (see Card Example below):
 
 ![image61](images/allmenu.png)
 
-![image62](images/main1.png)
+![image62](images/mainsettings.png)
 
 ![image63](images/layers.png)
 
@@ -80,7 +80,7 @@ or define it in YAML (see Card Example below):
 
 ![image66](images/mbutton.png)
 
-![image64](images/ui5.png)
+![image64](images/entity.png)
 <br>
 
 
