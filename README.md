@@ -134,7 +134,7 @@ You can choose your best theme—40 now and more to come!
 
 | Key                | Type    | Description                                                                                                          |
 | ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| `entities`         | list    | A list of `device_tracker`, `person`, or `zone` entities to show on the map (**required**).                          |
+| `entities`         | list    | A list of `device_tracker`, `person`, or `zone` entities to show on the map (**required if no geo location sources provided**).                          |
 | `entity`           | string  | Entity ID to track.                                                                                                  |
 | `icon_size`        | integer | Size of the icon for this entity.                                                                                    |
 | `icon_color`       | string  | Icon color (e.g., `#ffffff`).                                                                                        |
@@ -146,6 +146,11 @@ You can choose your best theme—40 now and more to come!
 | `history_start_date`           | string | Date range start date for history tracking. Overrides `hours_to_show` |
 | `history_end_date`           | string | Date range start date for history tracking. Overrides `hours_to_show`|
 
+### 👤 Geo Location Sources
+
+| Key                | Type    | Description                                                                                                          |
+| ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `geo_location_sources`         | list    | Geo Location Sources listed in entity selection list (**required if no entity provided**).                          |
 
 ### 🕹️ Map Buttons
 
