@@ -100,6 +100,13 @@ API v1.0 is enough and it is free.
 
 ![image7](images/free.png) 
 
+# Adding Geo Location Sources
+
+If you have any integration providing geo location source, they will be automatically listed on the bototm of entity list.
+
+
+
+
 # Enabling Clustring
 
 If you set clustring on then route history markers will be groupped accordingto zoom zevel. More zoom more granularity. This increases performance on slow systems
