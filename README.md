@@ -102,9 +102,9 @@ API v1.0 is enough and it is free.
 
 # Adding Geo Location Sources
 
-If you have any integration providing geo location source, they will be automatically listed on the bototm of entity list.
+If you have any integration providing geo location source, they will be automatically listed on the bottom of entity list.
 
-
+![image7](images/geosource.png)
 
 
 # Enabling Clustring
