@@ -11,7 +11,8 @@ The BEST MAP CARD EVER! Responsive Lovelace custom card that displays the locati
 - Street View  
 - Route tracking  
 - Themes (40+ built‑in)  
-- Interactive Google Map view  
+- Interactive Google Map view
+- Supporting entitites of FlightRadar24 integration
 - Dynamic selection of person/zone/device_tracker entities  
 - Map terrain types (Map, Satellite, Hybrid, Terrain)  
 - Custom zoom level  
