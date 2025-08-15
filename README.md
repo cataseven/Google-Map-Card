@@ -175,7 +175,8 @@ You can choose your best theme—40 now and more to come!
 | `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
 | `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
 | `show_recenter_button` | boolean | Show or hide Recenter Map Button.                                                            |
-
+| `show_date_control` | boolean | Show or hide Calendar Button.                                                                   |
+| `buttons_opacity` | float | Opacity of all buttons on the map. Buttons will be solid when hover                                 |
 
 ### 📚 Layers
 
@@ -199,6 +200,8 @@ You can choose your best theme—40 now and more to come!
 | `show_traffic_button_position`    | string | Position of the traffic layer toggle button    |
 | `show_weather_button_position`     | string | Position of the weather layer dropdown menu   |
 | `show_recenter_button_position`     | string | Position of the recenter map button   |
+| `show_date_control_position`     | string | Position of the calendar   |
+
 ### 🎯 Zones
 
 | Key       | Type    | Description                                               |
