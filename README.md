@@ -22,7 +22,7 @@ The BEST MAP CARD EVER! Responsive Lovelace custom card that displays the locati
 - **Scale bar** and **keyboard shortcuts** support  
 - **Follow** mode: auto‑center map on selected entity/entities  
 
-![image4](images/tra.png) ![image4](images/fr24.png)
+![image4](images/tra.png) ![image4](images/fr25.png)
 <br>
 
 # Attention
