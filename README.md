@@ -333,4 +333,8 @@ zones:
 ![image3](images/gm3.png)
 
 ## ⭐ Support
-If you like this card, feel free to ⭐ star the project on GitHub and share it with the Home Assistant community!
+If you like this card, feel free to ⭐ star the project on GitHub and share it with the Home Assistant community or buy me a coffee!
+
+<a href="https://www.buymeacoffee.com/cataseven" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" >
+</a>      
