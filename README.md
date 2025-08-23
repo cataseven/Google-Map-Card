@@ -1,6 +1,3 @@
-<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="cataseven" data-color="#00ffd0" data-emoji=""  data-font="Bree" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#FFDD00" ></script>
-
-
 # Google Maps Card for Home Assistant
 
 The BEST MAP CARD EVER! Responsive Lovelace custom card that displays the location of `person.` or `device_tracker.` `sensor.` entities and tracks their routes using the Google Maps JavaScript API.
