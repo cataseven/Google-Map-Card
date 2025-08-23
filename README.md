@@ -154,6 +154,7 @@ You can choose your best theme—40 now and more to come!
 | `show_history_dots`           | boolean | If `true`, location history dots is not rendered. May increase speed of map rendering for long time period data. |
 | `history_start_date`           | string | Date range start date for history tracking. Overrides `hours_to_show` |
 | `history_end_date`           | string | Date range start date for history tracking. Overrides `hours_to_show`|
+        
 
 ### 👤 Geo Location Sources
 
@@ -175,6 +176,7 @@ You can choose your best theme—40 now and more to come!
 | `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
 | `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
 | `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
+| `show_datepicker_button` | boolean | Show or hide Calendar. (Date Range should be enabled for at least one entity               |
 | `show_recenter_button` | boolean | Show or hide Recenter Map Button.                                                            |
 | `buttons_opacity` | float | Opacity of all buttons on the map. Buttons will be solid when hover                                 |
 
@@ -200,7 +202,7 @@ You can choose your best theme—40 now and more to come!
 | `show_traffic_button_position`    | string | Position of the traffic layer toggle button    |
 | `show_weather_button_position`     | string | Position of the weather layer dropdown menu   |
 | `show_recenter_button_position`     | string | Position of the recenter map button   |
-| `show_date_control_position`     | string | Position of the calendar   |
+| `show_datepicker_button_position`     | string | Position of the calendar   |
 
 ### 🎯 Zones
 
@@ -272,6 +274,8 @@ show_weather_button: true
 show_weather_button_position: TOP_RIGHT
 show_recenter_button: true
 show_recenter_button_position: LEFT_BOTTOM
+show_datepicker_button: true
+show_datepicker_button_position: TOP_CENTER
 show_traffic: false
 show_history_dots: true
 entities:
