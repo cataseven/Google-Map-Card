@@ -151,6 +151,7 @@ You can choose your best theme—40 now and more to come!
 | `polyline_color`   | string  | Color of the polyline for route history.                                                                             |
 | `polyline_width`   | integer | Width of the polyline for route history.                                                                             |
 | `follow`           | boolean | If `true`, map will center on this entity. When multiple entities have `follow: true`, the map will fit all of them. |
+| `show_history_dots`           | boolean | If `true`, location history dots is not rendered. May increase speed of map rendering for long time period data. |
 | `history_start_date`           | string | Date range start date for history tracking. Overrides `hours_to_show` |
 | `history_end_date`           | string | Date range start date for history tracking. Overrides `hours_to_show`|
 
@@ -175,7 +176,6 @@ You can choose your best theme—40 now and more to come!
 | `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
 | `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
 | `show_recenter_button` | boolean | Show or hide Recenter Map Button.                                                            |
-| `show_date_control` | boolean | Show or hide Calendar Button.                                                                   |
 | `buttons_opacity` | float | Opacity of all buttons on the map. Buttons will be solid when hover                                 |
 
 ### 📚 Layers
@@ -273,6 +273,7 @@ show_weather_button_position: TOP_RIGHT
 show_recenter_button: true
 show_recenter_button_position: LEFT_BOTTOM
 show_traffic: false
+show_history_dots: true
 entities:
   - entity: device_tracker.flightradar24
     icon_size: 30
