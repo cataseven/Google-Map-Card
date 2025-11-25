@@ -215,9 +215,9 @@ You can choose your best theme—40 now and more to come!
 | `zones`   | object  | Defines `zone` entities to show on the map, with styling. |
 | `show`    | boolean | Whether to display the zone or not.                       |
 | `color`   | string  | Fill color for the zone area (e.g., `#3498db`).           |
-| `opacity` | float   | Opacity for the zone fill color (0.0 to 1.0).             |
+| `zone_opacity` | float   | Opacity for the zone fill color (0.0 to 1.0).        |
+| `zone_label_opacity` | float   | Opacity for the zone label color (0.0 to 1.0).  |
 | `follow`  | boolean | Centre the map                                            |
-
 
 **The following control positions are supported:** 
 
