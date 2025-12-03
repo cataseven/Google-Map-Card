@@ -105,6 +105,18 @@ API v1.0 is enough and it is free.
 
 ![image7](images/free.png) 
 
+
+# Google Maps & Apple Map Application Support
+You can open any point or location on your entities on Google Map or Apple Map mobile or web browser app.
+
+For entity location: Click ok entity picture and select your app on the popup
+
+For any point on the map (Windows): Right click and select your app on the popup
+
+For any point on the map (Mobile Phone): Hold your finger on any point for seconds
+
+<br>
+
 # Adding Geo Location Sources
 
 If you have any integration providing geo location source, they will be automatically listed on the bottom of entity list.
