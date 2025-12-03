@@ -109,11 +109,11 @@ API v1.0 is enough and it is free.
 # Google Maps & Apple Map Application Support
 You can open any point or location of your entities on Google Map or Apple Map mobile or web browser app.
 
-For entity location: Click ok entity picture and select your app on the popup
+For entity location: Click ok entity picture and select your app on the opened popup
 
-For any point on the map (Windows): Right click and select your app on the popup
+For any point on the map (Windows): Click right mouse button and select your app on the opened popup
 
-For any point on the map (Mobile Phone): Hold your finger on any point for seconds
+For any point on the map (Mobile Phone): Hold your finger on any point for 2 seconds  and select your app on the opened popup
 
 <br>
 
