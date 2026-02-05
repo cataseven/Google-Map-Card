@@ -11,7 +11,8 @@ Responsive Lovelace custom Google Maps card that displays the location of `perso
 # Features
 - Live Traffic Info
 - Weather Layers (via Open Weather API Key)
-- Show Zones 
+- Show Zones
+- Create Zone with right click
 - Street View  
 - Route tracking  
 - Themes (40+ built‑in)  
@@ -116,6 +117,10 @@ For any point on the map (Windows): Click right mouse button and select your app
 For any point on the map (Mobile Phone): Hold your finger on any point for 2 seconds  and select your app on the opened popup
 
 <br>
+
+# Create Zone by right click on browser or hold touch on mobile
+
+![image12](images/create.png)
 
 # Adding Geo Location Sources
 
