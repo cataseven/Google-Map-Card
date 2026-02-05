@@ -118,7 +118,7 @@ For any point on the map (Mobile Phone): Hold your finger on any point for 2 sec
 
 <br>
 
-# Create Zone by right click on browser or hold touch on mobile
+# Create Zone (Right click on browser or hold touch on mobile)
 
 ![image12](images/create.png)
 
