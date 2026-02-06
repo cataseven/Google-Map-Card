@@ -123,8 +123,8 @@ For any point on the map (Mobile Phone): Hold your finger on any point for 2 sec
 Create Zone:  Right click on map (outside a zone)
 Edit Zone, Delete Zone and Hide Zone: Right click inside a zone
 ![image12](images/create.png)
-![image12](images/righty.png)
-![image12](images/editzone.png)
+![image12](images/righty1.png)
+![image12](images/editzone1.png)
 ![image12](images/deletezone.png)
 
 # Adding Geo Location Sources
