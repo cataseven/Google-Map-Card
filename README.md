@@ -180,7 +180,8 @@ You can choose your best theme—40 now and more to come!
 | `show_history_dots`           | boolean | If `true`, location history dots is not rendered. May increase speed of map rendering for long time period data. |
 | `history_start_date`           | string | Date range start date for history tracking. Overrides `hours_to_show` |
 | `history_end_date`           | string | Date range start date for history tracking. Overrides `hours_to_show`|
-        
+| `gps_accuracy_ranges`           | obj | `min`,`max`,`label`,`color`,`opacity` see example below|
+     
 
 ### 👤 Geo Location Sources
 
@@ -312,6 +313,32 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+    gps_accuracy_ranges:
+      - min: 0
+        max: 15
+        label: Excellent (0-15m)
+        color: "#15cb1b"
+        opacity: 0.6
+      - min: 16
+        max: 100
+        label: Good (16-100m)
+        color: "#0dccf2"
+        opacity: 1
+      - min: 101
+        max: 250
+        label: Fair (101-250m)
+        color: "#ffeb3b"
+        opacity: 1
+      - min: 251
+        max: 500
+        label: Poor (251-500m)
+        color: "#ff9800"
+        opacity: 1
+      - min: 501
+        max: 99999
+        label: Very Poor (501m+)
+        color: "#f44336"
+        opacity: 1
   - entity: person.cenk
     icon_size: 30
     hours_to_show: 0
