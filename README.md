@@ -313,6 +313,15 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+  - entity: person.cenk
+    icon_size: 30
+    hours_to_show: 0
+    polyline_color: "#ffffff"
+    polyline_width: 1
+    icon_color: "#780202"
+    background_color: "#ffffff"
+    history_start_date: "2025-08-12T09:00:00.000Z"
+    history_end_date: "2025-08-13T09:00:00.000Z"
     gps_accuracy_ranges:
       - min: 0
         max: 15
@@ -339,15 +348,6 @@ entities:
         label: Very Poor (501m+)
         color: "#f44336"
         opacity: 1
-  - entity: person.cenk
-    icon_size: 30
-    hours_to_show: 0
-    polyline_color: "#ffffff"
-    polyline_width: 1
-    icon_color: "#780202"
-    background_color: "#ffffff"
-    history_start_date: "2025-08-12T09:00:00.000Z"
-    history_end_date: "2025-08-13T09:00:00.000Z"
   - entity: person.derya
     icon_size: 30
     hours_to_show: 0
