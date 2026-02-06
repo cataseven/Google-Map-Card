@@ -12,7 +12,7 @@ Responsive Lovelace custom Google Maps card that displays the location of `perso
 - Live Traffic Info
 - Weather Layers (via Open Weather API Key)
 - Show Zones
-- Create Zone with right click
+- Create Zone, Edit Zone, Delete Zone directly from the card with right click 
 - Street View  
 - Route tracking  
 - Themes (40+ built‑in)  
@@ -121,7 +121,9 @@ For any point on the map (Mobile Phone): Hold your finger on any point for 2 sec
 # Create Zone, Edit Zone, Delete Zone and Hide Zone (Right click on browser or hold touch on mobile)
 
 Create Zone:  Right click on map (outside a zone)
+
 Edit Zone, Delete Zone and Hide Zone: Right click inside a zone
+
 ![image12](images/create.png)
 ![image12](images/righty1.png)
 ![image12](images/editzone1.png)
