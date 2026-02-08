@@ -86,7 +86,7 @@ or define it in YAML (see Card Example below):
 
 ![image66](images/mapbuttons2.png)
 
-![image64](images/entity.png)
+![image64](images/entity1.png)
 <br>
 
 
