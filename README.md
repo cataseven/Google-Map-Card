@@ -121,6 +121,9 @@ For any point on the map (Mobile Phone): Hold your finger on any point for 2 sec
 
 <br>
 
+# POI Filtering
+![image12](images/poi2.png)
+
 # Create Zone, Edit Zone, Delete Zone and Hide Zone (Right click on browser or hold touch on mobile)
 
 Create Zone:  Right click on map (outside a zone)
