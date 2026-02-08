@@ -12,7 +12,8 @@ Responsive Lovelace custom Google Maps card that displays the location of `perso
 - Live Traffic Info
 - Weather Layers (via Open Weather API Key)
 - Show Zones
-- Create Zone, Edit Zone, Delete Zone directly from the card with right click 
+- Create Zone, Edit Zone, Delete Zone directly from the card with right click
+- POI Filtering
 - Street View  
 - Route tracking  
 - Themes (40+ built‑in)  
@@ -85,6 +86,8 @@ or define it in YAML (see Card Example below):
 ![image65](images/zones.png)
 
 ![image66](images/mapbuttons2.png)
+
+![image66](images/poi.png)
 
 ![image64](images/entity1.png)
 <br>
@@ -202,12 +205,14 @@ You can choose your best theme—40 now and more to come!
 | `mapTypeControl`    | boolean | Show or hide map type selector.                                                                 |
 | `rotateControl`     | boolean | Show or hide rotate/tilt control. Only works in some cities or zoom levels (Google limitation). |
 | `showScale`         | boolean | Show or hide the scale bar.                                                                     |
+| `show_poi_button`   | boolean | Show or hide the poi selector.                                                                  |
 | `keyboardShortcuts` | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
 | `show_traffic_button`| boolean | Show or hide Traffic Layer Toggle Button.                                                      |
 | `show_weather_button` | boolean | Show or hide Weather Layer dropdown menu.                                                     |
 | `show_datepicker_button` | boolean | Show or hide Calendar. (Date Range should be enabled for at least one entity               |
 | `show_recenter_button` | boolean | Show or hide Recenter Map Button.                                                            |
 | `buttons_opacity` | float | Opacity of all buttons on the map. Buttons will be solid when hover                                 |
+
 
 ### 📚 Layers
 
@@ -229,6 +234,7 @@ You can choose your best theme—40 now and more to come!
 | `mapTypeControl_position`    | string | Position of the map type selector.                  |
 | `rotateControl_position`     | string | Position of the rotate/tilt control.                |
 | `show_traffic_button_position`    | string | Position of the traffic layer toggle button    |
+| `show_poi_button_position`    | string | Position of the poi selector button    |
 | `show_weather_button_position`     | string | Position of the weather layer dropdown menu   |
 | `show_recenter_button_position`     | string | Position of the recenter map button   |
 | `show_datepicker_button_position`     | string | Position of the calendar   |
@@ -241,8 +247,15 @@ You can choose your best theme—40 now and more to come!
 | `show`    | boolean | Whether to display the zone or not.                       |
 | `color`   | string  | Fill color for the zone area (e.g., `#3498db`).           |
 | `zone_opacity` | float   | Opacity for the zone fill color (0.0 to 1.0).        |
-| `zone_label_opacity` | float   | Opacity for the zone label color (0.0 to 1.0).  |
+| `zone_label_opacity` | float   | Opacity for the zone label color (0.0 to 1.0). |
 | `follow`  | boolean | Centre the map                                            |
+
+
+### 🏪 POI
+
+| Key       | Type    | Description                                               |
+| --------- | ------- | --------------------------------------------------------- |
+| `hide_poi_types:`   | object  | `business`, `attraction`, `government`, `medical`, `park`, `place_of_worship`, `school`, `sports_complex`, `transit` |
 
 **The following control positions are supported:** 
 
