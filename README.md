@@ -150,8 +150,7 @@ If you set clustring on then route history markers will be groupped accordingto 
 # Themes
 
 You can choose your best theme—40 now and more to come!  
-![image7](images/gm7.png)  
-![image8](images/gm8.png)
+![image7](images/themes.png)
 
 <br>
 ## 🔧 Parameters
