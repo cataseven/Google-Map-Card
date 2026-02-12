@@ -28,7 +28,7 @@ Responsive Lovelace custom Google Maps card that displays the location of `perso
 - **Scale bar** and **keyboard shortcuts** support  
 - **Follow** mode: auto‑center map on selected entity/entities  
 
-![image4](images/tra.png) ![image4](images/themes1.png) ![image4](images/Picker.png) ![image4](images/flight.png)
+![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png)
 <br>
 
 # Attention
@@ -150,7 +150,7 @@ If you set clustring on then route history markers will be groupped accordingto 
 # Themes
 
 You can choose your best theme—40 now and more to come!  
-![image7](images/themes.png)
+![image7](images/themes2.png)
 
 <br>
 ## 🔧 Parameters
