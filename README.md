@@ -28,7 +28,7 @@ Responsive Lovelace custom Google Maps card that displays the location of `perso
 - **Scale bar** and **keyboard shortcuts** support  
 - **Follow** mode: auto‑center map on selected entity/entities  
 
-![image4](images/tra.png) ![image4](images/Picker.png) ![image4](images/fr25.png)
+![image4](images/tra.png) ![image4](images/Picker.png) ![image4](images/flight.png)
 <br>
 
 # Attention
