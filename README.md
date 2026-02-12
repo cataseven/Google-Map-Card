@@ -153,6 +153,7 @@ You can choose your best theme—40 now and more to come!
 ![image7](images/themes2.png)
 
 <br>
+
 ## 🔧 Parameters
 
 ### 🧹 General Options
