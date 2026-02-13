@@ -123,20 +123,27 @@ This card supports **FlightRadar24** entities and includes a dedicated **FlightR
 
   * Status **chips** (Estimated / Landed / Scheduled / Delayed / On Route, etc.)
   * Parses `status_text` such as `Delayed 16:25` into a **separate time column**
-* **Quick actions** available from the map click popup (when FR24 is detected)
+* **Quick actions** available from the map **RIGHT CLICK** popup (when FR24 is detected)
 
   * Add Flight
   * Remove Flight
   * Clear Flights
-* **Smart clustering behavior**
-
-  * **Flight markers are excluded from marker clustering** to prevent aircraft from disappearing into clusters
-
-## Screenshot (placeholder)
-
-> Replace this filename with your real screenshot.
 
 ![FlightRadar Panel](images/flight.gif)
+
+![FlightRadar Panel](images/addflight.png)
+
+![FlightRadar Panel](images/addflight2.png)
+
+![FlightRadar Panel](images/table1.png)
+
+![FlightRadar Panel](images/bottom.png)
+
+![FlightRadar Panel](images/right.png)
+
+![FlightRadar Panel](images/depart.png)
+
+![FlightRadar Panel](images/arrivals.png)
 
 ---
 
