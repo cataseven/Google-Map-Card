@@ -11,6 +11,8 @@
 ![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)
 [![GitHub Stars](https://img.shields.io/github/stars/cataseven/Google-Map-Card?style=social)](https://github.com/cataseven/Google-Map-Card)
 [![GitHub Issues](https://img.shields.io/github/issues/cataseven/Google-Map-Card?style=flat-square)](https://github.com/cataseven/Google-Map-Card/issues)
+![Downloads](https://img.shields.io/github/downloads/cataseven/Google-Map-Card/total?color=41BDF5&logo=home-assistant&label=Downloads&suffix=%20downloads&style=for-the-badge)
+
 
 
 Responsive Lovelace custom Google Maps card that displays the location of `person.`, `device_tracker.`, and `sensor.` entities and tracks their routes using the Google Maps JavaScript API.
