@@ -4,7 +4,7 @@
 
 # Google Maps Card for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/plugins)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/frontend)
 [![GitHub Release](https://img.shields.io/github/release/cataseven/Google-Map-Card.svg)](https://github.com/cataseven/Google-Map-Card/releases)
 [![License](https://img.shields.io/github/license/cataseven/Google-Map-Card.svg)](LICENSE)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1.0%2B-blue.svg)
