@@ -4,6 +4,24 @@
 
 # Google Maps Card for Home Assistant
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![GitHub Release](https://img.shields.io/github/release/cataseven/Google-Map-Card.svg)](https://github.com/cataseven/Google-Map-Card/releases)
+[![License](https://img.shields.io/github/license/cataseven/Google-Map-Card.svg)](LICENSE)
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1.0%2B-blue.svg)
+![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)
+[![GitHub Stars](https://img.shields.io/github/stars/cataseven/Google-Map-Card?style=social)](https://github.com/cataseven/Google-Map-Card)
+[![GitHub Issues](https://img.shields.io/github/issues/cataseven/Google-Map-Card?style=flat-square)](https://github.com/cataseven/Google-Map-Card/issues)
+[![Support Development](https://img.shields.io/badge/Support-Development-FFDD00?style=for-the-badge&logo=paypal&logoColor=black)](#support-the-project)
+
+<div align="center">
+  <img src="https://dummyimage.com/800x60/0d1117/ffffff&text=Blueprint+Studio+-+Edit+Your+HA+Configs+Like+a+Pro" alt="Hero Banner">
+  <br><br>
+  <strong>A modern, feature-rich file editor for Home Assistant. Edit your YAML configuration files and other text-based files directly from the Home Assistant UI with a professional VS Code-like experience. Say goodbye to clunky SSH sessions and hello to seamless editing! ✨</strong> 
+  <br><br> 
+<img src="icon.png" alt="Logo" style="width: 100px; height: auto;">
+</div>
+
+
 Responsive Lovelace custom Google Maps card that displays the location of `person.`, `device_tracker.`, and `sensor.` entities and tracks their routes using the Google Maps JavaScript API.
 
 ---
@@ -481,3 +499,7 @@ If you like this card, feel free to ⭐ star the project on GitHub and share it 
 <a href="https://www.buymeacoffee.com/cataseven" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" >
 </a>
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=cataseven/Google-Map-Card&type=date&legend=top-left)](https://www.star-history.com/#cataseven/Google-Map-Card&type=date&legend=top-left)
