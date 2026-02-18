@@ -114,43 +114,6 @@ or define it in YAML (see Card Example below):
 
 ---
 
-# ✈️ FlightRadar24 Support (v4.0.0)
-
-This card supports **FlightRadar24** entities and includes a dedicated **FlightRadar panel** to browse and manage flights.
-
-## What you get
-
-* **FlightRadar panel** with a richer UI and responsive layouts
-
-  * Horizontal panel (above/below)
-  * Sidebar panel (left/right)
-* **Airport Arrivals / Departures** support
-
-  * Status **chips** (Estimated / Landed / Scheduled / Delayed / On Route, etc.)
-  * Parses `status_text` such as `Delayed 16:25` into a **separate time column**
-* **Quick actions** available from the map **RIGHT CLICK** popup (when FR24 is detected)
-
-  * Add Flight
-  * Remove Flight
-  * Clear Flights
-
-![FlightRadar Panel](images/flight.gif)
-
-![FlightRadar Panel](images/addflight.png)
-
-![FlightRadar Panel](images/addflight2.png)
-
-![FlightRadar Panel](images/table1.png)
-
-![FlightRadar Panel](images/bottom.png)
-
-![FlightRadar Panel](images/right.png)
-
-![FlightRadar Panel](images/depart.png)
-
-![FlightRadar Panel](images/arrivals.png)
-
----
 
 # Live Traffic Info by Google Maps
 
@@ -212,6 +175,45 @@ Edit Zone, Delete Zone and Hide Zone: Right click inside a zone
 If you have any integration providing geo location source, they will be automatically listed on the bottom of entity list.
 
 ![image7](images/geosource.png)
+
+---
+
+
+# ✈️ FlightRadar24 Support (v4.0.0)
+
+This card supports **FlightRadar24** entities and includes a dedicated **FlightRadar panel** to browse and manage flights.
+
+## What you get
+
+* **FlightRadar panel** with a richer UI and responsive layouts
+
+  * Horizontal panel (above/below)
+  * Sidebar panel (left/right)
+* **Airport Arrivals / Departures** support
+
+  * Status **chips** (Estimated / Landed / Scheduled / Delayed / On Route, etc.)
+  * Parses `status_text` such as `Delayed 16:25` into a **separate time column**
+* **Quick actions** available from the map **RIGHT CLICK** popup (when FR24 is detected)
+
+  * Add Flight
+  * Remove Flight
+  * Clear Flights
+
+![FlightRadar Panel](images/flight.gif)
+
+![FlightRadar Panel](images/addflight.png)
+
+![FlightRadar Panel](images/addflight2.png)
+
+![FlightRadar Panel](images/table1.png)
+
+![FlightRadar Panel](images/bottom.png)
+
+![FlightRadar Panel](images/right.png)
+
+![FlightRadar Panel](images/depart.png)
+
+![FlightRadar Panel](images/arrivals.png)
 
 ---
 
