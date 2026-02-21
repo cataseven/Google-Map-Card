@@ -254,6 +254,7 @@ You can choose your best theme—40 now and more to come!
 | `proximity_clustering` | boolean | If `true`, entities within the defined radius will be grouped until zoom level is higher than 17                                     |
 | `proximity_radius`     | number  | Radius of proximity cluster default: 150                                                                                             |
 | `spiderfy`             | boolean | If `true`, after some zoom level, icons of entities with exact location will be separated by some distance in order to see all icons |
+| `history_preset`       | string  | Default date range preset to use on card load. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, this overrides any stored date from `history_start_date` / `history_end_date` and always calculates the range relative to the current date. Useful for dashboards where you always want to see "today's" history regardless of when the card was last configured. |
 
 > ⚠️ Naming note: Older docs may mention `marker_clustring` / `clustring`. The correct key is **`marker_clustering`**.
 
@@ -382,6 +383,8 @@ weather_layer: clouds_new
 
 proximity_clustering: true
 proximity_radius: 5
+
+history_preset: today  # Optional: today | yesterday | last7 | last15
 
 marker_clustering: false
 spiderfy: true
