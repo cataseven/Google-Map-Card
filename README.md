@@ -254,9 +254,13 @@ You can choose your best theme—40 now and more to come!
 | `proximity_clustering` | boolean | If `true`, entities within the defined radius will be grouped until zoom level is higher than 17                                     |
 | `proximity_radius`     | number  | Radius of proximity cluster default: 150                                                                                             |
 | `spiderfy`             | boolean | If `true`, after some zoom level, icons of entities with exact location will be separated by some distance in order to see all icons |
-| `history_preset`       | string  | Default date range preset to use on card load. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, this overrides any stored date from `history_start_date` / `history_end_date` and always calculates the range relative to the current date. Useful for dashboards where you always want to see "today's" history regardless of when the card was last configured. |
+| `history_preset`       | string  | Relative date range preset. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, the date range is **recalculated on every page load** relative to the current date — so it never goes stale. Overrides `history_start_date` / `history_end_date`. |
+| `history_start_date`   | string  | Fixed start of the date range (ISO 8601, e.g. `"2026-02-20T21:00:00.000Z"`). Used only when `history_preset` is `null`. |
+| `history_end_date`     | string  | Fixed end of the date range (ISO 8601). Used only when `history_preset` is `null`. |
 
 > ⚠️ Naming note: Older docs may mention `marker_clustring` / `clustring`. The correct key is **`marker_clustering`**.
+
+> 📅 **Migration note (v4.0.2):** `history_start_date` and `history_end_date` have moved from **per-entity** to **card-level**. The per-entity boolean `use_date_range: true` now opts an entity into the shared card-level date range. Old configs with per-entity dates will be auto-migrated on first edit.
 
 ### 👤 Entities
 
@@ -267,13 +271,12 @@ You can choose your best theme—40 now and more to come!
 | `icon_size`                     | integer | Size of the icon for this entity.                                                                                               |
 | `icon_color`                    | string  | Icon color (e.g., `#ffffff`).                                                                                                   |
 | `background_color`              | string  | Background color of the icon.                                                                                                   |
-| `hours_to_show`                 | integer | Number of hours of location history to show. Use `0` to disable history.                                                        |
+| `hours_to_show`                 | integer | Number of hours of location history to show. Use `0` to disable history. Ignored when `use_date_range: true`.                   |
 | `polyline_color`                | string  | Color of the polyline for route history.                                                                                        |
 | `polyline_width`                | integer | Width of the polyline for route history.                                                                                        |
 | `follow`                        | boolean | If `true`, map will center on this entity. When multiple entities have `follow: true`, the map will fit all of them.            |
 | `show_history_dots`             | boolean | If `false`, location history dots are not rendered. May increase speed of map rendering for long time period data.              |
-| `history_start_date`            | string  | Date range start date for history tracking. Overrides `hours_to_show`                                                           |
-| `history_end_date`              | string  | Date range end date for history tracking. Overrides `hours_to_show`                                                             |
+| `use_date_range`                | boolean | If `true`, this entity uses the **card-level** date range (`history_preset` or `history_start_date`/`history_end_date`) instead of `hours_to_show`. When enabled, `hours_to_show` is ignored for this entity. |
 | `gps_accuracy_ranges`           | obj     | `min`,`max`,`label`,`color`,`opacity` see example below                                                                         |
 | `show_gps_accuracy_radius_line` | boolean | **NEW (v4.0.0)** Draw a thin radius line + label showing GPS accuracy distance (zoom-aware)                                     |
 
@@ -298,7 +301,7 @@ You can choose your best theme—40 now and more to come!
 | `keyboardShortcuts`      | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
 | `show_traffic_button`    | boolean | Show or hide Traffic Layer Toggle Button.                                                       |
 | `show_weather_button`    | boolean | Show or hide Weather Layer dropdown menu.                                                       |
-| `show_datepicker_button` | boolean | Show or hide Calendar. (Date Range should be enabled for at least one entity)                   |
+| `show_datepicker_button` | boolean | Show or hide Calendar. (`use_date_range` should be enabled for at least one entity)                   |
 | `show_recenter_button`   | boolean | Show or hide Recenter Map Button.                                                               |
 | `buttons_opacity`        | float   | Opacity of all buttons on the map. Buttons will be solid when hover                             |
 
@@ -384,8 +387,6 @@ weather_layer: clouds_new
 proximity_clustering: true
 proximity_radius: 5
 
-history_preset: today  # Optional: today | yesterday | last7 | last15
-
 marker_clustering: false
 spiderfy: true
 gesture_handling: greedy
@@ -416,6 +417,31 @@ show_datepicker_button_position: TOP_CENTER
 show_traffic: false
 show_history_dots: true
 
+zones:
+  zone.work:
+    show: false
+    color: "#3498db"
+    follow: false
+    label_color: "#c4dbf9"
+  zone.work_2:
+    show: false
+    color: "#3498db"
+    follow: false
+    label_color: "#c4dbf9"
+  zone.home:
+    show: true
+    color: "#3498db"
+    follow: false
+    label_color: "#c4dbf9"
+
+# Date range (card-level) — applies to all entities with use_date_range: true
+# Option A: Use a preset (recalculated on every page load)
+history_preset: today  # today | yesterday | last7 | last15
+# Option B: Use a fixed date range
+# history_preset: null
+# history_start_date: "2026-02-20T21:00:00.000Z"
+# history_end_date: "2026-02-21T20:55:00.000Z"
+
 entities:
   - entity: device_tracker.flightradar24
     icon_size: 30
@@ -428,12 +454,11 @@ entities:
   - entity: person.cenk
     icon_size: 30
     hours_to_show: 0
+    use_date_range: true
     polyline_color: "#ffffff"
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
-    history_start_date: "2025-08-12T09:00:00.000Z"
-    history_end_date: "2025-08-13T09:00:00.000Z"
     show_gps_accuracy_radius_line: true
     gps_accuracy_ranges:
       - min: 0
@@ -465,29 +490,11 @@ entities:
   - entity: person.derya
     icon_size: 30
     hours_to_show: 0
+    use_date_range: true
     polyline_color: "#ffffff"
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
-    history_start_date: "2025-08-12T09:00:00.000Z"
-    history_end_date: "2025-08-13T09:00:00.000Z"
-
-zones:
-  zone.work:
-    show: false
-    color: "#3498db"
-    follow: false
-    label_color: "#c4dbf9"
-  zone.work_2:
-    show: false
-    color: "#3498db"
-    follow: false
-    label_color: "#c4dbf9"
-  zone.home:
-    show: true
-    color: "#3498db"
-    follow: false
-    label_color: "#c4dbf9"
 ```
 
 ## ⭐ Support
