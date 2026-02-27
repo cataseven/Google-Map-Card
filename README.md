@@ -89,7 +89,7 @@ If you want to stay on the safe side just set limit and quota alarm for your api
 
 ### ⚠️ Route Search and Travel Time Calculator — Quota Notice
 
-The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per route calculation. This lovelace card enforces a **built-in daily limit of 30 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
+The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per route calculation. Most of them have high free limits also many of them are unlimitied. But staying on the safe side is always a good thing to do. This lovelace card enforces a **built-in daily limit of 30 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
 
 | Action | Approximate API Calls |
 |--------|----------------------|
