@@ -21,14 +21,14 @@
 
 # Features
 
+* **Route Search and Travel Time Calculator** 🆕
+  * **NEW (v5.0.0): Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Live Traffic Info
 * Weather Layers (via OpenWeather API Key)
 * **FlightRadar24 integration support**
   * **NEW (v4.0.0): Dedicated FlightRadar panel + airport arrivals/departures table + Add/Remove Flight directly on the map via right click button**
-* **Route Search and Travel Time Calculator** 🆕
-  * **NEW (v5.0.0): Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
-* Show Zones
 * Create Zone, Edit Zone, Delete Zone directly from the card (right click / long press)
+* Show Zones
 * POI Filtering
 * Street View
 * Route tracking (polylines + history dots)
@@ -145,9 +145,41 @@ or define it in YAML (see Card Example below):
 
 ![image64](images/entity1.png) ![image64](images/flightedit.png)
 
+![image64](images/routemenu.png)
+
 ---
 
+# 🚗 Route Search and Travel Time Calculator (v5.0.0)
 
+![image64](images/route.png)
+
+Calculate real-time travel times between any combination of **entities**, **zones**, or **typed addresses** — directly from your dashboard. The panel supports driving, walking, transit, and cycling modes with **live traffic visualization** on the map.
+
+## What you get
+
+* **Docked travel panel** with flexible positioning (above / below / left / right of the map)
+* **Multi-modal routing** — Driving 🚗, Walking 🚶, Transit 🚌, Cycling 🚴
+* **Live traffic-colored routes** for driving mode:
+  * 🟢 Green — Normal flow
+  * 🟡 Yellow — Slow traffic
+  * 🔴 Red — Heavy traffic / Traffic jam
+* **Alternative routes** — switch between options and see traffic coloring for each
+* **Address autocomplete** — powered by Places API (New) with instant suggestions
+* **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels for one-tap calculation
+  * Supports `person`, `device_tracker`, and `zone` entities
+  * Collapsible editor with label-based headers
+* **Toggle button** on the map to show/hide the panel — position configurable in Map Button Positioning
+
+### Required APIs
+
+The Route Search and Travel Time Calculator requires these additional APIs to be enabled in [Google Cloud Console](https://console.cloud.google.com/apis/library):
+
+* **Directions API** — Route calculation
+* **Places API (New)** — Address autocomplete
+* **Routes API** — Traffic segment data
+* **Geocoding API** — Entity/zone position resolution
+
+> 💡 See the [Quota Notice](#⚠️-travel-time-calculator--quota-notice) section above for cost details and how to protect your billing.
 # Live Traffic Info by Google Maps
 
 Optional. Real time traffic layer
@@ -250,35 +282,6 @@ This card supports **FlightRadar24** entities and includes a dedicated **FlightR
 
 ---
 
-# 🚗 Route Search and Travel Time Calculator (v4.1.0)
-
-Calculate real-time travel times between any combination of **entities**, **zones**, or **typed addresses** — directly from your dashboard. The panel supports driving, walking, transit, and cycling modes with **live traffic visualization** on the map.
-
-## What you get
-
-* **Docked travel panel** with flexible positioning (above / below / left / right of the map)
-* **Multi-modal routing** — Driving 🚗, Walking 🚶, Transit 🚌, Cycling 🚴
-* **Live traffic-colored routes** for driving mode:
-  * 🟢 Green — Normal flow
-  * 🟡 Yellow — Slow traffic
-  * 🔴 Red — Heavy traffic / Traffic jam
-* **Alternative routes** — switch between options and see traffic coloring for each
-* **Address autocomplete** — powered by Places API (New) with instant suggestions
-* **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels for one-tap calculation
-  * Supports `person`, `device_tracker`, and `zone` entities
-  * Collapsible editor with label-based headers
-* **Toggle button** on the map to show/hide the panel — position configurable in Map Button Positioning
-
-### Required APIs
-
-The Route Search and Travel Time Calculator requires these additional APIs to be enabled in [Google Cloud Console](https://console.cloud.google.com/apis/library):
-
-* **Directions API** — Route calculation
-* **Places API (New)** — Address autocomplete
-* **Routes API** — Traffic segment data
-* **Geocoding API** — Entity/zone position resolution
-
-> 💡 See the [Quota Notice](#⚠️-travel-time-calculator--quota-notice) section above for cost details and how to protect your billing.
 
 ### Configuration
 
