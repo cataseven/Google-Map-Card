@@ -68,7 +68,7 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 | **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
 | **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
 
-![image4](images/apis1.png)
+![image4](images/apis2.png)
 
 ---
 
