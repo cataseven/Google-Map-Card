@@ -67,7 +67,6 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 | **Directions API** | Route calculation, alternatives, duration & distance | Route Search and Travel Time Calculator |
 | **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
 | **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
-| **Geocoding API** | Resolving entity/zone positions to routable addresses | Route Search and Travel Time Calculator |
 
 ![image4](images/apis1.png)
 
@@ -94,7 +93,6 @@ The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per
 | 1× Route calculation | 1× Directions API |
 | Traffic overlay | 1× Routes API |
 | Address autocomplete | ~3–5× Places API (per typing session) |
-| Entity geocoding | 1–2× Geocoding API |
 
 **So 30 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also most of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
 
