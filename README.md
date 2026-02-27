@@ -173,7 +173,6 @@ The Route Search and Travel Time Calculator requires these additional APIs to be
 * **Directions API** — Route calculation
 * **Places API (New)** — Address autocomplete
 * **Routes API** — Traffic segment data
-* **Geocoding API** — Entity/zone position resolution
 
 
 # Live Traffic Info by Google Maps
