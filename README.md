@@ -15,7 +15,7 @@
 
 
 
-#### Responsive Lovelace custom Google Maps card that displays the location of `person.`, `device_tracker.`, and `sensor.` entities and tracks their routes using the Google Maps JavaScript API including Live Traffic, Street View, POI Filtering, Map Types and FlightRadar24 Integration support
+#### Responsive Lovelace custom Google Maps card that displays the location of `person.`, `device_tracker.`, and `sensor.` entities and tracks their routes using the Google Maps JavaScript API including Live Traffic, Street View, POI Filtering, Map Types, FlightRadar24 Integration and **Route Search and Travel Time Calculator** support
 
 ---
 
@@ -25,6 +25,8 @@
 * Weather Layers (via OpenWeather API Key)
 * **FlightRadar24 integration support**
   * **NEW (v4.0.0): Dedicated FlightRadar panel + airport arrivals/departures table + Add/Remove Flight directly on the map via right click button**
+* **Route Search and Travel Time Calculator** 🆕
+  * **NEW (v5.0.0): Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Show Zones
 * Create Zone, Edit Zone, Delete Zone directly from the card (right click / long press)
 * POI Filtering
@@ -48,14 +50,26 @@
   * Accuracy styling via `gps_accuracy_ranges`
   * **NEW (v4.0.0): optional GPS accuracy radius line + label** per entity
 
-![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
+![image5](images/route.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
 ---
 
 # Attention
 
+### ⚠️⚠️ First thing first: You are solely responsible for your API settings, API Quotas, API Quota Alarms or any charges incurred on your Google Cloud account. ⚠️⚠️
+
 💡 Google Maps JavaScript API must be enabled in your Google Cloud project:
 [https://console.cloud.google.com/google/maps-apis/api-list](https://console.cloud.google.com/google/maps-apis/api-list)
+
+If you plan to use the **Route Search and Travel Time Calculator**, you also need to enable these additional APIs:
+
+| API | Purpose | Required for |
+|-----|---------|-------------|
+| **Maps JavaScript API** | Core map rendering | All features (required) |
+| **Directions API** | Route calculation, alternatives, duration & distance | Route Search and Travel Time Calculator |
+| **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
+| **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
+| **Geocoding API** | Resolving entity/zone positions to routable addresses | Route Search and Travel Time Calculator |
 
 ![image4](images/gm4.png)
 
@@ -72,6 +86,25 @@ However it is good to watch your monthly quota to stay on the safe side. Here is
 
 If you want to stay on the safe side just set limit and quota alarm for your api. Google can change its policy anytime so also follow policy changes. Also watch this review by @BeardedTinker before creating API. Search web to understand how to limit your API to stay within free-to-use limits
 [https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek](https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek)
+
+### ⚠️ Route Search and Travel Time Calculator — Quota Notice
+
+The Route Search and Travel Time Calculator uses **multiple paid APIs** per route calculation. This lovelace card enforces a **built-in daily limit of 30 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
+
+| Action | Approximate API Calls |
+|--------|----------------------|
+| 1× Route calculation | 1× Directions API |
+| Traffic overlay | 1× Routes API |
+| Address autocomplete | ~3–5× Places API (per typing session) |
+| Entity geocoding | 1–2× Geocoding API |
+
+**So 30 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also some of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
+
+1. Go to **APIs & Services → Quotas** and set daily request limits per API
+2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $5/month)
+3. Consider restricting your API key to only the APIs you use
+
+> ⚠️ **The card's 30/day limit is a soft safety net — it is NOT a substitute for proper Cloud Console quota configuration.**
 
 Create API key and click the “Show key” button in the console:
 
@@ -217,6 +250,56 @@ This card supports **FlightRadar24** entities and includes a dedicated **FlightR
 
 ---
 
+# 🚗 Route Search and Travel Time Calculator (v4.1.0)
+
+Calculate real-time travel times between any combination of **entities**, **zones**, or **typed addresses** — directly from your dashboard. The panel supports driving, walking, transit, and cycling modes with **live traffic visualization** on the map.
+
+## What you get
+
+* **Docked travel panel** with flexible positioning (above / below / left / right of the map)
+* **Multi-modal routing** — Driving 🚗, Walking 🚶, Transit 🚌, Cycling 🚴
+* **Live traffic-colored routes** for driving mode:
+  * 🟢 Green — Normal flow
+  * 🟡 Yellow — Slow traffic
+  * 🔴 Red — Heavy traffic / Traffic jam
+* **Alternative routes** — switch between options and see traffic coloring for each
+* **Address autocomplete** — powered by Places API (New) with instant suggestions
+* **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels for one-tap calculation
+  * Supports `person`, `device_tracker`, and `zone` entities
+  * Collapsible editor with label-based headers
+* **Toggle button** on the map to show/hide the panel — position configurable in Map Button Positioning
+
+### Required APIs
+
+The Route Search and Travel Time Calculator requires these additional APIs to be enabled in [Google Cloud Console](https://console.cloud.google.com/apis/library):
+
+* **Directions API** — Route calculation
+* **Places API (New)** — Address autocomplete
+* **Routes API** — Traffic segment data
+* **Geocoding API** — Entity/zone position resolution
+
+> 💡 See the [Quota Notice](#⚠️-travel-time-calculator--quota-notice) section above for cost details and how to protect your billing.
+
+### Configuration
+
+```yaml
+travel_panel_enabled: true
+travel_panel_position: below        # above | below | left | right
+travel_panel_size: 310              # Height (px) for above/below, Width for left/right
+travel_panel_toggle_button_position: LEFT_BOTTOM
+travel_shortcuts:
+  - label: "Go to Work"
+    icon: "mdi:office-building"
+    from_entity: "person.cenk"
+    to_entity: "zone.office"
+  - label: "Go Home"
+    icon: "mdi:home"
+    from_entity: "person.cenk"
+    to_entity: "zone.home"
+```
+
+---
+
 # Enabling Clustering (History Dots)
 
 If you enable clustering, route history markers will be grouped depending on zoom level.
@@ -328,6 +411,7 @@ You can choose your best theme—40 now and more to come!
 | `show_weather_button_position`    | string | Position of the weather layer dropdown menu         |
 | `show_recenter_button_position`   | string | Position of the recenter map button                 |
 | `show_datepicker_button_position` | string | Position of the calendar                            |
+| `travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
 
 ### 🎯 Zones
 
@@ -345,6 +429,20 @@ You can choose your best theme—40 now and more to come!
 | Key               | Type   | Description                                                                                                          |
 | ----------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | `hide_poi_types:` | object | `business`, `attraction`, `government`, `medical`, `park`, `place_of_worship`, `school`, `sports_complex`, `transit` |
+
+### 🚗 Route Search and Travel Time Calculator
+
+| Key                                    | Type    | Description                                                                                           |
+| -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `travel_panel_enabled`                 | boolean | Enable or disable the Route Search and Travel Time Calculator panel.                                                   |
+| `travel_panel_position`                | string  | Panel position relative to the map: `above`, `below`, `left`, `right`. Default: `below`.              |
+| `travel_panel_size`                    | integer | Panel size in pixels. Height for above/below, Width for left/right. Default: `310`.                   |
+| `travel_panel_toggle_button_position`  | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                     |
+| `travel_shortcuts`                     | list    | List of predefined route shortcuts for quick calculation.                                             |
+| `travel_shortcuts[].label`             | string  | Display label for the shortcut (e.g., `"Go to Work"`).                                                |
+| `travel_shortcuts[].icon`              | string  | MDI icon for the shortcut button (e.g., `"mdi:office-building"`).                                     |
+| `travel_shortcuts[].from_entity`       | string  | Source entity ID (`person.*`, `device_tracker.*`, or `zone.*`).                                       |
+| `travel_shortcuts[].to_entity`         | string  | Destination entity ID (`person.*`, `device_tracker.*`, or `zone.*`).                                  |
 
 **The following control positions are supported:**
 
@@ -416,6 +514,20 @@ show_datepicker_button: true
 show_datepicker_button_position: TOP_CENTER
 show_traffic: false
 show_history_dots: true
+
+travel_panel_enabled: true
+travel_panel_position: below
+travel_panel_size: 310
+travel_panel_toggle_button_position: LEFT_BOTTOM
+travel_shortcuts:
+  - label: "Go to Work"
+    icon: "mdi:office-building"
+    from_entity: "person.cenk"
+    to_entity: "zone.work"
+  - label: "Go Home"
+    icon: "mdi:home"
+    from_entity: "person.cenk"
+    to_entity: "zone.home"
 
 zones:
   zone.work:
