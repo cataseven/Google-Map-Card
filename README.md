@@ -94,7 +94,7 @@ The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per
 | Traffic overlay | 1× Routes API |
 | Address autocomplete | ~3–5× Places API (per typing session) |
 
-**So 30 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also most of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
+**So 30 calculations could mean 90+ total API calls per day.** Google provides a 5000 / 10000 (also most of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
 
 1. Go to **APIs & Services → Quotas** and set daily request limits per API
 2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $5/month)
