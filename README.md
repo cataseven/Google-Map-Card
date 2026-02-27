@@ -56,8 +56,6 @@
 
 # Attention
 
-### ⚠️⚠️ First thing first: You are solely responsible for your API settings, API Quotas, API Quota Alarms or any charges incurred on your Google Cloud account. ⚠️⚠️
-
 💡 Google Maps JavaScript API must be enabled in your Google Cloud project:
 [https://console.cloud.google.com/google/maps-apis/api-list](https://console.cloud.google.com/google/maps-apis/api-list)
 
@@ -77,7 +75,7 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 
 # Attention
 
-💡 Most Google APIs have quotas and exceeding limits may incur charges. However Google Maps JavaScript API itself has no daily limit and it is free and unlimited as of August, 2025 until any policy change
+💡 Most Google APIs have quotas and exceeding limits may incur charges. However Google Maps JavaScript API itself has no daily limit and it is free and unlimited as of August, 2025 until any policy change. However You are solely responsible for your API settings, API Quotas, API Quota Alarms or any charges incurred on your Google Cloud account.
 
 ![image5](images/kota.png)
 
