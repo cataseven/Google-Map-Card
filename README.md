@@ -71,7 +71,7 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 | **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
 | **Geocoding API** | Resolving entity/zone positions to routable addresses | Route Search and Travel Time Calculator |
 
-![image4](images/gm4.png)
+![image4](images/apis.png)
 
 ---
 
