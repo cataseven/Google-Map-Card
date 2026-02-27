@@ -179,7 +179,7 @@ The Route Search and Travel Time Calculator requires these additional APIs to be
 * **Routes API** — Traffic segment data
 * **Geocoding API** — Entity/zone position resolution
 
-> 💡 See the [Quota Notice](#⚠️-travel-time-calculator--quota-notice) section above for cost details and how to protect your billing.
+
 # Live Traffic Info by Google Maps
 
 Optional. Real time traffic layer
