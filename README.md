@@ -50,7 +50,7 @@
   * Accuracy styling via `gps_accuracy_ranges`
   * **NEW (v4.0.0): optional GPS accuracy radius line + label** per entity
 
-![image5](images/route.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
+![image5](images/Route.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
 ---
 
