@@ -89,7 +89,7 @@ If you want to stay on the safe side just set limit and quota alarm for your api
 
 ### ⚠️ Route Search and Travel Time Calculator — Quota Notice
 
-The Route Search and Travel Time Calculator uses **multiple paid APIs** per route calculation. This lovelace card enforces a **built-in daily limit of 30 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
+The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per route calculation. This lovelace card enforces a **built-in daily limit of 30 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
 
 | Action | Approximate API Calls |
 |--------|----------------------|
@@ -98,7 +98,7 @@ The Route Search and Travel Time Calculator uses **multiple paid APIs** per rout
 | Address autocomplete | ~3–5× Places API (per typing session) |
 | Entity geocoding | 1–2× Geocoding API |
 
-**So 30 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also some of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
+**So 30 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also most of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
 
 1. Go to **APIs & Services → Quotas** and set daily request limits per API
 2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $5/month)
