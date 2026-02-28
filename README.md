@@ -22,7 +22,9 @@
 # Features
 
 * **Route Search and Travel Time Calculator** 🆕
-  * **NEW (v5.0.0): Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
+  * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
+  * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, shortcut highlights, fullscreen panel support, and theme color fixes across all browsers**
+  * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Live Traffic Info
 * Weather Layers (via OpenWeather API Key)
 * **FlightRadar24 integration support**
@@ -145,7 +147,7 @@ or define it in YAML (see Card Example below):
 
 ---
 
-# 🚗 Route Search and Travel Time Calculator (v5.0.0)
+# 🚗 Route Search and Travel Time Calculator (v5.0.2)
 
 ![image64](images/route.png)
 
@@ -153,18 +155,21 @@ Calculate real-time travel times between any combination of **entities**, **zone
 
 ## What you get
 
-* **Docked travel panel** with flexible positioning (above / below / left / right of the map)
+* **Docked travel panel** with flexible positioning (above / below the map)
+* **Map-based route info bar** — after calculating, a compact bar appears at the top of the map showing travel time, distance, and route name. No list, no clutter.
 * **Multi-modal routing** — Driving 🚗, Walking 🚶, Transit 🚌, Cycling 🚴
 * **Live traffic-colored routes** for driving mode:
   * 🟢 Green — Normal flow
   * 🟡 Yellow — Slow traffic
   * 🔴 Red — Heavy traffic / Traffic jam
-* **Alternative routes** — switch between options and see traffic coloring for each
+* **Alternative routes** — click any route line on the map or use Prev / Next in the info bar to switch between options
 * **Address autocomplete** — powered by Places API (New) with instant suggestions
 * **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels for one-tap calculation
+  * Selected shortcut is highlighted so you always know which one is active
   * Supports `person`, `device_tracker`, and `zone` entities
   * Collapsible editor with label-based headers
 * **Toggle button** on the map to show/hide the panel — position configurable in Map Button Positioning
+* **Fullscreen support** — the panel and route info bar stay visible in fullscreen mode, anchored to the bottom of the screen
 
 ### Required APIs
 
@@ -433,8 +438,7 @@ You can choose your best theme—40 now and more to come!
 | Key                                    | Type    | Description                                                                                           |
 | -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
 | `travel_panel_enabled`                 | boolean | Enable or disable the Route Search and Travel Time Calculator panel.                                                   |
-| `travel_panel_position`                | string  | Panel position relative to the map: `above`, `below`, `left`, `right`. Default: `below`.              |
-| `travel_panel_size`                    | integer | Panel size in pixels. Height for above/below, Width for left/right. Default: `310`.                   |
+| `travel_panel_position`                | string  | Panel position relative to the map: `above` or `below`. Default: `below`.                             |
 | `travel_panel_toggle_button_position`  | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                     |
 | `travel_shortcuts`                     | list    | List of predefined route shortcuts for quick calculation.                                             |
 | `travel_shortcuts[].label`             | string  | Display label for the shortcut (e.g., `"Go to Work"`).                                                |
@@ -515,7 +519,6 @@ show_history_dots: true
 
 travel_panel_enabled: true
 travel_panel_position: below
-travel_panel_size: 310
 travel_panel_toggle_button_position: LEFT_BOTTOM
 travel_shortcuts:
   - label: "Go to Work"
