@@ -147,7 +147,7 @@ or define it in YAML (see Card Example below):
 
 ---
 
-# 🚗 Route Search and Travel Time Calculator (v5.0.2)
+# 🚗 Route Search and Travel Time Calculator (v5.0.3)
 
 ![image64](images/route.png)
 
@@ -168,7 +168,7 @@ Calculate real-time travel times between any combination of **entities**, **zone
   * Selected shortcut is highlighted so you always know which one is active
   * Supports `person`, `device_tracker`, and `zone` entities
   * Collapsible editor with label-based headers
-* **Toggle button** on the map to show/hide the panel — position configurable in Map Button Positioning
+* **Toggle button** on the map to show/hide the panel — optional, position configurable in Map Button Positioning. Panel opens automatically on first load.
 * **Fullscreen support** — the panel and route info bar stay visible in fullscreen mode, anchored to the bottom of the screen
 
 ### Required APIs
@@ -437,9 +437,10 @@ You can choose your best theme—40 now and more to come!
 
 | Key                                    | Type    | Description                                                                                           |
 | -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `travel_panel_enabled`                 | boolean | Enable or disable the Route Search and Travel Time Calculator panel.                                                   |
-| `travel_panel_position`                | string  | Panel position relative to the map: `above` or `below`. Default: `below`.                             |
-| `travel_panel_toggle_button_position`  | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                     |
+| `travel_panel_enabled`                 | boolean | Enable or disable the Route Search and Travel Time Calculator panel. Default: `true`.                 |
+| `travel_panel_position`                | string  | Panel position relative to the map: `above` or `below`. Default: `above`.                            |
+| `travel_panel_toggle_button_show`      | boolean | Show or hide the toggle button on the map. Default: `true`.                                           |
+| `travel_panel_toggle_button_position`  | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                    |
 | `travel_shortcuts`                     | list    | List of predefined route shortcuts for quick calculation.                                             |
 | `travel_shortcuts[].label`             | string  | Display label for the shortcut (e.g., `"Go to Work"`).                                                |
 | `travel_shortcuts[].icon`              | string  | MDI icon for the shortcut button (e.g., `"mdi:office-building"`).                                     |
