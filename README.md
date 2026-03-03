@@ -140,7 +140,7 @@ or define it in YAML (see Card Example below):
 
 # 🚗 Route Search and Travel Time Calculator (v5.0.3)
 
-![image64](images/route.png)
+![image64](images/rou.png)
 
 Calculate real-time travel times between any combination of **entities**, **zones**, or **typed addresses** — directly from your dashboard. The panel supports driving, walking, transit, and cycling modes with **live traffic visualization** on the map.
 
