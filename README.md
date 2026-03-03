@@ -52,65 +52,56 @@
   * Accuracy styling via `gps_accuracy_ranges`
   * **NEW (v4.0.0): optional GPS accuracy radius line + label** per entity
 
-![image5](images/Route.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
+![image5](images/routenew.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
 ---
 
-# Attention
+# ⚠️ Attention: API Pricing & Quotas
 
-💡 Google Maps JavaScript API must be enabled in your Google Cloud project:
-[https://console.cloud.google.com/google/maps-apis/api-list](https://console.cloud.google.com/google/maps-apis/api-list)
+💡 **Google Maps Platform uses a "Pay-as-you-go" pricing model.** While they offer generous monthly free tiers, **exceeding these limits will incur charges** on your Google Cloud account. 
 
-If you plan to use the **Route Search and Travel Time Calculator**, you also need to enable these additional APIs:
+To use all features of this card (including the Route Calculator), you need to enable specific APIs in your Google Cloud project ([API List](https://console.cloud.google.com/google/maps-apis/api-list)). Here is a simplified breakdown of the free monthly quotas (as of March 2025) for the APIs used by this card:
 
-| API | Purpose | Required for |
-|-----|---------|-------------|
-| **Maps JavaScript API** | Core map rendering | All features (required) |
-| **Directions API** | Route calculation, alternatives, duration & distance | Route Search and Travel Time Calculator |
-| **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
-| **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
+| Feature | Required API | Free Monthly Limit | Overage Cost |
+| :--- | :--- | :--- | :--- |
+| **Core Map Rendering** | Maps JavaScript API (Dynamic Maps) | **10,000** map loads | ~$7.00 per 1,000 loads |
+| **Route Calculation** | Directions API | **10,000** requests | ~$5.00 per 1,000 requests |
+| **Address Autocomplete** | Places API (New) | **10,000** requests | ~$10.00 per 1,000 requests |
+| **Live Traffic Routes** | Routes API | **5,000 - 10,000** requests | Varies by feature |
 
-![image4](images/apis2.png)
+*(Note: Only the Maps Embed API and native Mobile SDKs are strictly free and unlimited. This Lovelace card uses the Maps JavaScript API, which is billable after your 10,000 free loads).*
 
----
+### ❓ Why does my Quotas page say "Unlimited"?
+If you check your Google Cloud Quotas page, you might see **"Unlimited"** next to *Map loads per day*. **This does NOT mean it is free.** The "Unlimited" label refers to the **technical rate limit** (meaning Google won't block your map from loading if you get massive traffic), but they **will still bill you** once you exceed the 10,000 monthly free tier. 
+To protect yourself from unexpected charges, you must manually lower this "Unlimited" value to a safe daily limit (e.g., 300) by clicking the edit/pencil icon next to it.
 
-# Attention
-
-💡 Most Google APIs have quotas and exceeding limits may incur charges. However Google Maps JavaScript API itself has no daily limit and it is free and unlimited as of August, 2025 until any policy change. However You are solely responsible for your API settings, API Quotas, API Quota Alarms or any charges incurred on your Google Cloud account.
+You are solely responsible for your API settings, quotas, and any charges incurred. It is **highly recommended** to:
+1. Go to **APIs & Services → Quotas** and manually lower the "Unlimited" daily request limits per API.
+2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $2/month).
+3. Restrict your API key to only the APIs you actually use.
 
 ![image5](images/kota.png)
 
-However it is good to watch your monthly quota to stay on the safe side. Here is the link for quota stats:
-[https://console.cloud.google.com/google/maps-apis/quotas](https://console.cloud.google.com/google/maps-apis/quotas)?
+Keep an eye on your usage here: [Google Maps API Quotas](https://console.cloud.google.com/google/maps-apis/quotas)
 
-If you want to stay on the safe side just set limit and quota alarm for your api. Google can change its policy anytime so also follow policy changes. Also watch this review by @BeardedTinker before creating API. Search web to understand how to limit your API to stay within free-to-use limits
+Watch this review by @BeardedTinker before creating an API to understand how to limit your API and stay within free-to-use limits:
 [https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek](https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek)
 
-### ⚠️ Route Search and Travel Time Calculator — Quota Notice
+### 🚗 Route Search and Travel Time Calculator — Safety Net
 
-The Route Search and Travel Time Calculator uses **multiple pay as go APIs** per route calculation. Most of them have high free limits also many of them are unlimitied. But staying on the safe side is always a good thing to do. This lovelace card enforces a **built-in daily limit of 50 route calculations per API key** (shared across all card instances using the same key on the same browser). However, each calculation triggers multiple API calls:
+Each time you calculate a route, the card makes **multiple API calls** (Directions for the route, Routes for traffic, Places for typing autocomplete). So just 50 calculations could easily mean 150+ total API calls.
 
-| Action | Approximate API Calls |
-|--------|----------------------|
-| 1× Route calculation | 1× Directions API |
-| Traffic overlay | 1× Routes API |
-| Address autocomplete | ~3–5× Places API (per typing session) |
+To help prevent accidental quota drain, this card enforces a **built-in soft limit of 50 route calculations per day per API key** (shared across all browser instances). 
 
-**So 50 calculations could mean 150+ total API calls per day.** Google provides a 5000 / 10000 (also most of them are unlimited) api calls per month for free which covers significant usage, but you should still configure quotas in Cloud Console:
+> ⚠️ **This 50/day limit is just a basic frontend safety net — it is NOT a substitute for configuring proper hard quotas in your Google Cloud Console.**
 
-1. Go to **APIs & Services → Quotas** and set daily request limits per API
-2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $5/month)
-3. Consider restricting your API key to only the APIs you use
-
-> ⚠️ **The card's 50/day limit is a soft safety net — it is NOT a substitute for proper Cloud Console quota configuration.**
-
-Create API key and click the “Show key” button in the console:
+Create your API key and click the “Show key” button in the console:
 
 ![image5](images/gm5.png)
 
 ---
 
-<br>
+<br>>
 
 # Installation
 
