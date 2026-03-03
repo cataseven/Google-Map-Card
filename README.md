@@ -23,7 +23,6 @@
 
 * **Route Search and Travel Time Calculator** 🆕
   * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
-  * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, shortcut highlights, fullscreen panel support, and theme color fixes across all browsers**
   * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Live Traffic Info
 * Weather Layers (via OpenWeather API Key)
