@@ -54,6 +54,22 @@
 
 ![image5](images/Routenew.gif) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
+# Attention
+
+💡 Google Maps JavaScript API must be enabled in your Google Cloud project:
+[https://console.cloud.google.com/google/maps-apis/api-list](https://console.cloud.google.com/google/maps-apis/api-list)
+
+If you plan to use the **Route Search and Travel Time Calculator**, you also need to enable these additional APIs:
+
+| API | Purpose | Required for |
+|-----|---------|-------------|
+| **Maps JavaScript API** | Core map rendering | All features (required) |
+| **Directions API** | Route calculation, alternatives, duration & distance | Route Search and Travel Time Calculator |
+| **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
+| **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
+
+![image4](images/apis2.png)
+
 ---
 
 # ⚠️ Attention: API Pricing & Quotas
