@@ -73,7 +73,7 @@ To use all features of this card (including the Route Calculator), you need to e
 
 ### ❓ Why does my Quotas page say "Unlimited"?
 If you check your Google Cloud Quotas page, you might see **"Unlimited"** next to *Map loads per day*. **This does NOT mean it is free.** The "Unlimited" label refers to the **technical rate limit** (meaning Google won't block your map from loading if you get massive traffic), but they **will still bill you** once you exceed the 10,000 monthly free tier. 
-To protect yourself from unexpected charges, you must manually lower this "Unlimited" value to a safe daily limit (e.g., 300) by clicking the edit/pencil icon next to it.
+To protect yourself from unexpected charges, you must manually lower this "Unlimited" value to a safe daily limit (e.g., 200) by clicking the edit/pencil icon next to it.
 
 You are solely responsible for your API settings, quotas, and any charges incurred. It is **highly recommended** to:
 1. Go to **APIs & Services → Quotas** and manually lower the "Unlimited" daily request limits per API.
