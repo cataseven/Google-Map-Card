@@ -22,6 +22,7 @@
 # Features
 
 * **Route Search and Travel Time Calculator** 🆕
+  * **NEW (v5.0.4): Option to hide Google & Apple Maps links in info popups (`hide_map_links`)**
   * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
   * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Live Traffic Info
@@ -153,7 +154,7 @@ or define it in YAML (see Card Example below):
 
 ---
 
-# 🚗 Route Search and Travel Time Calculator (v5.0.3)
+# 🚗 Route Search and Travel Time Calculator (v5.0.4)
 
 ![image64](images/rou.png)
 
@@ -215,6 +216,8 @@ For entity location: Click on entity picture and select your app on the opened p
 For any point on the map (Windows): Right click and select your app on the opened popup
 
 For any point on the map (Mobile Phone): Hold your finger on any point for 2 seconds and select your app on the opened popup
+
+> 💡 You can hide these links entirely by setting `hide_map_links: true` in your card config.
 
 <br>
 
@@ -293,9 +296,9 @@ This card supports **FlightRadar24** entities and includes a dedicated **FlightR
 
 ```yaml
 travel_panel_enabled: true
-travel_panel_position: below        # above | below | left | right
-travel_panel_size: 310              # Height (px) for above/below, Width for left/right
-travel_panel_toggle_button_position: LEFT_BOTTOM
+travel_panel_position: below        # above | below
+show_travel_panel_toggle_button: true
+show_travel_panel_toggle_button_position: LEFT_BOTTOM
 travel_shortcuts:
   - label: "Go to Work"
     icon: "mdi:office-building"
@@ -346,7 +349,9 @@ You can choose your best theme—40 now and more to come!
 | `proximity_clustering` | boolean | If `true`, entities within the defined radius will be grouped until zoom level is higher than 17                                     |
 | `proximity_radius`     | number  | Radius of proximity cluster default: 150                                                                                             |
 | `spiderfy`             | boolean | If `true`, after some zoom level, icons of entities with exact location will be separated by some distance in order to see all icons |
-| `history_preset`       | string  | Relative date range preset. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, the date range is **recalculated on every page load** relative to the current date — so it never goes stale. Overrides `history_start_date` / `history_end_date`. |
+| `allow_open_google_maps`   | boolean | Allow opening Google Maps from info popups via right-click / long-press. Default: `true`.             |
+| `hide_map_links`           | boolean | Hide Google Maps & Apple Maps links from all info popups. Default: `false`. **NEW (v5.0.4)**          |
+| `history_preset`           | string  | Relative date range preset. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, the date range is **recalculated on every page load** relative to the current date — so it never goes stale. Overrides `history_start_date` / `history_end_date`. |
 | `history_start_date`   | string  | Fixed start of the date range (ISO 8601, e.g. `"2026-02-20T21:00:00.000Z"`). Used only when `history_preset` is `null`. |
 | `history_end_date`     | string  | Fixed end of the date range (ISO 8601). Used only when `history_preset` is `null`. |
 
@@ -420,7 +425,7 @@ You can choose your best theme—40 now and more to come!
 | `show_weather_button_position`    | string | Position of the weather layer dropdown menu         |
 | `show_recenter_button_position`   | string | Position of the recenter map button                 |
 | `show_datepicker_button_position` | string | Position of the calendar                            |
-| `travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
+| `show_travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
 
 ### 🎯 Zones
 
@@ -443,10 +448,10 @@ You can choose your best theme—40 now and more to come!
 
 | Key                                    | Type    | Description                                                                                           |
 | -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `travel_panel_enabled`                 | boolean | Enable or disable the Route Search and Travel Time Calculator panel. Default: `true`.                 |
-| `travel_panel_position`                | string  | Panel position relative to the map: `above` or `below`. Default: `above`.                            |
-| `travel_panel_toggle_button_show`      | boolean | Show or hide the toggle button on the map. Default: `true`.                                           |
-| `travel_panel_toggle_button_position`  | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                    |
+| `travel_panel_enabled`                     | boolean | Enable or disable the Route Search and Travel Time Calculator panel. Default: `true`.                 |
+| `travel_panel_position`                    | string  | Panel position relative to the map: `above` or `below`. Default: `above`.                            |
+| `show_travel_panel_toggle_button`          | boolean | Show or hide the toggle button on the map. Default: `true`.                                           |
+| `show_travel_panel_toggle_button_position` | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                    |
 | `travel_shortcuts`                     | list    | List of predefined route shortcuts for quick calculation.                                             |
 | `travel_shortcuts[].label`             | string  | Display label for the shortcut (e.g., `"Go to Work"`).                                                |
 | `travel_shortcuts[].icon`              | string  | MDI icon for the shortcut button (e.g., `"mdi:office-building"`).                                     |
@@ -526,7 +531,8 @@ show_history_dots: true
 
 travel_panel_enabled: true
 travel_panel_position: below
-travel_panel_toggle_button_position: LEFT_BOTTOM
+show_travel_panel_toggle_button: true
+show_travel_panel_toggle_button_position: LEFT_BOTTOM
 travel_shortcuts:
   - label: "Go to Work"
     icon: "mdi:office-building"
