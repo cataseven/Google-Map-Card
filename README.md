@@ -418,7 +418,7 @@ You can choose your best theme—40 now and more to come!
 
 | Key                      | Type    | Description                                                                                     |
 | ------------------------ | ------- | ----------------------------------------------------------------------------------------------- |
-| `cameraControl`          | boolean | Show or hide pan control.                                                                       |
+| `cameraControl`          | boolean | In **raster mode**: shows/hides the native pan control. In **vector mode**: shows/hides a custom **rotate & tilt grid** (↑↓ tilt, ←→ rotate, ⟳ reset) — the native pan buttons are replaced entirely. |
 | `zoomControl`            | boolean | Show or hide zoom control.                                                                      |
 | `streetViewControl`      | boolean | Show or hide Street View control.                                                               |
 | `fullscreenControl`      | boolean | Show or hide fullscreen control.                                                                |
@@ -495,6 +495,17 @@ By setting `rendering_type: vector`, the card switches to Google Maps' WebGL-bas
 **What changes in vector mode:**
 
 - `rotateControl: true` enables full drag-to-rotate and pinch-to-tilt gestures
+- `cameraControl: true` shows a **custom rotate & tilt grid** instead of the native pan buttons:
+
+```
+        [ ↑ Decrease Tilt ]
+[ ← Rotate ]  [ ⟳ Reset ]  [ → Rotate ]
+        [ ↓ Increase Tilt ]
+```
+
+  Rotate step: **15°** — Tilt step: **10°** (range: 0°–67.5°) — ⟳ resets both to 0
+
+- **Right-click + drag** tilts the map: drag down → more perspective, drag up → flatter. Release without dragging → right-click popup opens normally
 - `theme_mode` is **not supported** — use `color_scheme` instead (`light`, `dark`, `follow_system`)
 - The 40+ built-in JSON themes are unavailable (Google API limitation — the `styles` array only works on raster maps)
 - Requires a WebGL-capable browser (all modern browsers supported by Home Assistant qualify)
@@ -506,8 +517,9 @@ type: custom:google-map-card
 api_key: YOUR_API_KEY
 rendering_type: vector
 color_scheme: dark          # light | dark | follow_system
-rotateControl: true
-rotateControl_position: LEFT_BOTTOM
+cameraControl: true         # shows rotate/tilt grid in vector mode
+cameraControl_position: RIGHT_BOTTOM
+rotateControl: true         # enables drag-to-rotate & pinch-to-tilt gestures
 map_type: roadmap
 zoom: 15
 ```
@@ -517,6 +529,8 @@ zoom: 15
 | | Raster (default) | Vector |
 |---|---|---|
 | Free 360° rotation | ❌ | ✅ |
+| Rotate/tilt grid control | ❌ | ✅ (via `cameraControl`) |
+| Right-click drag to tilt | ❌ | ✅ |
 | 40+ built-in themes | ✅ | ❌ |
 | Dark / Light mode | Via themes | `color_scheme` |
 | POI filtering | ✅ | ✅ |
