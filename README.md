@@ -139,6 +139,36 @@ or define it in YAML (see Card Example below):
 
 <br>
 
+## 📐 Dashboard Layout Tips
+
+### Standard Dashboard (Masonry / Panel)
+
+Use `aspect_ratio` to control the card height:
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+aspect_ratio: "16:9"   # or 4:3, 1:1, 400px, etc.
+```
+
+### Sections Dashboard
+
+If you are using Home Assistant’s **Sections** dashboard layout, the recommended approach is to **omit `aspect_ratio`** and instead let the card fill the full width of its section using `grid_options`:
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+grid_options:
+  columns: full
+  rows: auto
+```
+
+With `rows: auto` the card height is determined by `aspect_ratio`
+
+> 💡 **Tip:** Leaving `aspect_ratio` empty without setting `grid_options: columns: full` may cause the card to render with zero height on some Sections layouts. Always use one approach or the other.
+
+<br>
+
 # UI Card Editor
 
 ![image61](images/allmenu.png) ![image66](images/mapbuttons2.png) 
@@ -341,7 +371,7 @@ You can choose your best theme—40 now and more to come!
 | `api_key`              | string  | Your Google Maps JavaScript API key (**required**).                                                                                  |
 | `zoom`                 | integer | Initial zoom level (1–20).                                                                                                           |
 | `theme_mode`           | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.).                                                                    |
-| `aspect_ratio`         | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.).                                                                     |
+| `aspect_ratio`         | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.). If omitted, the card expands to fill its container — recommended for **Sections dashboard** users who set `grid_options: columns: full`. See [Dashboard Layout Tips](#-dashboard-layout-tips) below. |
 | `map_type`             | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`.                                                        |
 | `gesture_handling`     | string  | `cooperative` for CTRL+SCROLL, `greedy` for just SCROLL, `auto`                                                                      |
 | `marker_clustering`    | boolean | If `true`, **history dots** will be grouped depending on zoom level. Increases performance for slow systems.                         |
@@ -391,7 +421,7 @@ You can choose your best theme—40 now and more to come!
 | `streetViewControl`      | boolean | Show or hide Street View control.                                                               |
 | `fullscreenControl`      | boolean | Show or hide fullscreen control.                                                                |
 | `mapTypeControl`         | boolean | Show or hide map type selector.                                                                 |
-| `rotateControl`          | boolean | Show or hide rotate/tilt control. Only works in some cities or zoom levels (Google limitation). |
+| `rotateControl`          | boolean | Show or hide rotate/tilt control. **Limited support** — only functional in `satellite` or `hybrid` map types, at high zoom levels (15+), and only in cities where Google provides 45° aerial imagery (e.g. New York, London, Tokyo). Has no effect on standard road maps. See [Rotate & Tilt Limitations](#%EF%B8%8F-rotate--tilt-limitations) below. |
 | `showScale`              | boolean | Show or hide the scale bar.                                                                     |
 | `show_poi_button`        | boolean | Show or hide the poi selector.                                                                  |
 | `keyboardShortcuts`      | boolean | Enable or disable keyboard shortcuts for navigation.                                            |
@@ -425,6 +455,36 @@ You can choose your best theme—40 now and more to come!
 | `show_recenter_button_position`   | string | Position of the recenter map button                 |
 | `show_datepicker_button_position` | string | Position of the calendar                            |
 | `show_travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
+
+### ⚠️ Rotate & Tilt Limitations
+
+The `rotateControl` button allows rotating and tilting the map to a 45° perspective view, but it comes with significant Google API constraints that are important to understand.
+
+**When it works:**
+- Map type must be set to `satellite` or `hybrid`
+- Zoom level must be **15 or higher**
+- You must be in a city where Google has captured **45° aerial imagery**
+
+**Cities with known 45° imagery support** (non-exhaustive):
+New York, Los Angeles, San Francisco, Chicago, Miami, London, Paris, Berlin, Tokyo, Sydney, Toronto, Amsterdam, Barcelona, Rome, Dubai
+
+**When it does NOT work:**
+- `map_type: roadmap` or `map_type: terrain` — the button will appear but have no effect
+- Rural areas, small towns, or regions without 45° Google imagery
+- Low zoom levels (below ~15)
+
+**Why this limitation exists:**
+
+Google's standard (raster) maps are rendered server-side as static image tiles, always oriented north-up. Rotation is only possible where Google has pre-rendered tiles in a specific 45° angle. True free rotation in any direction — on any map type — requires **Vector Maps**, which need a `Map ID` configured in Google Cloud Console. This feature is not yet part of this card but may be considered for a future version.
+
+**Recommended config for best results with `rotateControl`:**
+
+```yaml
+map_type: satellite   # or hybrid
+zoom: 17
+rotateControl: true
+rotateControl_position: LEFT_BOTTOM
+```
 
 ### 🎯 Zones
 
