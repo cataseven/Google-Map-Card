@@ -370,7 +370,9 @@ You can choose your best theme—40 now and more to come!
 | `type`                 | string  | Required for Home Assistant custom card. Must be `custom:google-map-card`.                                                           |
 | `api_key`              | string  | Your Google Maps JavaScript API key (**required**).                                                                                  |
 | `zoom`                 | integer | Initial zoom level (1–20).                                                                                                           |
-| `theme_mode`           | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.).                                                                    |
+| `theme_mode`           | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.). **Not available when `rendering_type: vector`** — use `color_scheme` instead. |
+| `rendering_type`       | string  | Map rendering engine. `raster` (default) or `vector`. Vector mode enables free 360° rotation and tilt on all map types. See [Vector Map & Free Rotation](#-vector-map--free-rotation-new) below. |
+| `color_scheme`         | string  | Color scheme for vector mode only. `light` (default), `dark`, or `follow_system`. Has no effect when `rendering_type: raster`. |
 | `aspect_ratio`         | string  | Card aspect ratio (`16:9`, `4:3`, `1`, `1:1.56`, `400px`, etc.). If omitted, the card expands to fill its container — recommended for **Sections dashboard** users who set `grid_options: columns: full`. See [Dashboard Layout Tips](#-dashboard-layout-tips) below. |
 | `map_type`             | string  | Map type: `roadmap`, `satellite`, `hybrid`, or `terrain`. Default: `roadmap`.                                                        |
 | `gesture_handling`     | string  | `cooperative` for CTRL+SCROLL, `greedy` for just SCROLL, `auto`                                                                      |
@@ -456,9 +458,9 @@ You can choose your best theme—40 now and more to come!
 | `show_datepicker_button_position` | string | Position of the calendar                            |
 | `show_travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
 
-### ⚠️ Rotate & Tilt Limitations
+### ⚠️ Rotate & Tilt Limitations (Raster Mode)
 
-The `rotateControl` button allows rotating and tilting the map to a 45° perspective view, but it comes with significant Google API constraints that are important to understand.
+The `rotateControl` button in **raster mode** (default) allows rotating and tilting the map to a 45° perspective view, but it comes with significant Google API constraints that are important to understand.
 
 **When it works:**
 - Map type must be set to `satellite` or `hybrid`
@@ -473,11 +475,7 @@ New York, Los Angeles, San Francisco, Chicago, Miami, London, Paris, Berlin, Tok
 - Rural areas, small towns, or regions without 45° Google imagery
 - Low zoom levels (below ~15)
 
-**Why this limitation exists:**
-
-Google's standard (raster) maps are rendered server-side as static image tiles, always oriented north-up. Rotation is only possible where Google has pre-rendered tiles in a specific 45° angle. True free rotation in any direction — on any map type — requires **Vector Maps**, which need a `Map ID` configured in Google Cloud Console. This feature is not yet part of this card but may be considered for a future version.
-
-**Recommended config for best results with `rotateControl`:**
+**Recommended config for best results with raster `rotateControl`:**
 
 ```yaml
 map_type: satellite   # or hybrid
@@ -485,6 +483,48 @@ zoom: 17
 rotateControl: true
 rotateControl_position: LEFT_BOTTOM
 ```
+
+> 💡 For full 360° free rotation on any map type, use `rendering_type: vector` instead. See below.
+
+---
+
+### 🔄 Vector Map & Free Rotation (NEW)
+
+By setting `rendering_type: vector`, the card switches to Google Maps' WebGL-based vector renderer. This unlocks **free 360° rotation and tilt on any map type** — including roadmap and terrain — with no Map ID or Google Cloud Console setup required.
+
+**What changes in vector mode:**
+
+- `rotateControl: true` enables full drag-to-rotate and pinch-to-tilt gestures
+- `theme_mode` is **not supported** — use `color_scheme` instead (`light`, `dark`, `follow_system`)
+- The 40+ built-in JSON themes are unavailable (Google API limitation — the `styles` array only works on raster maps)
+- Requires a WebGL-capable browser (all modern browsers supported by Home Assistant qualify)
+
+**Config example:**
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+rendering_type: vector
+color_scheme: dark          # light | dark | follow_system
+rotateControl: true
+rotateControl_position: LEFT_BOTTOM
+map_type: roadmap
+zoom: 15
+```
+
+**Raster vs Vector — quick comparison:**
+
+| | Raster (default) | Vector |
+|---|---|---|
+| Free 360° rotation | ❌ | ✅ |
+| 40+ built-in themes | ✅ | ❌ |
+| Dark / Light mode | Via themes | `color_scheme` |
+| POI filtering | ✅ | ✅ |
+| Traffic layer | ✅ | ✅ |
+| Weather layer | ✅ | ✅ |
+| GPU / WebGL required | ❌ | ✅ |
+
+> ⚠️ `color_scheme` can only be set at map initialization. If you change it, the page must reload to take effect. In Home Assistant, saving the card config triggers a reload automatically.
 
 ### 🎯 Zones
 
