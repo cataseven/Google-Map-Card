@@ -153,7 +153,7 @@ aspect_ratio: "16:9"   # or 4:3, 1:1, 400px, etc.
 
 ### Sections Dashboard
 
-If you are using Home Assistant’s **Sections** dashboard layout, the recommended approach is to **omit `aspect_ratio`** and instead let the card fill the full width of its section using `grid_options`:
+If you are using Home Assistant’s **Sections** dashboard layout, the recommended approach is to use `aspect_ratio`** and rows: auto
 
 ```yaml
 type: custom:google-map-card
