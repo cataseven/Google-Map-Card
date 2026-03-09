@@ -172,8 +172,8 @@ With `rows: auto` the card height is determined by `aspect_ratio`
 
 If you are using Home Assistant’s **Panel** dashboard layout, the recommended approach is to leave `aspect_ratio`* empty
 
-
 <br>
+
 # UI Card Editor
 
 ![image61](images/allmenu.png) ![image66](images/mapbuttons2.png) 
