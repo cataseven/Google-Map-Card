@@ -167,8 +167,13 @@ With `rows: auto` the card height is determined by `aspect_ratio`
 
 > 💡 **Tip:** Leaving `aspect_ratio` empty without setting `grid_options: columns: full` may cause the card to render with zero height on some Sections layouts. Always use one approach or the other.
 
-<br>
 
+### Panel Layout
+
+If you are using Home Assistant’s **Panel** dashboard layout, the recommended approach is to leave `aspect_ratio`* empty
+
+
+<br>
 # UI Card Editor
 
 ![image61](images/allmenu.png) ![image66](images/mapbuttons2.png) 
