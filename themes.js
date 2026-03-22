@@ -2,7 +2,7 @@ export function get_map_themes() {
     return {
         "dark": {
             "Dark Abyss": [
-                { "featureType": "all", "elementType": "labels.text.fill", "stylers": [{ "color": "#ffffff" }] }
+                { "featureType": "all", "elementType": "labels.text.fill", "stylers": [{ "color": "#ffffff" }] },
                 { "featureType": "all", "elementType": "labels.text.stroke", "stylers": [{ "color": "#000000" }, { "lightness": 13 }] },
                 { "featureType": "administrative", "elementType": "geometry.fill", "stylers": [{ "color": "#000000" }] },
                 { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [{ "color": "#144b53" }, { "lightness": 14 }, { "weight": 1.4 }] },
