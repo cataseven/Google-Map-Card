@@ -71,44 +71,51 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 
 ---
 
-# ⚠️ Attention: API Pricing & Quotas
+# 💰 API Pricing & Free Quotas — You're Probably Fine
 
-💡 **Google Maps Platform uses a "Pay-as-you-go" pricing model.** While they offer generous monthly free tiers, **exceeding these limits will incur charges** on your Google Cloud account. 
+Google Maps Platform follows a "Pay-as-you-go" model, but don't let that scare you — **Google provides a very generous free tier that comfortably covers typical Home Assistant usage.** Most home users will never come close to the limits.
 
-To use all features of this card (including the Route Calculator), you need to enable specific APIs in your Google Cloud project ([API List](https://console.cloud.google.com/google/maps-apis/api-list)). Here is a simplified breakdown of the free monthly quotas (as of March 2025) for the APIs used by this card:
+Here's how much you get for free every month (as of March 2025):
 
-| Feature | Required API | Free Monthly Limit | Overage Cost |
+| Feature | Required API | Free Monthly Limit | What That Means for You |
 | :--- | :--- | :--- | :--- |
-| **Core Map Rendering** | Maps JavaScript API (Dynamic Maps) | **10,000** map loads | ~$7.00 per 1,000 loads |
-| **Route Calculation** | Directions API | **10,000** requests | ~$5.00 per 1,000 requests |
-| **Address Autocomplete** | Places API (New) | **10,000** requests | ~$10.00 per 1,000 requests |
-| **Live Traffic Routes** | Routes API | **5,000 - 10,000** requests | Varies by feature |
+| **Core Map Rendering** | Maps JavaScript API (Dynamic Maps) | **10,000** map loads | ~330 map loads/day — plenty for a household dashboard |
+| **Route Calculation** | Directions API | **10,000** requests | ~330 routes/day — way more than daily commute checks |
+| **Address Autocomplete** | Places API (New) | **10,000** requests | ~330 autocomplete sessions/day |
+| **Live Traffic Routes** | Routes API | **5,000 – 10,000** requests | More than enough for regular route queries |
 
-*(Note: Only the Maps Embed API and native Mobile SDKs are strictly free and unlimited. This Lovelace card uses the Maps JavaScript API, which is billable after your 10,000 free loads).*
+To put this in perspective: if you open your HA dashboard 10 times a day and calculate 5 routes, that's still only ~450 map loads and ~150 API calls in a month — **well under 5% of your free quota.** You'd need to be loading the map hundreds of times daily to even approach the limits.
+
+> 💡 **In short:** For personal / household use, the free tier is more than enough. You won't pay a cent unless you do something unusual.
+
+To use all features of this card (including the Route Calculator), you need to enable the required APIs in your Google Cloud project: [API List](https://console.cloud.google.com/google/maps-apis/api-list)
 
 ### ❓ Why does my Quotas page say "Unlimited"?
-If you check your Google Cloud Quotas page, you might see **"Unlimited"** next to *Map loads per day*. **This does NOT mean it is free.** The "Unlimited" label refers to the **technical rate limit** (meaning Google won't block your map from loading if you get massive traffic), but they **will still bill you** once you exceed the 10,000 monthly free tier. 
-To protect yourself from unexpected charges, you must manually lower this "Unlimited" value to a safe daily limit (e.g., 200) by clicking the edit/pencil icon next to it.
 
-You are solely responsible for your API settings, quotas, and any charges incurred. It is **highly recommended** to:
-1. Go to **APIs & Services → Quotas** and manually lower the "Unlimited" daily request limits per API.
-2. Go to **Billing → Budgets & Alerts** and create a budget alert (e.g., $2/month).
-3. Restrict your API key to only the APIs you actually use.
+If you check your Google Cloud Quotas page, you might see **"Unlimited"** next to *Map loads per day*. This doesn't mean you'll be charged without warning — it just means Google won't technically block your requests if traffic spikes. Billing only kicks in after the **10,000 monthly free loads**, and for a typical home setup you'll stay well within that.
+
+That said, if you want extra peace of mind (always a good idea!), you can set a daily cap yourself:
+
+### 🛡️ Optional Safety Steps (Recommended)
+
+These are simple one-time steps to make sure you're fully protected — they only take a minute:
+
+1. **Set a daily quota cap** — Go to **APIs & Services → Quotas** and lower the "Unlimited" daily limit to something comfortable (e.g., 200/day). This creates a hard ceiling so you can never accidentally exceed the free tier.
+2. **Create a budget alert** — Go to **Billing → Budgets & Alerts** and set a $1–2/month alert. Google will email you if costs approach your threshold. Think of it as a smoke detector — you'll probably never hear it, but it's nice to have.
+3. **Restrict your API key** — Limit it to only the APIs you actually use.
 
 ![image5](images/kota.png)
 
-Keep an eye on your usage here: [Google Maps API Quotas](https://console.cloud.google.com/google/maps-apis/quotas)
+You can always check your actual usage here: [Google Maps API Quotas](https://console.cloud.google.com/google/maps-apis/quotas)
 
-Watch this review by @BeardedTinker before creating an API to understand how to limit your API and stay within free-to-use limits:
+For a great walkthrough on setting up your API key safely, check out this video by @BeardedTinker:
 [https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek](https://youtu.be/usGLOxtXCxA?si=BxDj65bksi_tcZek)
 
-### 🚗 Route Search and Travel Time Calculator — Safety Net
+### 🚗 Route Calculator — Built-in Safety Net
 
-Each time you calculate a route, the card makes **multiple API calls** (Directions for the route, Routes for traffic, Places for typing autocomplete). So just 50 calculations could easily mean 150+ total API calls.
+Each route calculation triggers multiple API calls behind the scenes (Directions + Routes + Places autocomplete), so 50 route calculations could mean ~150+ total API calls. To keep things safe by default, **this card has a built-in soft limit of 50 route calculations per day per API key** (shared across all browser instances). That's still plenty for daily use — you'd have to actively try to hit it.
 
-To help prevent accidental quota drain, this card enforces a **built-in soft limit of 50 route calculations per day per API key** (shared across all browser instances). 
-
-> ⚠️ **This 50/day limit is just a basic frontend safety net — it is NOT a substitute for configuring proper hard quotas in your Google Cloud Console.**
+> 💡 For the best protection, combine this built-in limit with a hard daily quota in your Google Cloud Console (see the safety steps above). Belt and suspenders!
 
 Create your API key and click the “Show key” button in the console:
 
