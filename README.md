@@ -13,8 +13,6 @@
 [![GitHub Stars](https://img.shields.io/github/stars/cataseven/Google-Map-Card?style=social)](https://github.com/cataseven/Google-Map-Card)
 [![GitHub Issues](https://img.shields.io/github/issues/cataseven/Google-Map-Card?style=flat-square)](https://github.com/cataseven/Google-Map-Card/issues)
 
-
-
 #### Responsive Lovelace custom Google Maps card that displays the location of `person.`, `device_tracker.`, and `sensor.` entities and tracks their routes using the Google Maps JavaScript API including Live Traffic, Street View, POI Filtering, Map Types, FlightRadar24 Integration and **Route Search and Travel Time Calculator** support
 
 ---
