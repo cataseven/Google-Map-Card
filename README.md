@@ -19,6 +19,11 @@
 
 # Features
 
+* **External Date Control** 🆕 (v5.1.0)
+  * Bind history date range to Home Assistant `input_datetime` entities — single day or explicit start/end range
+  * Multiple cards stay in sync, perfect for tracking dashboards with markdown logs
+* **Map & Format Language** 🆕 (v5.1.0)
+  * Choose map labels and date/number formatting independently from your HA profile language
 * **Route Search and Travel Time Calculator** 🆕
   * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
   * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
@@ -225,6 +230,116 @@ The Route Search and Travel Time Calculator requires these additional APIs to be
 * **Places API (New)** — Address autocomplete
 * **Routes API** — Traffic segment data
 
+
+# 🌍 Map & Format Language
+
+By default, the card uses your Home Assistant profile language for map labels (city names, streets) and in-card date/number formatting. If you'd like the map to display in a different language — for example, you run HA in English but want city names in your native script (Cyrillic, Japanese, Arabic, etc.) — set the `language` option.
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+language: ja          # BCP-47 tag: en, tr, de, ja, ru, he, ar, etc.
+entities:
+  - person.alice
+```
+
+You can also pick the language from the visual editor's **Map Language** dropdown.
+
+> ⚠️ Google Maps reads the language only at script load time. After changing this setting, do a full page reload (Ctrl+Shift+R) for map labels to update.
+
+Leave the option empty (or omit it) to fall back to your Home Assistant profile language.
+
+---
+
+# 📅 External Date Control
+
+You can bind the card's history date range to one or more Home Assistant `input_datetime` entities. This lets a single date picker on your dashboard drive both the map and other cards (markdown logs, tables, statistics) at the same time — no more selecting the date twice.
+
+## Two modes
+
+**Single day** — one entity, automatically expanded to that day's full 00:00–23:59 range:
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+history_date_entity: input_datetime.map_date
+entities:
+  - person.alice
+  - person.bob
+```
+
+**Date range** — explicit start and end (each with optional time):
+
+```yaml
+type: custom:google-map-card
+api_key: YOUR_API_KEY
+history_start_entity: input_datetime.history_start
+history_end_entity: input_datetime.history_end
+entities:
+  - person.alice
+```
+
+## Required Home Assistant helpers
+
+Create the helpers under **Settings → Devices & Services → Helpers → + Create Helper → Date and/or time**, or in YAML:
+
+```yaml
+input_datetime:
+  map_date:
+    name: Map Date
+    has_date: true
+    has_time: false
+
+  history_start:
+    name: History Start
+    has_date: true
+    has_time: true
+
+  history_end:
+    name: History End
+    has_date: true
+    has_time: true
+```
+
+## How it works
+
+- The map updates automatically whenever the `input_datetime` value changes
+- The internal date picker button becomes read-only — clicking it shows a tooltip indicating the date is controlled externally
+- Multiple cards bound to the same entity stay in sync
+- All `input_datetime` formats are supported: date-only, time-only, date + time, and the underlying `timestamp` attribute
+- If both single-date and range entities are configured, the range form takes precedence
+- Configurable from the visual editor in the **External Date Control** section
+
+## Use case: synchronized tracking dashboard
+
+Combine with previous/next day scripts and a markdown card to build a tracking dashboard where one date picker drives everything:
+
+```yaml
+script:
+  datepicker_previous_day:
+    sequence:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.map_date
+        data:
+          date: >
+            {{ (states('input_datetime.map_date') | as_datetime
+                - timedelta(days=1)).strftime('%Y-%m-%d') }}
+
+  datepicker_next_day:
+    sequence:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.map_date
+        data:
+          date: >
+            {{ (states('input_datetime.map_date') | as_datetime
+                + timedelta(days=1)).strftime('%Y-%m-%d') }}
+```
+
+Bind the same `input_datetime.map_date` to both the map card and any markdown / entity / table card on the dashboard, and they'll all show the same day's data.
+
+---
 
 # Live Traffic Info by Google Maps
 
@@ -442,6 +557,15 @@ You can choose your best theme—40 now and more to come!
 | `show_datepicker_button` | boolean | Show or hide Calendar. (`use_date_range` should be enabled for at least one entity)                   |
 | `show_recenter_button`   | boolean | Show or hide Recenter Map Button.                                                               |
 | `buttons_opacity`        | float   | Opacity of all buttons on the map. Buttons will be solid when hover                             |
+
+### 🌍 Localization & External Control
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `language` | string | BCP-47 language tag for map labels and date/number formatting (e.g. `en`, `tr`, `ja`, `ru`, `he`, `de-DE`). Leave empty to follow the Home Assistant profile language. Requires page reload after change. |
+| `history_date_entity` | string | `input_datetime` entity that controls the history date range. The selected day is automatically expanded to 00:00–23:59. |
+| `history_start_entity` | string | `input_datetime` entity for the start of an explicit date range. Used together with `history_end_entity`. |
+| `history_end_entity` | string | `input_datetime` entity for the end of an explicit date range. Used together with `history_start_entity`. If both range entities are set, they take precedence over `history_date_entity`. |
 
 ### 📚 Layers
 
