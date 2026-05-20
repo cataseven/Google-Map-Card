@@ -24,6 +24,11 @@
   * Multiple cards stay in sync, perfect for tracking dashboards with markdown logs
 * **Map & Format Language** 🆕 (v5.1.0)
   * Choose map labels and date/number formatting independently from your HA profile language
+* **Dynamic Zoom** 🆕 (v5.2.0)
+  * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
+* **History Dot Shapes** 🆕 (v5.2.0)
+  * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
+  * Dot size auto-scales with polyline width, or can be set manually
 * **Route Search and Travel Time Calculator** 🆕
   * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
   * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
@@ -494,7 +499,7 @@ You can choose your best theme—40 now and more to come!
 | ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `type`                 | string  | Required for Home Assistant custom card. Must be `custom:google-map-card`.                                                           |
 | `api_key`              | string  | Your Google Maps JavaScript API key (**required**).                                                                                  |
-| `zoom`                 | integer | Initial zoom level (1–20).                                                                                                           |
+| `zoom`                 | integer / string | Initial zoom level (1–22). Accepts a static number (e.g. `12`) or a Home Assistant entity ID (e.g. `input_number.map_zoom`) for dynamic zoom control. |
 | `theme_mode`           | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.). **Not available when `rendering_type: vector`** — use `color_scheme` instead. |
 | `rendering_type`       | string  | Map rendering engine. `raster` (default) or `vector`. Vector mode enables free 360° rotation and tilt on all map types. See [Vector Map & Free Rotation](#-vector-map--free-rotation-new) below. |
 | `color_scheme`         | string  | Color scheme for vector mode only. `light` (default), `dark`, or `follow_system`. Has no effect when `rendering_type: raster`. |
@@ -529,6 +534,9 @@ You can choose your best theme—40 now and more to come!
 | `polyline_width`                | integer | Width of the polyline for route history.                                                                                        |
 | `follow`                        | boolean | If `true`, map will center on this entity. When multiple entities have `follow: true`, the map will fit all of them.            |
 | `show_history_dots`             | boolean | If `false`, location history dots are not rendered. May increase speed of map rendering for long time period data.              |
+| `history_dot_shape`             | string  | Shape of history dots: `circle` (default), `square`, `triangle`, `diamond`, `star`, `pentagon`. Helps distinguish entities with similar colors. |
+| `history_dot_size`              | integer | Size of history dots in pixels. When omitted, auto-derived from polyline width (4× polyline width, minimum 4px). |
+| `history_dot_filled`            | boolean | If `true` (default), dots are filled solid. If `false`, dots are rendered as outlines only. |
 | `use_date_range`                | boolean | If `true`, this entity uses the **card-level** date range (`history_preset` or `history_start_date`/`history_end_date`) instead of `hours_to_show`. When enabled, `hours_to_show` is ignored for this entity. |
 | `gps_accuracy_ranges`           | obj     | `min`,`max`,`label`,`color`,`opacity` see example below                                                                         |
 | `show_gps_accuracy_radius_line` | boolean | **NEW (v4.0.0)** Draw a thin radius line + label showing GPS accuracy distance (zoom-aware)                                     |
@@ -832,6 +840,7 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+    history_dot_shape: diamond
     show_gps_accuracy_radius_line: true
     gps_accuracy_ranges:
       - min: 0
@@ -868,6 +877,8 @@ entities:
     polyline_width: 1
     icon_color: "#780202"
     background_color: "#ffffff"
+    history_dot_shape: triangle
+    history_dot_filled: false
 ```
 
 ## ⭐ Support
