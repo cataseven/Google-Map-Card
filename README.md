@@ -19,14 +19,14 @@
 
 # Features
 
-* **External Date Control** 🆕 (v5.1.0)
+* **External Date Control** 🆕 (v5.0.9)
   * Bind history date range to Home Assistant `input_datetime` entities — single day or explicit start/end range
   * Multiple cards stay in sync, perfect for tracking dashboards with markdown logs
-* **Map & Format Language** 🆕 (v5.1.0)
+* **Map & Format Language** 🆕 (v5.0.9)
   * Choose map labels and date/number formatting independently from your HA profile language
-* **Dynamic Zoom** 🆕 (v5.2.0)
+* **Dynamic Zoom** 🆕 (v5.0.10)
   * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
-* **History Dot Shapes** 🆕 (v5.2.0)
+* **History Dot Shapes** 🆕 (v5.0.10)
   * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
   * Dot size auto-scales with polyline width, or can be set manually
 * **Route Search and Travel Time Calculator** 🆕
