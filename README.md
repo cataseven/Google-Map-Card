@@ -19,21 +19,11 @@
 
 # Features
 
-* **External Date Control** 🆕 (v5.0.9)
-  * Bind history date range to Home Assistant `input_datetime` entities — single day or explicit start/end range
-  * Multiple cards stay in sync, perfect for tracking dashboards with markdown logs
-* **Map & Format Language** 🆕 (v5.0.9)
-  * Choose map labels and date/number formatting independently from your HA profile language
-* **Dynamic Zoom** 🆕 (v5.0.10)
-  * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
-* **History Dot Shapes** 🆕 (v5.0.10)
-  * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
-  * Dot size auto-scales with polyline width, or can be set manually
 * **Route Search and Travel Time Calculator** 🆕
   * **NEW (v5.0.2): Map-based route info bar, clickable route polylines, fullscreen panel overlay, active shortcut highlighting, and theme-consistent button colors**
   * **v5.0.0: Docked travel panel with real-time route calculation, live traffic-colored polylines, address autocomplete, route shortcuts, and multi-modal support (driving/walking/transit/cycling)**
 * Live Traffic Info
-* Weather Layers (via OpenWeather API Key)
+* Weather Layers (via OpenWeather API Key) with adjustable opacity, brightness, contrast and saturation
 * **FlightRadar24 integration support**
   * **NEW (v4.0.0): Dedicated FlightRadar panel + airport arrivals/departures table + Add/Remove Flight directly on the map via right click button**
 * Create Zone, Edit Zone, Delete Zone directly from the card (right click / long press)
@@ -58,6 +48,16 @@
 * **GPS Accuracy visualization**
   * Accuracy styling via `gps_accuracy_ranges`
   * **NEW (v4.0.0): optional GPS accuracy radius line + label** per entity
+* **External Date Control** 🆕 (v5.0.9)
+  * Bind history date range to Home Assistant `input_datetime` entities — single day or explicit start/end range
+  * Multiple cards stay in sync, perfect for tracking dashboards with markdown logs
+* **Map & Format Language** 🆕 (v5.0.9)
+  * Choose map labels and date/number formatting independently from your HA profile language
+* **Dynamic Zoom** 🆕 (v5.0.10)
+  * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
+* **History Dot Shapes** 🆕 (v5.0.10)
+  * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
+  * Dot size auto-scales with polyline width, or can be set manually
 
 ![image4](images/routenew1.png) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
@@ -364,6 +364,20 @@ API v1.0 is enough and it is free.
 
 ![image7](images/free.png)
 
+## Weather Layer Appearance
+
+By default, the weather layer renders at 60% opacity. Some layers (especially temperature) can obscure the map underneath. You can fine-tune how the layer looks using four settings, all available in the visual editor under the Layers section:
+
+```yaml
+weather_layer: temp_new
+weather_layer_opacity: 0.4       # more transparent so the map stays visible
+weather_layer_brightness: 0.9    # slightly dimmed
+weather_layer_contrast: 1.4      # sharper weather patterns
+weather_layer_saturation: 0.6    # softer colors
+```
+
+All four default to sensible values and only need to be set when you want to override them.
+
 ---
 
 # Google Maps & Apple Map Application Support
@@ -581,6 +595,10 @@ You can choose your best theme—40 now and more to come!
 | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `show_traffic`  | boolean | Show or hide live traffic. No extra api key needed                                                                           |
 | `weather_layer` | string  | Add weather layer. `none`, `precipitation_new`, `pressure_new`, `wind_new`, `temp_new`, `clouds_new`                         |
+| `weather_layer_opacity` | number | Transparency of the weather layer (0.0 = invisible, 1.0 = fully opaque). Default: `0.6` |
+| `weather_layer_brightness` | number | Brightness of the weather layer (1.0 = normal). Lower values darken, higher values brighten. Default: `1.0` |
+| `weather_layer_contrast` | number | Contrast of weather patterns (1.0 = normal). Increase to make patterns more visible. Default: `1.0` |
+| `weather_layer_saturation` | number | Color intensity of the weather layer (1.0 = normal, 0 = grayscale). Default: `1.0` |
 | `owm_api_key`   | string  | Create api and restrict it 1000 per day [https://home.openweathermap.org/api_keys](https://home.openweathermap.org/api_keys) |
 
 ### 🔝 Button Positions
@@ -750,6 +768,7 @@ map_type: roadmap
 zoom: 16
 aspect_ratio: 1.53:1
 weather_layer: clouds_new
+weather_layer_opacity: 0.5
 
 proximity_clustering: true
 proximity_radius: 5
