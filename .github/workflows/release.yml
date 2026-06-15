@@ -6,7 +6,7 @@ on:
 
 jobs:
   notify-on-test-release:
-    if: github.event.release.target_commitish == 'test'
+    if: github.event.release.prerelease == true
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -21,7 +21,10 @@ jobs:
             const releaseBody = context.payload.release.body;
             const releaseTag = context.payload.release.tag_name;
 
-            if (!releaseBody) return;
+            if (!releaseBody) {
+              console.log("Release body is empty.");
+              return;
+            }
 
             const regex = /#(\d+)/g;
             let match;
@@ -31,10 +34,13 @@ jobs:
               issueNumbers.add(parseInt(match[1], 10));
             }
 
-            if (issueNumbers.size === 0) return;
+            if (issueNumbers.size === 0) {
+              console.log("No issue numbers found in release body.");
+              return;
+            }
 
             const excludedUsers = ['cataseven'];
-            const labelToAdd = 'Author is testing now';
+            const labelName = 'Author is testing now';
 
             for (const issueNumber of issueNumbers) {
               try {
@@ -44,58 +50,65 @@ jobs:
                   issue_number: issueNumber
                 });
 
-                const comments = await github.paginate(github.rest.issues.listComments, {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  per_page: 100
-                });
+                const hasLabel = issue.labels.some(label => label.name === labelName);
 
-                const usersToNotify = new Set();
-                usersToNotify.add(issue.user.login);
-                for (const comment of comments) {
-                  const u = comment.user;
-                  if (u && u.type !== 'Bot' && !u.login.endsWith('[bot]')) {
-                    usersToNotify.add(u.login);
-                  }
-                }
-
-                const mentionList = Array.from(usersToNotify)
-                  .filter(u => !excludedUsers.includes(u.toLowerCase()));
-
-                if (mentionList.length > 0) {
-                  const mentions = mentionList.map(u => `@${u}`).join(' ');
-                  const message = `${mentions} hi, Please test with the test-release ${releaseTag}`;
-
-                  await github.rest.issues.createComment({
+                if (!hasLabel) {
+                  const comments = await github.paginate(github.rest.issues.listComments, {
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: issueNumber,
-                    body: message
+                    per_page: 100
                   });
+
+                  const usersToNotify = new Set();
+                  usersToNotify.add(issue.user.login);
+                  for (const comment of comments) {
+                    const u = comment.user;
+                    if (u && u.type !== 'Bot' && !u.login.endsWith('[bot]')) {
+                      usersToNotify.add(u.login);
+                    }
+                  }
+
+                  const mentionList = Array.from(usersToNotify)
+                    .filter(u => !excludedUsers.includes(u.toLowerCase()));
+
+                  if (mentionList.length > 0) {
+                    const mentions = mentionList.map(u => `@${u}`).join(' ');
+                    const message = `${mentions} hi, Please test with the test-release ${releaseTag}`;
+
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issueNumber,
+                      body: message
+                    });
+                  }
+
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: [labelName]
+                  });
+
+                  console.log(`Processed #${issueNumber} for test release (label added).`);
+                } else {
+                  console.log(`#${issueNumber} already has the '${labelName}' label, skipping.`);
                 }
-
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  labels: [labelToAdd]
-                });
-
               } catch (error) {
                 console.error(`Error on #${issueNumber}: ${error.message}`);
               }
             }
 
   notify-on-release:
-    if: github.event.release.target_commitish == 'main'
+    if: github.event.release.prerelease == false
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
       contents: read
     steps:
-      - name: Comment on Referenced Issues and Remove Label
+      - name: Comment, Remove Label and Close Referenced Issues
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -103,7 +116,10 @@ jobs:
             const releaseBody = context.payload.release.body;
             const releaseTag = context.payload.release.tag_name;
 
-            if (!releaseBody) return;
+            if (!releaseBody) {
+              console.log("Release body is empty.");
+              return;
+            }
 
             const regex = /#(\d+)/g;
             let match;
@@ -113,10 +129,13 @@ jobs:
               issueNumbers.add(parseInt(match[1], 10));
             }
 
-            if (issueNumbers.size === 0) return;
+            if (issueNumbers.size === 0) {
+              console.log("No issue numbers found in release body.");
+              return;
+            }
 
             const excludedUsers = ['cataseven'];
-            const labelToRemove = 'Author is testing now';
+            const labelName = 'Author is testing now';
 
             for (const issueNumber of issueNumbers) {
               try {
@@ -126,47 +145,63 @@ jobs:
                   issue_number: issueNumber
                 });
 
-                const comments = await github.paginate(github.rest.issues.listComments, {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  per_page: 100
-                });
-
-                const usersToNotify = new Set();
-                usersToNotify.add(issue.user.login);
-                for (const comment of comments) {
-                  const u = comment.user;
-                  if (u && u.type !== 'Bot' && !u.login.endsWith('[bot]')) {
-                    usersToNotify.add(u.login);
-                  }
+                if (issue.pull_request) {
+                  console.log(`#${issueNumber} is a pull request, skipping.`);
+                  continue;
                 }
 
-                const mentionList = Array.from(usersToNotify)
-                  .filter(u => !excludedUsers.includes(u.toLowerCase()));
-
-                if (mentionList.length > 0) {
-                  const mentions = mentionList.map(u => `@${u}`).join(' ');
-                  const message = `${mentions} hi, please try with the update ${releaseTag}`;
-
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    body: message
-                  });
-                }
-
-                const hasLabel = issue.labels.some(label => label.name === labelToRemove);
+                const hasLabel = issue.labels.some(label => label.name === labelName);
 
                 if (hasLabel) {
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: issueNumber,
-                    name: labelToRemove
+                    name: labelName
                   });
+                  console.log(`Removed '${labelName}' label from #${issueNumber} (no comment).`);
+                } else {
+                  const comments = await github.paginate(github.rest.issues.listComments, {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    per_page: 100
+                  });
+
+                  const usersToNotify = new Set();
+                  usersToNotify.add(issue.user.login);
+                  for (const comment of comments) {
+                    const u = comment.user;
+                    if (u && u.type !== 'Bot' && !u.login.endsWith('[bot]')) {
+                      usersToNotify.add(u.login);
+                    }
+                  }
+
+                  const mentionList = Array.from(usersToNotify)
+                    .filter(u => !excludedUsers.includes(u.toLowerCase()));
+
+                  if (mentionList.length > 0) {
+                    const mentions = mentionList.map(u => `@${u}`).join(' ');
+                    const message = `${mentions} hi, please try with the update ${releaseTag}`;
+
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: issueNumber,
+                      body: message
+                    });
+                    console.log(`Commented on #${issueNumber}.`);
+                  }
                 }
+
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                  state_reason: 'completed'
+                });
+                console.log(`Closed #${issueNumber} as completed.`);
 
               } catch (error) {
                 console.error(`Error on #${issueNumber}: ${error.message}`);
