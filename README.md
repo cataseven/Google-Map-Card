@@ -197,7 +197,7 @@ If you are using Home Assistant’s **Panel** dashboard layout, the recommended 
 
 ![image63](images/panels.png) ![image66](images/external.png)
 
-![image64](images/entities.png) ![image64](images/entitygif)
+![image64](images/entities.png) ![image64](images/entitygif.gif)
 
 ![image64](images/flightedit.png) ![image64](images/routemenu.png)
 
