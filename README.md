@@ -191,15 +191,15 @@ If you are using Home Assistant’s **Panel** dashboard layout, the recommended 
 
 # UI Card Editor
 
-![image61](images/allmenu.png) ![image66](images/mapbuttons2.png) 
+![image61](images/UImap.png) ![image66](images/layers.png) 
 
-![image65](images/zones1.png) ![image62](images/mainsettings.png)
+![image65](images/zones.png) ![image62](images/controls.png)
 
-![image63](images/layers.png) ![image66](images/poi.png)
+![image63](images/panels.png) ![image66](images/external.png)
 
-![image64](images/entity1.png) ![image64](images/flightedit.png)
+![image64](images/entities.png) ![image64](images/entity.gif)
 
-![image64](images/routemenu.png)
+![image64](images/flightedit.png) ![image64](images/routemenu.png)
 
 ---
 
