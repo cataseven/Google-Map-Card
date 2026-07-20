@@ -58,6 +58,18 @@
 * **History Dot Shapes** 🆕 (v5.0.10)
   * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
   * Dot size auto-scales with polyline width, or can be set manually
+* **🌐 Data Layers** 🆕 (v5.15) — opt-in live overlays, each with its own map button (toggle & position in the editor's **Controls** tab). All default OFF; with none enabled the card behaves exactly as before, no extra network.
+  * **🌗 Day/Night terminator** — shades the night side of Earth with civil/nautical twilight bands, refreshed every minute. Computed in-card with astronomy math — no API, no key, works offline. Raster **and** vector.
+  * **🏭 Air Quality (WAQI)** — real-time air-quality heatmap tiles from the World Air Quality Index (free token).
+  * **🌧️ Animated Rain Radar (RainViewer)** — the past ~2 hours of precipitation radar animated over the map (free, no key; tiles capped at zoom 7 — best at regional zoom).
+  * **🌍 Live Earthquakes (USGS)** — recent quakes worldwide as magnitude-scaled, depth-colored circles (5-min refresh). Zoom out to see them.
+  * **🌡️ Weather Badges (Open-Meteo)** — temperature + condition right on a marker and a 3-day forecast in its popup, **per entity**, no API key.
+  * **🕐 Local time in popups** — when a marker sits in another time zone, its popup shows the local time there (automatic).
+* **🏷️ Marker Labels** 🆕 (v5.2) — per-entity state + last-seen label under the marker (`show_marker_labels`).
+* **🫥 Stale Marker Fade** 🆕 (v5.2) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
+* **🧹 GPS Jitter Filter** 🆕 (v5.2) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
+* **🔢 Zone Occupancy Badge** 🆕 (v5.2) — show a count of how many tracked entities are inside each shown zone.
+* **📍 Address in Popups** 🆕 (v5.2) — reverse-geocoded street address in a marker's popup (`show_popup_address`, on by default).
 
 ![image4](images/routenew1.png) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
@@ -380,6 +392,56 @@ All four default to sensible values and only need to be set when you want to ove
 
 ---
 
+# 🌐 Data Layers (v5.15)
+
+Six opt-in live overlays turn the card into a lightweight data dashboard. **Everything defaults to OFF** — with none configured, the card behaves exactly as before and makes zero extra network requests. Each overlay has an **on-map toggle button** whose visibility & position are set in the editor's **Controls** tab (kept separate from the layer's load-time state).
+
+### 🌗 Day/Night Overlay — no API, no key, works offline
+Shades the night side of the Earth with civil and nautical twilight bands, refreshed every minute. Computed entirely in-card with astronomy math — no internet service involved. Works in both raster and vector modes.
+```yaml
+daynight: true            # on at load
+show_daynight_button: true
+```
+
+### 🏭 Air Quality Layer (WAQI)
+Real-time air-quality heatmap tiles from the World Air Quality Index project — the same one-minute free-token setup as OpenWeatherMap. Great during wildfire-smoke season.
+```yaml
+waqi_token: YOUR_FREE_TOKEN   # aqicn.org/data-platform/token
+show_waqi_button: true
+```
+
+### 🌧️ Animated Rain Radar (RainViewer)
+The past ~2 hours of precipitation radar animating over your map — free, no key. Best at regional zoom levels (the free tiles are capped at zoom 7).
+```yaml
+rainviewer: true
+show_rainviewer_button: true
+```
+
+### 🌍 Live Earthquakes (USGS)
+Recent earthquakes worldwide as magnitude-scaled, depth-colored circles, refreshed every 5 minutes.
+```yaml
+usgs_earthquakes: true
+show_usgs_button: true
+usgs_min_magnitude: 2.5
+usgs_feed: day            # day | week
+```
+> 💡 Earthquakes appear wherever they occur, so a home-zoomed map usually shows none — **zoom out** to a regional/global view to see the circles.
+
+### 🌡️ Weather On Your Markers (Open-Meteo) — per entity
+Temperature and conditions right on a marker, plus a 3-day forecast in its popup — from Open-Meteo, which needs **no API key**. Enabled **per entity** (in the entity's Marker settings), so you choose which people/trackers show weather.
+```yaml
+entities:
+  - entity: person.alice
+    weather_badges: true
+```
+
+### 🕐 Local Time in Popups
+When a marker sits in a different time zone than your Home Assistant, its popup shows the local time there. Automatic — no configuration.
+
+*Attributions: RainViewer, WAQI/EPA, Open-Meteo (CC-BY), USGS.*
+
+---
+
 # Google Maps & Apple Map Application Support
 
 You can open any point or location of your entities on Google Map or Apple Map mobile or web browser app.
@@ -529,6 +591,9 @@ You can choose your best theme—40 now and more to come!
 | `history_preset`           | string  | Relative date range preset. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, the date range is **recalculated on every page load** relative to the current date — so it never goes stale. Overrides `history_start_date` / `history_end_date`. |
 | `history_start_date`   | string  | Fixed start of the date range (ISO 8601, e.g. `"2026-02-20T21:00:00.000Z"`). Used only when `history_preset` is `null`. |
 | `history_end_date`     | string  | Fixed end of the date range (ISO 8601). Used only when `history_preset` is `null`. |
+| `stale_marker_minutes` | number  | **NEW (v5.2)** Fade out a marker whose entity hasn't updated for this many minutes. `0` (default) = never fade. |
+| `show_popup_address`   | boolean | **NEW (v5.2)** Show a reverse-geocoded street address in marker popups. Default: `true`. |
+| `zone_occupancy_badge` | boolean | **NEW (v5.2)** Show a badge on each shown zone counting how many tracked entities are inside it. Default: `false`. |
 
 > ⚠️ Naming note: Older docs may mention `marker_clustring` / `clustring`. The correct key is **`marker_clustering`**.
 
@@ -553,7 +618,11 @@ You can choose your best theme—40 now and more to come!
 | `history_dot_filled`            | boolean | If `true` (default), dots are filled solid. If `false`, dots are rendered as outlines only. |
 | `use_date_range`                | boolean | If `true`, this entity uses the **card-level** date range (`history_preset` or `history_start_date`/`history_end_date`) instead of `hours_to_show`. When enabled, `hours_to_show` is ignored for this entity. |
 | `gps_accuracy_ranges`           | obj     | `min`,`max`,`label`,`color`,`opacity` see example below                                                                         |
+| `show_gps_accuracy`             | boolean | Draw a GPS-accuracy ring around the marker, sized to the reported accuracy and colored via `gps_accuracy_ranges`. Default: `false`. |
 | `show_gps_accuracy_radius_line` | boolean | **NEW (v4.0.0)** Draw a thin radius line + label showing GPS accuracy distance (zoom-aware)                                     |
+| `show_marker_labels`            | boolean | **NEW (v5.2)** Show a small label under this marker with its state and last-seen age. Default: `false`. |
+| `min_accuracy`                  | number  | **NEW (v5.2) GPS jitter filter.** Inside your shown zones, history points whose GPS accuracy is worse (larger) than this many meters are dropped from the polyline, so a stationary entity's trail doesn't jump. `0`/unset = no filtering. |
+| `weather_badges`                | boolean | **NEW (v5.15)** Show an Open-Meteo temperature + condition badge on this marker and a 3-day forecast in its popup (no API key). `person`/`device_tracker` only. Default: `false`. |
 
 ### 👤 Geo Location Sources
 
@@ -578,6 +647,10 @@ You can choose your best theme—40 now and more to come!
 | `show_weather_button`    | boolean | Show or hide Weather Layer dropdown menu.                                                       |
 | `show_datepicker_button` | boolean | Show or hide Calendar. (`use_date_range` should be enabled for at least one entity)                   |
 | `show_recenter_button`   | boolean | Show or hide Recenter Map Button.                                                               |
+| `show_daynight_button`   | boolean | **NEW (v5.15)** Show the Day/Night terminator toggle button.                                    |
+| `show_waqi_button`       | boolean | **NEW (v5.15)** Show the Air Quality (WAQI) toggle button (needs `waqi_token`).                 |
+| `show_rainviewer_button` | boolean | **NEW (v5.15)** Show the animated Rain Radar (RainViewer) toggle button.                        |
+| `show_usgs_button`       | boolean | **NEW (v5.15)** Show the Earthquakes (USGS) toggle button.                                      |
 | `buttons_opacity`        | float   | Opacity of all buttons on the map. Buttons will be solid when hover                             |
 
 ### 🌍 Localization & External Control
@@ -600,6 +673,16 @@ You can choose your best theme—40 now and more to come!
 | `weather_layer_contrast` | number | Contrast of weather patterns (1.0 = normal). Increase to make patterns more visible. Default: `1.0` |
 | `weather_layer_saturation` | number | Color intensity of the weather layer (1.0 = normal, 0 = grayscale). Default: `1.0` |
 | `owm_api_key`   | string  | Create api and restrict it 1000 per day [https://home.openweathermap.org/api_keys](https://home.openweathermap.org/api_keys) |
+| `daynight`      | boolean | **NEW (v5.15)** Enable the Day/Night terminator overlay at load. Its map button is toggled separately (`show_daynight_button`). Default: `false`. |
+| `rainviewer`    | boolean | **NEW (v5.15)** Enable the animated Rain Radar overlay at load. Its map button is toggled separately (`show_rainviewer_button`). Default: `false`. |
+| `waqi_token`    | string  | **NEW (v5.15)** Free World Air Quality Index token from [aqicn.org/data-platform/token](https://aqicn.org/data-platform/token). Required for the AQI layer. |
+| `waqi_style`    | string  | **NEW (v5.15)** AQI tile style: `usepa-aqi` (default) or `asean-pm10`. |
+| `waqi_layer_opacity` | number | **NEW (v5.15)** AQI layer opacity 0–1. Default: `0.7`. |
+| `usgs_earthquakes` | boolean | **NEW (v5.15)** Enable the live USGS earthquake layer (magnitude-scaled, depth-colored circles, 5-min refresh). Its map button is toggled separately (`show_usgs_button`). Zoom out to see quakes. Default: `false`. |
+| `usgs_min_magnitude` | number | **NEW (v5.15)** Minimum earthquake magnitude to display. Default: `2.5`. |
+| `usgs_feed`     | string  | **NEW (v5.15)** Live feed window: `day` (default) or `week`. |
+
+> 💡 **Data-layer pattern:** each overlay splits into a **layer** (the `daynight` / `rainviewer` / `usgs_earthquakes` / `waqi_token` keys above = its state at load) and a **map button** (`show_*_button` in Map Buttons = the on-map toggle). The button toggle is remembered per card in the browser, so a layer you switch on with its button stays on across reloads. `weather_badges` is **per entity** (see the Entities table).
 
 ### 🔝 Button Positions
 
@@ -617,6 +700,10 @@ You can choose your best theme—40 now and more to come!
 | `show_recenter_button_position`   | string | Position of the recenter map button                 |
 | `show_datepicker_button_position` | string | Position of the calendar                            |
 | `show_travel_panel_toggle_button_position` | string | Position of the travel panel toggle button    |
+| `show_daynight_button_position`   | string | **NEW (v5.15)** Position of the Day/Night toggle button. Default: `TOP_RIGHT`. |
+| `show_waqi_button_position`       | string | **NEW (v5.15)** Position of the Air Quality toggle button. Default: `TOP_RIGHT`. |
+| `show_rainviewer_button_position` | string | **NEW (v5.15)** Position of the Rain Radar toggle button. Default: `TOP_RIGHT`. |
+| `show_usgs_button_position`       | string | **NEW (v5.15)** Position of the Earthquakes toggle button. Default: `TOP_RIGHT`. |
 
 ### ⚠️ Rotate & Tilt Limitations (Raster Mode)
 
