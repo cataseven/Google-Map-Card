@@ -55,21 +55,22 @@
   * Choose map labels and date/number formatting independently from your HA profile language
 * **Dynamic Zoom** 🆕 (v5.0.10)
   * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
+* **🌐 Single-World Zoom Limit** 🆕 (v5.1.5) — `no_world_repeat` (**on by default**): stop zoom-out once the world fills the card so continents never repeat side by side; container-size aware, auto-adapts on resize. Set to `false` for Google's default infinite zoom-out.
 * **History Dot Shapes** 🆕 (v5.0.10)
   * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
   * Dot size auto-scales with polyline width, or can be set manually
-* **🌐 Data Layers** 🆕 (v5.15) — opt-in live overlays, each with its own map button (toggle & position in the editor's **Controls** tab). All default OFF; with none enabled the card behaves exactly as before, no extra network.
+* **🌐 Data Layers** 🆕 (v5.1.4) — opt-in live overlays, each with its own map button (toggle & position in the editor's **Controls** tab). All default OFF; with none enabled the card behaves exactly as before, no extra network.
   * **🌗 Day/Night terminator** — shades the night side of Earth with civil/nautical twilight bands, refreshed every minute. Computed in-card with astronomy math — no API, no key, works offline. Raster **and** vector.
   * **🏭 Air Quality (WAQI)** — real-time air-quality heatmap tiles from the World Air Quality Index (free token).
   * **🌧️ Animated Rain Radar (RainViewer)** — the past ~2 hours of precipitation radar animated over the map (free, no key; tiles capped at zoom 7 — best at regional zoom).
   * **🌍 Live Earthquakes (USGS)** — recent quakes worldwide as magnitude-scaled, depth-colored circles (5-min refresh). Zoom out to see them.
   * **🌡️ Weather Badges (Open-Meteo)** — temperature + condition right on a marker and a 3-day forecast in its popup, **per entity**, no API key.
   * **🕐 Local time in popups** — when a marker sits in another time zone, its popup shows the local time there (automatic).
-* **🏷️ Marker Labels** 🆕 (v5.2) — per-entity state + last-seen label under the marker (`show_marker_labels`).
-* **🫥 Stale Marker Fade** 🆕 (v5.2) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
-* **🧹 GPS Jitter Filter** 🆕 (v5.2) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
-* **🔢 Zone Occupancy Badge** 🆕 (v5.2) — show a count of how many tracked entities are inside each shown zone.
-* **📍 Address in Popups** 🆕 (v5.2) — reverse-geocoded street address in a marker's popup (`show_popup_address`, on by default).
+* **🏷️ Marker Labels** 🆕 (v5.1.4) — per-entity state + last-seen label under the marker (`show_marker_labels`).
+* **🫥 Stale Marker Fade** 🆕 (v5.1.4) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
+* **🧹 GPS Jitter Filter** 🆕 (v5.1.4) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
+* **🔢 Zone Occupancy Badge** 🆕 (v5.1.4) — show a count of how many tracked entities are inside each shown zone.
+* **📍 Address in Popups** 🆕 (v5.1.4) — reverse-geocoded street address in a marker's popup (`show_popup_address`, on by default).
 
 ![image4](images/routenew1.png) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
@@ -485,6 +486,15 @@ If you have any integration providing geo location source, they will be automati
 
 ![image7](images/geosource.png)
 
+### 🚨 Speed-camera integrations (rich popups)
+
+Two speed-camera integrations get a **dedicated popup layout** — the integration's traffic-sign icon plus a clean field list instead of the generic popup:
+
+* **[Blitzer.de](https://github.com/Ludy87/blitzer)** (`geo_location.blitzer*`) — City, Area, Street, Zip, Speed Limit, Confirmation, Type, ID.
+* **[Lufop Radar](https://github.com/somansch/lufop_radar)** (`geo_location.lufop_radar*`, FR/BE/NL) — City, Area, Street, Speed Limit, Type, **Flash Direction**, **Azimuth**, Country, ID. 🆕 (v5.16)
+
+Just add the integration's areas to `geo_location_sources`; the card detects them automatically — no extra config.
+
 ---
 
 
@@ -576,6 +586,7 @@ You can choose your best theme—40 now and more to come!
 | `type`                 | string  | Required for Home Assistant custom card. Must be `custom:google-map-card`.                                                           |
 | `api_key`              | string  | Your Google Maps JavaScript API key (**required**).                                                                                  |
 | `zoom`                 | integer / string | Initial zoom level (1–22). Accepts a static number (e.g. `12`) or a Home Assistant entity ID (e.g. `input_number.map_zoom`) for dynamic zoom control. |
+| `no_world_repeat`      | boolean | **NEW (v5.16)** Limit zoom-out so the world is shown **exactly once** — stops the zoom before continents start repeating side by side. Adapts to the card's width **and** height automatically (and re-adapts on resize). On a wide card the world fills the width (poles slightly cropped, pannable up/down); on a tall card it fills the height. **Default: `true`** — set `no_world_repeat: false` to restore Google's default infinite zoom-out (with repeating continents). |
 | `theme_mode`           | string  | Map theme name from built-in themes (`Dark_Blueish_Night`, etc.). **Not available when `rendering_type: vector`** — use `color_scheme` instead. |
 | `rendering_type`       | string  | Map rendering engine. `raster` (default) or `vector`. Vector mode enables free 360° rotation and tilt on all map types. See [Vector Map & Free Rotation](#-vector-map--free-rotation-new) below. |
 | `color_scheme`         | string  | Color scheme for vector mode only. `light` (default), `dark`, or `follow_system`. Has no effect when `rendering_type: raster`. |
