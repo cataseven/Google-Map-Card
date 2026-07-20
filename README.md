@@ -191,7 +191,7 @@ If you are using Home Assistant’s **Panel** dashboard layout, the recommended 
 
 # UI Card Editor
 
-![image61](images/UImap.png) ![image66](images/layers.png) 
+![image61](images/UImap.png) ![image66](images/layers1.png) 
 
 ![image65](images/zones.png) ![image62](images/controls.png)
 
