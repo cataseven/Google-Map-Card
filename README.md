@@ -55,22 +55,23 @@
   * Choose map labels and date/number formatting independently from your HA profile language
 * **Dynamic Zoom** 🆕 (v5.0.10)
   * The `zoom` field now accepts a Home Assistant entity (`input_number`, `sensor`) for real-time zoom control
-* **🌐 Single-World Zoom Limit** 🆕 (v5.1.5) — `no_world_repeat` (**on by default**): stop zoom-out once the world fills the card so continents never repeat side by side; container-size aware, auto-adapts on resize. Set to `false` for Google's default infinite zoom-out.
+* **🌐 Single-World Zoom Limit** 🆕 (v5.16) — `no_world_repeat` (**on by default**): stop zoom-out once the world fills the card so continents never repeat side by side; container-size aware, auto-adapts on resize. Set to `false` for Google's default infinite zoom-out.
+* **🆓 Free Google Tools** 🆕 (v6.01) — client-side: 📏 a Measure tool (distance/area), 🌐 geodesic (great-circle) trails, 🗺️ custom GeoJSON overlays (`geojson_layers`), 📐 live crow-flies distance lines between entities (`distance_lines`), and 📍 a styled popup (with address) when you tap a place/transit icon
 * **History Dot Shapes** 🆕 (v5.0.10)
   * Per-entity dot customization: circle, square, triangle, diamond, star, pentagon — filled or outline
   * Dot size auto-scales with polyline width, or can be set manually
-* **🌐 Data Layers** 🆕 (v5.1.4) — opt-in live overlays, each with its own map button (toggle & position in the editor's **Controls** tab). All default OFF; with none enabled the card behaves exactly as before, no extra network.
+* **🌐 Data Layers** 🆕 (v5.15) — opt-in live overlays, each with its own map button (toggle & position in the editor's **Controls** tab). All default OFF; with none enabled the card behaves exactly as before, no extra network.
   * **🌗 Day/Night terminator** — shades the night side of Earth with civil/nautical twilight bands, refreshed every minute. Computed in-card with astronomy math — no API, no key, works offline. Raster **and** vector.
   * **🏭 Air Quality (WAQI)** — real-time air-quality heatmap tiles from the World Air Quality Index (free token).
   * **🌧️ Animated Rain Radar (RainViewer)** — the past ~2 hours of precipitation radar animated over the map (free, no key; tiles capped at zoom 7 — best at regional zoom).
   * **🌍 Live Earthquakes (USGS)** — recent quakes worldwide as magnitude-scaled, depth-colored circles (5-min refresh). Zoom out to see them.
-  * **🌡️ Weather Badges (Open-Meteo)** — temperature + condition right on a marker and a 3-day forecast in its popup, **per entity**, no API key.
+  * **🌡️ Weather Badges (Open-Meteo)** — temperature + condition right on a marker and a today + tomorrow forecast in its popup, **per entity**, no API key.
   * **🕐 Local time in popups** — when a marker sits in another time zone, its popup shows the local time there (automatic).
-* **🏷️ Marker Labels** 🆕 (v5.1.4) — per-entity state + last-seen label under the marker (`show_marker_labels`).
-* **🫥 Stale Marker Fade** 🆕 (v5.1.4) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
-* **🧹 GPS Jitter Filter** 🆕 (v5.1.4) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
-* **🔢 Zone Occupancy Badge** 🆕 (v5.1.4) — show a count of how many tracked entities are inside each shown zone.
-* **📍 Address in Popups** 🆕 (v5.1.4) — reverse-geocoded street address in a marker's popup (`show_popup_address`, on by default).
+* **🏷️ Marker Labels** 🆕 (v5.2) — per-entity state + last-seen label under the marker (`show_marker_labels`).
+* **🫥 Stale Marker Fade** 🆕 (v5.2) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
+* **🧹 GPS Jitter Filter** 🆕 (v5.2) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
+* **🔢 Zone Occupancy Badge** 🆕 (v5.2) — show a count of how many tracked entities are inside each shown zone.
+* **📍 Address in Popups** 🆕 (v5.2) — reverse-geocoded street address in a marker's popup (`show_popup_address`, on by default). Uses free, keyless OpenStreetMap lookups — no Google Geocoding API needed.
 
 ![image4](images/routenew1.png) ![image4](images/tra.png) ![image4](images/flight.png) ![image4](images/themes1.png) ![image4](images/Picker.png) <br>
 
@@ -429,7 +430,7 @@ usgs_feed: day            # day | week
 > 💡 Earthquakes appear wherever they occur, so a home-zoomed map usually shows none — **zoom out** to a regional/global view to see the circles.
 
 ### 🌡️ Weather On Your Markers (Open-Meteo) — per entity
-Temperature and conditions right on a marker, plus a 3-day forecast in its popup — from Open-Meteo, which needs **no API key**. Enabled **per entity** (in the entity's Marker settings), so you choose which people/trackers show weather.
+Temperature and conditions right on a marker, plus a today + tomorrow forecast in its popup — from Open-Meteo, which needs **no API key**. Enabled **per entity** (in the entity's Marker settings), so you choose which people/trackers show weather.
 ```yaml
 entities:
   - entity: person.alice
@@ -440,6 +441,53 @@ entities:
 When a marker sits in a different time zone than your Home Assistant, its popup shows the local time there. Automatic — no configuration.
 
 *Attributions: RainViewer, WAQI/EPA, Open-Meteo (CC-BY), USGS.*
+
+---
+
+# 🆓 Free Google Tools (v6.01)
+
+These features are powered by the **already-loaded** Google Maps JavaScript API and render entirely in your browser — they make **no additional billable API calls** (only the one map load, which has a generous free tier). All default OFF.
+
+### 📏 Measure tool
+A map button (`show_measure_button`) that enters *measure mode*: click points on the map to draw a path and read the running **distance** (and the enclosed **area** once you place 3+ points). Toggle the button off to clear.
+
+### 🌐 Geodesic (great-circle) trails
+History and flight trails follow the true shortest path over the curved Earth (they curve on the map over long distances — exactly how real flight paths look). **On by default.** Set `geodesic_polylines: false` for straight screen-space lines.
+
+### 🗺️ GeoJSON overlays
+Draw your own shapes — property boundaries, non-circular geofences, delivery zones, trails, regions — from GeoJSON, rendered client-side (works on self-hosted HA, no public URL needed):
+
+```yaml
+geojson_layers:
+  - url: /local/property.geojson    # HA www folder, or any reachable URL
+    stroke_color: '#e30613'
+    fill_color: '#e30613'
+    fill_opacity: 0.15
+    stroke_width: 2
+    show_popup: true                # click a shape → show its properties
+  - entity: sensor.my_geofence      # or read GeoJSON from an entity attribute…
+    attribute: geojson              # (default attribute name: geojson)
+  - geojson: { "type": "FeatureCollection", "features": [ ... ] }   # …or inline
+```
+> Sources: `url` (fetched client-side), `entity` (reads a GeoJSON attribute/state), or inline `geojson`. Entity-source overlays are refreshed when the card redraws (open/reload/config change), not on every state tick.
+
+### 📐 Distance lines between entities
+Draw a live "as-the-crow-flies" line with a distance label between two entities (or an entity and a zone) — e.g. how far a person is from home, or between two trackers. Updates as they move. Configure it visually in the editor's **Panels** tab (Distance Lines → **+ Add**), or in YAML:
+
+```yaml
+distance_lines:
+  - from: person.alice
+    to: zone.home
+    color: '#7e57c2'
+  - from: person.alice
+    to: person.bob
+```
+> This is a **free** straight-line distance — for turn-by-turn driving/walking routes with traffic, use the [Route Search & Travel Time Calculator](#-route-search-and-travel-time-calculator-v504) (which does use billable APIs).
+
+### 📍 Styled popup for map places
+Google's own popup when you click a place or transit-station icon is tiny and can't be restyled. The card **always** intercepts the click and shows **its own** styled popup instead — with the **street address** (reverse-geocoded), the coordinates, the nearest tracked entity + distance, and one-tap **Google Maps** / **Directions** links. There's nothing to configure.
+
+> The street address is reverse-geocoded via **OpenStreetMap (Nominatim)** — keyless and **free**, so it needs **no Google Geocoding API** and won't touch your Google quota. Results are cached per location in the browser, so repeats never hit the network. The place/station *name* is not shown — that would need the paid Places API. Applies to *all* place icons, not just transit stations.
 
 ---
 
@@ -633,7 +681,7 @@ You can choose your best theme—40 now and more to come!
 | `show_gps_accuracy_radius_line` | boolean | **NEW (v4.0.0)** Draw a thin radius line + label showing GPS accuracy distance (zoom-aware)                                     |
 | `show_marker_labels`            | boolean | **NEW (v5.2)** Show a small label under this marker with its state and last-seen age. Default: `false`. |
 | `min_accuracy`                  | number  | **NEW (v5.2) GPS jitter filter.** Inside your shown zones, history points whose GPS accuracy is worse (larger) than this many meters are dropped from the polyline, so a stationary entity's trail doesn't jump. `0`/unset = no filtering. |
-| `weather_badges`                | boolean | **NEW (v5.15)** Show an Open-Meteo temperature + condition badge on this marker and a 3-day forecast in its popup (no API key). `person`/`device_tracker` only. Default: `false`. |
+| `weather_badges`                | boolean | **NEW (v5.15)** Show an Open-Meteo temperature + condition badge on this marker and a today + tomorrow forecast in its popup (no API key). `person`/`device_tracker` only. Default: `false`. |
 
 ### 👤 Geo Location Sources
 
@@ -662,6 +710,7 @@ You can choose your best theme—40 now and more to come!
 | `show_waqi_button`       | boolean | **NEW (v5.15)** Show the Air Quality (WAQI) toggle button (needs `waqi_token`).                 |
 | `show_rainviewer_button` | boolean | **NEW (v5.15)** Show the animated Rain Radar (RainViewer) toggle button.                        |
 | `show_usgs_button`       | boolean | **NEW (v5.15)** Show the Earthquakes (USGS) toggle button.                                      |
+| `show_measure_button`    | boolean | **NEW (v6.01)** Show the Measure tool button — click points to measure distance (and area for 3+ points). Toggle off to clear. |
 | `buttons_opacity`        | float   | Opacity of all buttons on the map. Buttons will be solid when hover                             |
 
 ### 🌍 Localization & External Control
@@ -684,6 +733,9 @@ You can choose your best theme—40 now and more to come!
 | `weather_layer_contrast` | number | Contrast of weather patterns (1.0 = normal). Increase to make patterns more visible. Default: `1.0` |
 | `weather_layer_saturation` | number | Color intensity of the weather layer (1.0 = normal, 0 = grayscale). Default: `1.0` |
 | `owm_api_key`   | string  | Create api and restrict it 1000 per day [https://home.openweathermap.org/api_keys](https://home.openweathermap.org/api_keys) |
+| `geodesic_polylines` | boolean | **NEW (v6.01)** History/flight trails follow the great-circle (true shortest) path — curved on the map over long distances. **Default: `true`.** Set `false` for straight screen-space lines. |
+| `geojson_layers` | list | **NEW (v6.01)** Custom GeoJSON overlays rendered client-side (free). Each item: `url` / `entity`(+`attribute`) / inline `geojson`, plus `stroke_color`, `fill_color`, `fill_opacity`, `stroke_width`, `show_popup`. See [Free Google Layers & Tools](#-free-google-layers--tools-v601). |
+| `distance_lines` | list | **NEW (v6.01)** Live crow-flies distance lines between entities. Each item: `from`, `to` (entity/zone ids), optional `color`. Free — no billable API. |
 | `daynight`      | boolean | **NEW (v5.15)** Enable the Day/Night terminator overlay at load. Its map button is toggled separately (`show_daynight_button`). Default: `false`. |
 | `rainviewer`    | boolean | **NEW (v5.15)** Enable the animated Rain Radar overlay at load. Its map button is toggled separately (`show_rainviewer_button`). Default: `false`. |
 | `waqi_token`    | string  | **NEW (v5.15)** Free World Air Quality Index token from [aqicn.org/data-platform/token](https://aqicn.org/data-platform/token). Required for the AQI layer. |
@@ -715,6 +767,7 @@ You can choose your best theme—40 now and more to come!
 | `show_waqi_button_position`       | string | **NEW (v5.15)** Position of the Air Quality toggle button. Default: `TOP_RIGHT`. |
 | `show_rainviewer_button_position` | string | **NEW (v5.15)** Position of the Rain Radar toggle button. Default: `TOP_RIGHT`. |
 | `show_usgs_button_position`       | string | **NEW (v5.15)** Position of the Earthquakes toggle button. Default: `TOP_RIGHT`. |
+| `show_measure_button_position` | string | **NEW (v6.01)** Position of the measure-tool button. Default: `TOP_RIGHT`. |
 
 ### ⚠️ Rotate & Tilt Limitations (Raster Mode)
 
