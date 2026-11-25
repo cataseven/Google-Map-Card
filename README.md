@@ -70,6 +70,9 @@
   * **🕐 Local time in popups** — when a marker sits in another time zone, its popup shows the local time there (automatic).
 * **🏷️ Marker Labels** 🆕 (v5.2) — per-entity state + last-seen label under the marker (`show_marker_labels`).
 * **🖼️ Custom Name & Picture** 🆕 (v6.02) — per-entity `picture:` gives a marker photo to entities Home Assistant has none for (any `device_tracker`, `sensor`…) or replaces a person's; `name:` renames an entity across the whole card; `show_name: true` prints that name under the marker.
+* **🕰️ Late-Upload History (fix time)** 🆕 (v6.03) — per-entity `history_timestamp_attribute`: for trackers that buffer positions offline and upload them later, history trails are placed and ordered by the tracker's **real fix time** instead of the moment Home Assistant received them, and late uploads still land in the date range they belong to.
+* **📏 Imperial units** 🆕 (v6.04) — `unit_system: auto | metric | imperial`; `auto` follows Home Assistant, so US-customary setups get mi / ft / mph / °F everywhere (popups, route search, measure tool, distance lines, zone dialogs, flight panel, weather badges, scale bar).
+* **🏷️ Icon-only zones** 🆕 (v6.04) — per-zone `show_name: false` keeps just the zone's icon on the map; click any zone icon for its details (radius, who's inside) and Edit / Delete / Hide.
 * **🫥 Stale Marker Fade** 🆕 (v5.2) — markers whose entity hasn't updated in N minutes fade out (`stale_marker_minutes`).
 * **🧹 GPS Jitter Filter** 🆕 (v5.2) — per-entity `min_accuracy`: drop low-accuracy history points **inside your shown zones** so trails don't jump while stationary.
 * **🔢 Zone Occupancy Badge** 🆕 (v5.2) — show a count of how many tracked entities are inside each shown zone.
@@ -87,9 +90,10 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 | API | Purpose | Required for |
 |-----|---------|-------------|
 | **Maps JavaScript API** | Core map rendering | All features (required) |
-| **Directions API** | Route calculation, alternatives, duration & distance | Route Search and Travel Time Calculator |
+| **Routes API** | Route calculation, alternatives, duration, distance and live-traffic colours | Route Search and Travel Time Calculator |
 | **Places API (New)** | Address autocomplete in travel panel | Route Search and Travel Time Calculator |
-| **Routes API** | Real-time traffic segment data for color-coded polylines | Route Search and Travel Time Calculator |
+
+> 🆕 **Since v6.04 the legacy Directions API is no longer needed.** Google stopped letting new Cloud projects enable it (October 2026), so route search now runs entirely on the **Routes API**. If you set the card up before, make sure **Routes API** is enabled (and allowed in your key's API restrictions) — you can then disable the Directions API.
 
 ![image4](images/apis2.png)
 
@@ -99,16 +103,20 @@ If you plan to use the **Route Search and Travel Time Calculator**, you also nee
 
 Google Maps Platform follows a "Pay-as-you-go" model, but don't let that scare you — **Google provides a very generous free tier that comfortably covers typical Home Assistant usage.** Most home users will never come close to the limits.
 
-Here's how much you get for free every month (as of March 2025):
+Here's how much you get for free every month (Google list prices, checked November 2026). Free amounts are **per Google billing account** — shared with every other app or integration that uses the same billing account:
 
-| Feature | Required API | Free Monthly Limit | What That Means for You |
+| Feature | Google SKU | Free Monthly Limit | Above the free limit |
 | :--- | :--- | :--- | :--- |
-| **Core Map Rendering** | Maps JavaScript API (Dynamic Maps) | **10,000** map loads | ~330 map loads/day — plenty for a household dashboard |
-| **Route Calculation** | Directions API | **10,000** requests | ~330 routes/day — way more than daily commute checks |
-| **Address Autocomplete** | Places API (New) | **10,000** requests | ~330 autocomplete sessions/day |
-| **Live Traffic Routes** | Routes API | **5,000 – 10,000** requests | More than enough for regular route queries |
+| **Core Map Rendering** | Maps JavaScript API — Dynamic Maps | **10,000** map loads | $7 / 1,000 |
+| **Route search — driving, live traffic + coloured route** (default) | Routes API — Compute Routes **Enterprise** | **1,000** searches | $15 / 1,000 |
+| **Route search — driving, live-traffic time only** (`travel_traffic: eta`) | Routes API — Compute Routes **Pro** | **5,000** searches | $10 / 1,000 |
+| **Route search — driving without traffic** (`travel_traffic: none`) and **walking / cycling / transit** | Routes API — Compute Routes **Essentials** | **10,000** searches | $5 / 1,000 |
+| **Address autocomplete** | Places API (New) — Autocomplete Requests | **10,000** requests | $2.83 / 1,000 |
+| **Picking an address** | Places API (New) — Place Details **Essentials** | **10,000** | $5 / 1,000 |
 
-To put this in perspective: if you open your HA dashboard 10 times a day and calculate 5 routes, that's still only ~450 map loads and ~150 API calls in a month — **well under 5% of your free quota.** You'd need to be loading the map hundreds of times daily to even approach the limits.
+**One route search = one Routes API request** — switching between alternative routes, changing the travel mode or the units never sends another one. For a typical household (a few searches a day) that stays well inside the free amounts.
+
+> ⚠️ **Shared free amounts:** Home Assistant's own **Google Maps Travel Time** integration bills the same Routes API tiers — its driving sensors use **Pro** (one sensor polls about 4,300 times a month, of the 5,000 free), its walking / cycling / transit (or traffic-unaware) sensors use **Essentials**. If you run such sensors, the card's `travel_traffic: eta` shares the Pro pool, and `none` plus walking / cycling / transit searches share the Essentials pool; the default coloured-route option (Enterprise) has a pool of its own.
 
 > 💡 **In short:** For personal / household use, the free tier is more than enough. You won't pay a cent unless you do something unusual.
 
@@ -124,7 +132,7 @@ That said, if you want extra peace of mind (always a good idea!), you can set a 
 
 These are simple one-time steps to make sure you're fully protected — they only take a minute:
 
-1. **Set a daily quota cap** — Go to **APIs & Services → Quotas** and lower the "Unlimited" daily limit to something comfortable (e.g., 200/day). This creates a hard ceiling so you can never accidentally exceed the free tier.
+1. **Set a daily quota cap** — Go to **APIs & Services → Quotas** and lower the "Unlimited" daily limit to something comfortable. This creates a hard ceiling for that API. Pick it per API: for route search with coloured traffic (Enterprise, 1,000 free a month) a cap of about **30 requests/day** keeps you inside the free amount; map loads (10,000 free) can stay much higher.
 2. **Create a budget alert** — Go to **Billing → Budgets & Alerts** and set a $1–2/month alert. Google will email you if costs approach your threshold. Think of it as a smoke detector — you'll probably never hear it, but it's nice to have.
 3. **Restrict your API key** — Limit it to only the APIs you actually use.
 
@@ -137,7 +145,17 @@ For a great walkthrough on setting up your API key safely, check out this video 
 
 ### 🚗 Route Calculator — Built-in Safety Net
 
-Each route calculation triggers multiple API calls behind the scenes (Directions + Routes + Places autocomplete), so 50 route calculations could mean ~150+ total API calls. To keep things safe by default, **this card has a built-in soft limit of 50 route calculations per day per API key** (shared across all browser instances). That's still plenty for daily use — you'd have to actively try to hit it.
+Since v6.04 each route search is **exactly one Routes API request** (it used to be a Directions request plus one or more traffic requests). Address autocomplete uses **session tokens**, so a typed address and the pick that follows are billed as one session. As an extra safety net, **this card stops after 50 route searches per day** — counted per browser (each phone, tablet or PC, and each Home Assistant address you open, has its own 50), and counted before the request is sent.
+
+**Which Google pricing tier a driving search uses is your choice** (`travel_traffic`, also in the editor under Panels → Route Search):
+
+| `travel_traffic` | What you get | Google tier |
+| :--- | :--- | :--- |
+| `colors` (default) | Live-traffic travel time **and** the green / yellow / red route | Compute Routes Enterprise |
+| `eta` | Live-traffic travel time, plain blue route | Compute Routes Pro |
+| `none` | Typical travel time without live traffic | Compute Routes Essentials |
+
+Walking, cycling and transit are always Essentials. Compared with v6.03, every option costs the same or less per search — with one exception: if your key's project did **not** have the Routes API enabled before, you had no traffic colours, and the default `colors` now bills at the Enterprise rate; choose `eta` or `none` if you prefer.
 
 > 💡 For the best protection, combine this built-in limit with a hard daily quota in your Google Cloud Console (see the safety steps above). Belt and suspenders!
 
@@ -219,7 +237,7 @@ If you are using Home Assistant’s **Panel** dashboard layout, the recommended 
 
 ---
 
-# 🚗 Route Search and Travel Time Calculator (v5.0.4)
+# 🚗 Route Search and Travel Time Calculator
 
 ![image64](images/rou.png)
 
@@ -228,15 +246,15 @@ Calculate real-time travel times between any combination of **entities**, **zone
 ## What you get
 
 * **Docked travel panel** with flexible positioning (above / below the map)
-* **Map-based route info bar** — after calculating, a compact bar appears at the top of the map showing travel time, distance, and route name. No list, no clutter.
+* **Map-based route info bar** — after calculating, a compact bar appears at the top of the map showing travel time and distance (and which alternative is fastest). No list, no clutter.
 * **Multi-modal routing** — Driving 🚗, Walking 🚶, Transit 🚌, Cycling 🚴
-* **Live traffic-colored routes** for driving mode:
+* **Live traffic-colored routes** for driving mode (`travel_traffic: colors`, the default):
   * 🟢 Green — Normal flow
   * 🟡 Yellow — Slow traffic
   * 🔴 Red — Heavy traffic / Traffic jam
 * **Alternative routes** — click any route line on the map or use Prev / Next in the info bar to switch between options
 * **Address autocomplete** — powered by Places API (New) with instant suggestions
-* **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels for one-tap calculation
+* **Route Shortcuts** ⚡ — define frequently used routes with custom icons and labels; one tap fills From / To, then press search
   * Selected shortcut is highlighted so you always know which one is active
   * Supports `person`, `device_tracker`, and `zone` entities
   * Collapsible editor with label-based headers
@@ -247,9 +265,10 @@ Calculate real-time travel times between any combination of **entities**, **zone
 
 The Route Search and Travel Time Calculator requires these additional APIs to be enabled in [Google Cloud Console](https://console.cloud.google.com/apis/library):
 
-* **Directions API** — Route calculation
+* **Routes API** — Route calculation, alternatives and traffic colours (one request per search)
 * **Places API (New)** — Address autocomplete
-* **Routes API** — Traffic segment data
+
+The legacy **Directions API is no longer used** (since v6.04). If a search fails, the panel says why — e.g. *"The Routes API is not enabled for this API key's Google Cloud project"* or *"This API key's API restrictions don't include the Routes API"*. If your key has **Website restrictions**, allow your Home Assistant address (e.g. `https://your-ha-host/*`) — the card sends that address with its route and address requests.
 
 
 # 🌍 Map & Format Language
@@ -657,6 +676,7 @@ You can choose your best theme—40 now and more to come!
 | `spiderfy`             | boolean | If `true`, after some zoom level, icons of entities with exact location will be separated by some distance in order to see all icons |
 | `allow_open_google_maps`   | boolean | Allow opening Google Maps from info popups via right-click / long-press. Default: `true`.             |
 | `hide_map_links`           | boolean | Hide Google Maps & Apple Maps links from all info popups. Default: `false`. **NEW (v5.0.4)**          |
+| `media_proxy`              | string  | Prefix of a CORS proxy for marker photos, e.g. `https://your-proxy/?url=` (the image URL is appended, URL-encoded). Only needed to get **round** marker icons for photos hosted somewhere that sends no `Access-Control-Allow-Origin` — see [Marker pictures & CORS](#-marker-pictures--cors). |
 | `history_preset`           | string  | Relative date range preset. Accepted values: `today`, `yesterday`, `last7`, `last15`. When set, the date range is **recalculated on every page load** relative to the current date — so it never goes stale. Overrides `history_start_date` / `history_end_date`. |
 | `history_start_date`   | string  | Fixed start of the date range (ISO 8601, e.g. `"2026-02-20T21:00:00.000Z"`). Used only when `history_preset` is `null`. |
 | `history_end_date`     | string  | Fixed end of the date range (ISO 8601). Used only when `history_preset` is `null`. |
@@ -692,9 +712,55 @@ You can choose your best theme—40 now and more to come!
 | `show_marker_labels`            | boolean | **NEW (v5.2)** Show a small label under this marker with its state and last-seen age. Default: `false`. |
 | `min_accuracy`                  | number  | **NEW (v5.2) GPS jitter filter.** Inside your shown zones, history points whose GPS accuracy is worse (larger) than this many meters are dropped from the polyline, so a stationary entity's trail doesn't jump. `0`/unset = no filtering. |
 | `weather_badges`                | boolean | **NEW (v5.15)** Show an Open-Meteo temperature + condition badge on this marker and a today + tomorrow forecast in its popup (no API key). `person`/`device_tracker` only. Default: `false`. |
-| `name`                          | string  | **NEW (v6.02)** Custom display name for this entity, replacing its Home Assistant name everywhere on the card (marker tooltip, popup title, panels). Leave unset to keep the HA name. |
+| `name`                          | string  | **NEW (v6.02)** Custom display name for this entity on the map — marker tooltip, marker label (`show_name`) and popup title. Leave unset to keep the HA name. |
 | `picture`                       | string  | **NEW (v6.02)** Custom marker image — give a photo to entities Home Assistant has no picture for (`device_tracker`, `sensor`, …), or replace a `person`'s. Accepts `/local/...` or a full URL. Rendered as the usual circular marker. |
 | `show_name`                     | boolean | **NEW (v6.02)** Print the entity's name under its marker on the map (the custom `name` when set, otherwise the HA name). Combines with `show_marker_labels` / `weather_badges` in one label. Default: `false`. |
+| `history_timestamp_attribute`   | string  | **NEW (v6.03)** Name of a state attribute that holds the tracker's **real fix time** (e.g. `fix_timestamp`). History points are then timed, filtered and ordered by it instead of by when Home Assistant received them. Epoch seconds / milliseconds or ISO-8601. Unset = unchanged behaviour. See *Trackers that upload late* below. |
+| `history_timestamp_lookahead_hours` | number | **NEW (v6.03)** With `history_timestamp_attribute`: how many hours past the end of a date range to keep looking for late uploads that belong inside it. Default `24`, max `168`, `0` = don't look past the range. |
+
+#### 🖼️ Marker pictures & CORS
+
+Marker photos are drawn into a **round** icon on a canvas, and reading that canvas back requires the image host to send an `Access-Control-Allow-Origin` header. Photos served by Home Assistant (`/local/...`, `/api/...`) always do; some external hosts don't — most notably Google's account photos (`lh3.googleusercontent.com`) used by the **Google Maps integration**.
+
+Since **v6.03**, such a picture is still shown on the marker, just **square** (and without the GPS-accuracy ring or name label composited on top) rather than missing entirely, and the browser console explains it once. Two ways to get the round icon:
+
+1. **Host the image in Home Assistant** — copy it to `/config/www` and point the entity at it:
+   ```yaml
+   entities:
+     - entity: device_tracker.someone
+       picture: /local/someone.png
+   ```
+2. **Use a CORS proxy** — set the card-level `media_proxy` prefix (see the main options table).
+
+> This is a browser security rule, not a card limitation: *displaying* a cross-origin image is always allowed, but *reading its pixels* (needed to crop it into a circle) is not. That's why the same photo can look fine in an entity's popup while its marker doesn't get the round icon.
+
+#### 🕰️ Trackers that upload late (fix-time history)
+
+Some trackers keep recording positions while they're offline and upload the whole batch when they reconnect. Home Assistant stores every state with the time it **received** it, so a position measured at 07:40 but uploaded at 09:00 shows up at 09:00 — the trail jumps back and forth, and a point can even fall outside the date range it belongs to.
+
+If the tracker also reports **when it actually took the fix** in one of its attributes, point the card at it:
+
+```yaml
+entities:
+  - entity: device_tracker.my_gps
+    hours_to_show: 24
+    history_timestamp_attribute: fix_timestamp   # the attribute holding the real fix time
+    history_timestamp_lookahead_hours: 24        # optional (default 24)
+```
+
+What changes for that entity:
+
+- Every history point uses the **fix time** — for the trail order, the dots, the popup's *Recorded at*, the speed estimate and the playback timeline. If Home Assistant got the point a minute or more after the fix, the dot's popup also shows when it was **Received** (e.g. *"(1 h later)"*).
+- For a past **date range**, the card also reads what Home Assistant received in the hours **after** the range ends (`history_timestamp_lookahead_hours`, default 24), so a late upload still lands where it belongs. Set it to the longest delay your tracker can buffer for; it never reaches past "now".
+- Live updates that arrive late are slotted into the trail at their fix time, not tacked onto the end.
+
+Good to know:
+
+- **Accepted formats:** epoch seconds or milliseconds (also micro/nanoseconds), as a number or a string of digits, or an ISO-8601 date-time such as `2026-10-10T07:40:00Z`. An ISO time **without** an offset is read in your Home Assistant time zone. A value the card can't read — or that is more than 7 days older than its reception (or 10+ minutes newer) — falls back to the time Home Assistant recorded for that point.
+- **`person` entities** don't carry their trackers' extra attributes, so for a person the card reads the fix time from the person's own `device_trackers` and draws the trail from the tracker(s) that report it within the shown period (if none do, the person's usual history is shown). Pointing it straight at the `device_tracker` works too.
+- If no history row has a usable value, the trail is drawn exactly as before and the browser console says so once (with the entity and attribute name) — handy for spotting a typo.
+- The **marker** itself still sits where Home Assistant says the entity is *now*.
+- Without `history_timestamp_attribute`, nothing changes.
 
 ### 👤 Geo Location Sources
 
@@ -732,6 +798,7 @@ You can choose your best theme—40 now and more to come!
 | Key | Type | Description |
 | --- | --- | --- |
 | `language` | string | BCP-47 language tag for map labels and date/number formatting (e.g. `en`, `tr`, `ja`, `ru`, `he`, `de-DE`). Leave empty to follow the Home Assistant profile language. Requires page reload after change. |
+| `unit_system` | string | **NEW (v6.04)** `auto` (default), `metric` or `imperial`. Units for distances, speeds, elevation, GPS accuracy, areas and temperatures. `auto` follows Home Assistant's unit system (Settings → System → General): US customary shows mi / ft / mph / °F. Display only — `min_accuracy`, `proximity_radius` and zone radii in the config stay in metres. The map's scale bar is switched too (Google offers no setting for it, so the card toggles it the way a click would). |
 | `history_date_entity` | string | `input_datetime` entity that controls the history date range. The selected day is automatically expanded to 00:00–23:59. |
 | `history_start_entity` | string | `input_datetime` entity for the start of an explicit date range. Used together with `history_end_entity`. |
 | `history_end_entity` | string | `input_datetime` entity for the end of an explicit date range. Used together with `history_start_entity`. If both range entities are set, they take precedence over `history_date_entity`. |
@@ -876,6 +943,17 @@ zoom: 15
 | `zone_opacity`       | float   | Opacity for the zone fill color (0.0 to 1.0).             |
 | `zone_label_opacity` | float   | Opacity for the zone label color (0.0 to 1.0).            |
 | `follow`             | boolean | Centre the map                                            |
+| `label_color`        | string  | Color of the zone's icon and name (default: theme color). |
+| `show_name`          | boolean | **NEW (v6.04)** `false` = show only the zone's **icon** (its name appears on hover). Handy when many zones are close together. Default: `true`. |
+
+Click a zone's icon to see its details — name, radius, who's inside — with Edit / Delete / Hide shortcuts (since v6.04).
+
+```yaml
+zones:
+  zone.office:
+    show: true
+    show_name: false   # icon only
+```
 
 ### 🏪 POI
 
@@ -889,6 +967,7 @@ zoom: 15
 | -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
 | `travel_panel_enabled`                     | boolean | Enable or disable the Route Search and Travel Time Calculator panel. Default: `true`.                 |
 | `travel_panel_position`                    | string  | Panel position relative to the map: `above` or `below`. Default: `above`.                            |
+| `travel_traffic`                           | string  | **NEW (v6.04)** Google pricing tier of a **driving** search: `colors` (default — live traffic + coloured route, Compute Routes Enterprise), `eta` (live-traffic time only, Pro) or `none` (no live traffic, Essentials). See *Route Calculator — Built-in Safety Net*. |
 | `show_travel_panel_toggle_button`          | boolean | Show or hide the toggle button on the map. Default: `true`.                                           |
 | `show_travel_panel_toggle_button_position` | string  | Position of the toggle button on the map. Default: `LEFT_BOTTOM`.                                    |
 | `travel_shortcuts`                     | list    | List of predefined route shortcuts for quick calculation.                                             |
